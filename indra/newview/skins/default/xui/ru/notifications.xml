@@ -3345,12 +3345,12 @@
 	</notification>
 	<notification name="MeshUploadErrorDetails">
 		Не удалось передать [LABEL]: [MESSAGE] 
-[DETAILS]см. Slipstream.log для получения более подробной информации
+[DETAILS]см. Prestige.log для получения более подробной информации
 	</notification>
 	<notification name="MeshUploadError">
 		Не удалось передать [LABEL]: [MESSAGE] 
 
-см. Slipstream.log для получения более подробной информации
+см. Prestige.log для получения более подробной информации
 	</notification>
 	<notification name="MeshUploadPermError">
 		Ошибка при запросе разрешений на передачу меша.

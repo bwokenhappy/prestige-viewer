@@ -3313,12 +3313,12 @@ SHA1 指紋：[MD5_DIGEST]
 	</notification>
 	<notification name="MeshUploadErrorDetails">
 		[LABEL]上傳失敗：[MESSAGE]
-[DETAILS]詳情見 Slipstream.log
+[DETAILS]詳情見 Prestige.log
 	</notification>
 	<notification name="MeshUploadError">
 		[LABEL]上傳失敗：[MESSAGE]
 
-詳情見Slipstream.log
+詳情見Prestige.log
 	</notification>
 	<notification name="MeshUploadPermError">
 		請求網面上傳權限時出錯。

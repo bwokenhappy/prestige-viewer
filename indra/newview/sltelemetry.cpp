@@ -585,6 +585,10 @@ void startup(bool anotherPrompt)
         beginPurge(&savePrivacy); // Also cleans queues revoked by older versions.
     if (sPurge.load()) schedulePurge();
     if (enabled()) { try { activate(); } catch (...) { warning(); } }
+    // <Prestige> Telemetry has no endpoint in Prestige (SLTelemetryURL is empty), so nothing
+    // could ever be sent: don't ask the user to opt in to it.
+    if (gSavedSettings.getString("SLTelemetryURL").empty()) return;
+    // </Prestige>
     if (anotherPrompt || !needsPrompt(gSavedSettings.getS32("SLTelemetryConsent"))) return;
     LLNotificationsUtil::add(gSavedSettings.getS32("SLTelemetryConsent") == 0 ? "SLTelemetryPrompt" : "SLTelemetryPromptScope",
         LLSD(), LLSD(), [](const LLSD& notification, const LLSD& response)

@@ -202,7 +202,7 @@
             follows="left|top"
             font="SansSerifMedium"
             label="Start in VR"
-            tool_tip="Restart Slipstream in VR (beta) through your VR runtime, e.g. SteamVR. Without a headset it starts on the desktop again."
+            tool_tip="Restart Prestige in VR (beta) through your VR runtime, e.g. SteamVR. Without a headset it starts on the desktop again."
             name="start_vr_btn"
             left="42"
             top="56"

@@ -74,7 +74,7 @@
      tear_off="true"
      name="Help">
         <menu_item_call
-         label="Slipstream Help (wiki)"
+         label="Slipstream Wiki (feature guide)"
          name="Slipstream Help">
             <menu_item_call.on_click
              function="Help.OpenExternalURL"
@@ -82,13 +82,14 @@
         </menu_item_call>
         <menu_item_call
          label="Slipstream website"
-         name="Slipstream Website">
+         name="Slipstream Website"
+         visible="false">
             <menu_item_call.on_click
              function="Help.OpenExternalURL"
              parameter="https://slipstreamviewer.org/" />
         </menu_item_call>
         <menu_item_call
-         label="Set up Slipstream like my old viewer..."
+         label="Set up Prestige like my old viewer..."
          name="First Run Chooser">
             <menu_item_call.on_click
              function="Floater.Show"

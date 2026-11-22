@@ -75,7 +75,7 @@ endif
 export PYTHON := $(VENV_PY)
 # Versioning (scripts/ci/version.sh): MAJOR.MINOR.PATCH from
 # indra/newview/VIEWER_VERSION.txt, BUILD from CI (0 locally), channel from the tag.
-VIEWER_CHANNEL ?= Slipstream Test
+VIEWER_CHANNEL ?= Prestige Test
 BUILD_ID       ?= 0
 EXTRA_CMAKE_FLAGS += "-DVIEWER_CHANNEL=$(VIEWER_CHANNEL)" "-DVIEWER_BUILD_ID=$(BUILD_ID)"
 # Developer test-control channel (indra/newview/sltestctl.h): `make TESTCTL=1` for our own

@@ -15,7 +15,7 @@
   <group name="interface" label="Interface" />
   <group name="chat" label="Chat" />
   <group name="floaters" label="Floaters" />
-  <group name="slipstream" label="Slipstream features" />
+  <group name="slipstream" label="Prestige features" />
   <group name="camera" label="Camera mode" />
   <group name="studio" label="Video Studio" />
 

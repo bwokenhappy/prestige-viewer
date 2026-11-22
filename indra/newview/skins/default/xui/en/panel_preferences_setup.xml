@@ -170,6 +170,7 @@
      layout="topleft"
      left="30"
      name="Software updates:"
+     visible="false"
      mouse_opaque="false"
      top_pad="5"
      width="300">
@@ -184,7 +185,8 @@
     left_delta="50"
     mouse_opaque="true"
     name="update_check_enabled"
-    tool_tip="Once a day, ask slipstreamviewer.org whether a newer Slipstream is out and tell you if so. Nothing about you is sent. Nothing is downloaded or installed without you."
+    visible="false"
+    tool_tip="Once a day, ask slipstreamviewer.org whether a newer Prestige is out and tell you if so. Nothing about you is sent. Nothing is downloaded or installed without you."
     width="170"
     top_pad="5"/>
   <button
@@ -194,6 +196,7 @@
     layout="topleft"
     left_pad="10"
     name="update_check_now"
+    visible="false"
     top_delta="-3"
     width="100">
     <button.commit_callback
@@ -209,6 +212,7 @@
     left="80"
     mouse_opaque="true"
     name="update_show_release_notes"
+    visible="false"
     tool_tip="The first time a new version starts, open its release notes (slipstreamviewer.org)."
     width="400"
     top_pad="5"/>
@@ -221,6 +225,7 @@
     left="80"
     mouse_opaque="true"
     name="update_willing_to_test"
+    visible="false"
     tool_tip="The update check also tells you about beta versions, not only final releases. Beta builds always offer betas."
     width="400"
     top_pad="5"/>

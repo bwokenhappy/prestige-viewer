@@ -893,11 +893,11 @@ static void migrateAlchemyUserDir()
     if (base.empty()) return;
 #if LL_LINUX
     if (getenv("SLIPSTREAMVIEWER_USER_DIR")) return;   // user-chosen location: leave it alone
-    const fs::path old_dir = fsyspath(base + "/.alchemyviewer");
-    const fs::path new_dir = fsyspath(base + "/.slipstreamviewer");
+    const fs::path old_dir = fsyspath(base + "/.slipstreamviewer");
+    const fs::path new_dir = fsyspath(base + "/.prestigeviewer");
 #else
-    const fs::path old_dir = fsyspath(base) / "AlchemyViewer";
-    const fs::path new_dir = fsyspath(base) / "SlipstreamViewer";
+    const fs::path old_dir = fsyspath(base) / "SlipstreamViewer";
+    const fs::path new_dir = fsyspath(base) / "PrestigeViewer";
 #endif
     auto utf8 = [](const fs::path& p) { const auto u = p.u8string(); return std::string(u.begin(), u.end()); };
     std::error_code ec;
@@ -911,10 +911,10 @@ static void migrateAlchemyUserDir()
         fs::copy(e.path(), new_dir / e.path().filename(),
                  fs::copy_options::recursive | fs::copy_options::skip_existing, cec);
         if (cec)
-            fprintf(stderr, "Slipstream: could not copy %s from the Alchemy data directory: %s\n",
+            fprintf(stderr, "Prestige: could not copy %s from the Slipstream data directory: %s\n",
                     name.c_str(), cec.message().c_str());
     }
-    fprintf(stderr, "Slipstream: copied settings from %s to %s\n", utf8(old_dir).c_str(), utf8(new_dir).c_str());
+    fprintf(stderr, "Prestige: copied settings from %s to %s\n", utf8(old_dir).c_str(), utf8(new_dir).c_str());
 }
 
 LLAppViewer::LLAppViewer()
@@ -952,7 +952,7 @@ LLAppViewer::LLAppViewer()
     // Need to do this initialization before we do anything else, since anything
     // that touches files should really go through the lldir API
     migrateAlchemyUserDir();
-    gDirUtilp->initAppDirs("SlipstreamViewer");
+    gDirUtilp->initAppDirs("PrestigeViewer");
     //
     // IMPORTANT! Do NOT put anything that will write
     // into the log files during normal startup until AFTER
@@ -11421,7 +11421,7 @@ void LLAppViewer::processMarkerFiles()
 
 std::string LLAppViewer::getInstanceLogBaseName() const
 {
-    return mInstanceSlot > 1 ? llformat("Slipstream-%d", mInstanceSlot) : std::string("Slipstream");
+    return mInstanceSlot > 1 ? llformat("Prestige-%d", mInstanceSlot) : std::string("Prestige");
 }
 
 std::string LLAppViewer::getLogFilePath() const

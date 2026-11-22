@@ -11,10 +11,10 @@ that are returned from one component and may appear in many places
 		Second Life
 	</string>
 	<string name="APP_NAME">
-		Slipstream
+		Prestige
 	</string>
 	<string name="CAPITALIZED_APP_NAME">
-		SLIPSTREAM
+		PRESTIGE
 	</string>
 	<string name="SECOND_LIFE_GRID">
 		Second Lifeグリッド
@@ -39,8 +39,8 @@ that are returned from one component and may appear in many places
 	<string name="AboutHeader">
 		[CHANNEL]　[VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2].[VIEWER_VERSION_3]（[ADDRESS_SIZE]bit）（[ARCHITECTURE]）
 [[VIEWER_RELEASE_NOTES_URL] [ReleaseNotes]]
-Source code: https://git.slipstreamviewer.org/sky_line/Slipstream
-Privacy: https://slipstreamviewer.org/privacy.html
+Source code: https://github.com/prestige-viewer/prestige-viewer
+Privacy: Prestige Viewer collects no data.
 
 This software is not provided or supported by Linden Lab, the makers of Second Life.
 </string>
@@ -238,10 +238,10 @@ LibVLCのバージョン：[LIBVLC_VERSION]
 		Second Lifeベータテストグリッド（Aditi）
 	</string>
 	<string name="ViewerDownloadURL">
-		https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+		https://github.com/prestige-viewer/prestige-viewer/releases
 	</string>
 	<string name="LoginFailedViewerNotPermitted">
-		お使いの古いビューアでは、Second Lifeにアクセスできません。以下のページから新しいビューアをダウンロードしてください：https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+		お使いの古いビューアでは、Second Lifeにアクセスできません。以下のページから新しいビューアをダウンロードしてください：https://github.com/prestige-viewer/prestige-viewer/releases
 
 詳細については、ＦＡＱを参照してください：
 https://secondlife.com/viewer-access-faq
@@ -694,7 +694,7 @@ Second Lifeのサポートまでお問い合わせください。
 	</string>
 	<!-- Always mark translate="false" for strings that are nothing but URLs, as they don't need translation. -->
 	<string name="RELEASE_NOTES_BASE_URL" translate="false">
-		https://git.slipstreamviewer.org/sky_line/Slipstream/releases/tag/
+		https://github.com/prestige-viewer/prestige-viewer/releases/tag/
 	</string>
 	<!-- Indicates something is being loaded. Maybe should be merged with RetrievingData -->
 	<string name="LoadingData">
@@ -3163,7 +3163,7 @@ https://support.secondlife.com よりSecond Lifeのサポートまでお問い�
 	</string>
 	<string name="MBNoAutoUpdate">
 		自動更新は現在 Linux には対応していません。
-https://git.slipstreamviewer.org/sky_line/Slipstream/releases から最新バージョンをダウンロードしてください。
+https://github.com/prestige-viewer/prestige-viewer/releases から最新バージョンをダウンロードしてください。
 	</string>
 	<string name="MBRegClassFailed">
 		RegisterClass 失敗
@@ -3216,7 +3216,7 @@ https://git.slipstreamviewer.org/sky_line/Slipstream/releases から最新バー
 	<string name="MBMissingFile">
 		[APP_NAME]は、実行に必要なファイルの一部にアクセスできないか、ファイルが見つからなかったため閉じられます。
 
-https://git.slipstreamviewer.org/sky_line/Slipstream/releases からビューアを再インストールてください。再インストール後も問題が解決しない場合はSlipstream Viewerチームに連絡してください。
+https://github.com/prestige-viewer/prestige-viewer/releases からビューアを再インストールてください。再インストール後も問題が解決しない場合はPrestige Viewerチームに連絡してください。
 	</string>
 	<!-- Avatar Shape Information -->
 	<string name="5 O'Clock Shadow">
@@ -4717,7 +4717,7 @@ https://git.slipstreamviewer.org/sky_line/Slipstream/releases からビューア
 		更新のダウンロードに失敗しました。
 	</string>
 	<string name="UpdaterFailUpdateDescriptive">
-		[APP_NAME]の更新時にエラーが発生しました。https://git.slipstreamviewer.org/sky_line/Slipstream/releases から最新バージョンをダウンロードしてください。
+		[APP_NAME]の更新時にエラーが発生しました。https://github.com/prestige-viewer/prestige-viewer/releases から最新バージョンをダウンロードしてください。
 	</string>
 	<string name="UpdaterFailInstallTitle">
 		更新のインストールに失敗しました。

@@ -7399,8 +7399,8 @@ private:
 #endif
 #if LL_LINUX
         if (!(mBits & 4u)) return;
-        const char* argv[] = {"notify-send", "-a", "Slipstream", "-u", "normal", "-t", "15000",
-                              "Slipstream", msg.c_str(), nullptr};
+        const char* argv[] = {"notify-send", "-a", "Prestige", "-u", "normal", "-t", "15000",
+                              "Prestige", msg.c_str(), nullptr};
         pid_t pid = 0;
         if (posix_spawnp(&pid, "notify-send", nullptr, nullptr, const_cast<char* const*>(argv), environ) == 0)
             mNotifyPid = pid;

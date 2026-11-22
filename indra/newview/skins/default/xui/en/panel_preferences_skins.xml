@@ -59,7 +59,7 @@
    left_pad="52"
    name="add_skin"
    top_delta="0"
-   tool_tip="Add a skin from a .zip file (Slipstream, Alchemy, Second Life or a zipped Firestorm skin)..."
+   tool_tip="Add a skin from a .zip file (Prestige, Alchemy, Second Life or a zipped Firestorm skin)..."
    width="19">
     <button.commit_callback
      function="Pref.AddSkin" />

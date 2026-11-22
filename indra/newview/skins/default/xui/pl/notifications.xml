@@ -3229,11 +3229,11 @@ Przycisk zostanie wyświetlony w przypadku dostatecznej ilości przestrzeni.
 	</notification>
 	<notification name="MeshUploadErrorDetails">
 		Nie można przesłać [LABEL]: [MESSAGE]
-[DETAILS] Zobacz Slipstream.log, aby dowiedzieć się więcej.
+[DETAILS] Zobacz Prestige.log, aby dowiedzieć się więcej.
 	</notification>
 	<notification name="MeshUploadError">
 		Nie można przesłać [LABEL]: [MESSAGE]
-Zobacz Slipstream.log, aby dowiedzieć się więcej.
+Zobacz Prestige.log, aby dowiedzieć się więcej.
 	</notification>
 	<notification name="MeshUploadPermError">
 		Wystąpił błąd podczas pobierania uprawnień przesyłania meszy.

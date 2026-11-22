@@ -20,7 +20,7 @@
    font.style="BOLD"
    top_pad="10"
    width="450">
-    VR safety and comfort (apply while Slipstream runs in a VR headset)
+    VR safety and comfort (apply while Prestige runs in a VR headset)
   </text>
   <check_box
    control_name="SlipstreamVRSafetyGovernor"
@@ -46,7 +46,7 @@
    top_pad="2"
    wrap="true"
    width="430">
-    A frame rate below the headset's refresh rate can cause motion sickness. When frames are missed, Slipstream lowers draw distance and other costly settings until the frame rate recovers, then restores them. Your settings are not changed.
+    A frame rate below the headset's refresh rate can cause motion sickness. When frames are missed, Prestige lowers draw distance and other costly settings until the frame rate recovers, then restores them. Your settings are not changed.
   </text>
   <text
    type="string"
@@ -270,7 +270,7 @@
    layout="topleft"
    left_pad="4"
    name="vr_body_share"
-   tool_tip="Slipstream users with the helper see your tracked body, arms and head (through pose sharing; needs pose sharing on). Sent only when you move, a few times a second at most."
+   tool_tip="Prestige/Slipstream users with the helper see your tracked body, arms and head (through pose sharing; needs pose sharing on). Sent only when you move, a few times a second at most."
    top_delta="0"
    width="150" />
   <check_box
@@ -317,7 +317,7 @@
    layout="topleft"
    left_pad="0"
    name="vr_space_warp"
-   tool_tip="When your graphics card cannot draw the world at the headset's refresh rate, Slipstream draws it at half rate and fills in every other frame from the last one, moved to where your head and hands are now. The headset keeps its full rate and turning or leaning your head stays smooth. Automatic turns it on only while it is needed."
+   tool_tip="When your graphics card cannot draw the world at the headset's refresh rate, Prestige draws it at half rate and fills in every other frame from the last one, moved to where your head and hands are now. The headset keeps its full rate and turning or leaning your head stays smooth. Automatic turns it on only while it is needed."
    top_delta="-4"
    width="220">
     <combo_box.item

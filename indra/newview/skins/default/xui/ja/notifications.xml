@@ -83,7 +83,7 @@
 		<usetemplate name="okbutton" yestext="ＯＫ"/>
 	</notification>
 	<notification name="BadInstallation">
-		[APP_NAME]のアップデート時にエラーが発生しました。[https://git.slipstreamviewer.org/sky_line/Slipstream/releases 最新バージョンのビューアをダウンロード]してください。
+		[APP_NAME]のアップデート時にエラーが発生しました。[https://github.com/prestige-viewer/prestige-viewer/releases 最新バージョンのビューアをダウンロード]してください。
 		<usetemplate name="okbutton" yestext="ＯＫ"/>
 	</notification>
 	<notification name="LoginFailedNoNetwork">
@@ -1612,7 +1612,7 @@ Second Lifeを使ったことがない場合は、ログインする前にアカ
 		接続に時間がかかっております。お使いのインターネット接続か、[SECOND_LIFE_GRID]の問題と考えられます。
 
 インターネット接続を確認してから数分後に再接続するか、ヘルプをクリックして [SUPPORT_SITE]をご覧になるか、テレポートをクリックしてホームに移動してみてください。
-		<url name="url">https://git.slipstreamviewer.org/sky_line/Slipstream/issues</url>
+		<url name="url">https://github.com/prestige-viewer/prestige-viewer/issues</url>
 		<form name="form">
 			<button name="OK" text="ＯＫ"/>
 			<button name="Help" text="ヘルプ"/>
@@ -1624,7 +1624,7 @@ Second Lifeを使ったことがない場合は、ログインする前にアカ
 
 インターネット接続を確認してから数分後に再接続するか、ヘルプをクリックして [SUPPORT_SITE]をご覧になるか、テレポートをクリックしてホームに移動してみてください。
 		<url name="url">
-			https://git.slipstreamviewer.org/sky_line/Slipstream/issues
+			https://github.com/prestige-viewer/prestige-viewer/issues
 		</url>
 		<form name="form">
 			<button name="OK" text="ＯＫ"/>
@@ -1806,7 +1806,7 @@ Second Lifeを使ったことがない場合は、ログインする前にアカ
 	<notification name="RequiredUpdate">
 		ログインするには、バージョン[VERSION]が必要です。
 下記アドレスから最新バージョンをダウンロードしてください。
-https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+https://github.com/prestige-viewer/prestige-viewer/releases
 		<usetemplate name="okbutton" yestext="ＯＫ"/>
 	</notification>
 	<notification name="PauseForUpdate">
@@ -3625,12 +3625,12 @@ Your L$ balance is shown in the upper-right.
 	<notification name="MeshUploadErrorDetails">
 		[LABEL]をアップロードできませんでした：[MESSAGE]
 [DETAILS]
-詳しくは、Slipstream.logをご覧ください。
+詳しくは、Prestige.logをご覧ください。
 	</notification>
 	<notification name="MeshUploadError">
 		[LABEL]をアップロードできませんでした：[MESSAGE]
 
-詳しくは、Slipstream.logをご覧ください。
+詳しくは、Prestige.logをご覧ください。
 	</notification>
 	<notification name="MeshUploadPermError">
 		メッシュのアップロード許可をリクエスト時にエラーが発生しました。

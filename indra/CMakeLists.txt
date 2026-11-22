@@ -13,7 +13,7 @@
 # 3.19: string(JSON) (3p manifest, Prebuilt.cmake); 3.21: CMakePresets.json v3.
 cmake_minimum_required(VERSION 3.21.0...4.1.0 FATAL_ERROR)
 
-set(ROOT_PROJECT_NAME "Slipstream" CACHE STRING
+set(ROOT_PROJECT_NAME "Prestige" CACHE STRING
     "The root project/makefile/solution name. Defaults to Slipstream." FORCE)
 project(${ROOT_PROJECT_NAME})
 

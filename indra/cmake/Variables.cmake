@@ -160,7 +160,7 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # Default deploy grid
 set(GRID agni CACHE STRING "Target Grid")
 
-set(VIEWER_CHANNEL "Slipstream Test" CACHE STRING "Viewer Channel Name")
+set(VIEWER_CHANNEL "Prestige Test" CACHE STRING "Viewer Channel Name")
 
 set(ENABLE_SIGNING OFF CACHE BOOL "Enable signing the viewer")
 set(SIGNING_IDENTITY "" CACHE STRING "Specifies the signing identity to use, if necessary.")

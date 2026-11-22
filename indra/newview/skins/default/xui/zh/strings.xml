@@ -33,8 +33,8 @@
 	<string name="AboutHeader">
 		[CHANNEL] [VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2].[VIEWER_VERSION_3] ([ADDRESS_SIZE]位元)
 [[VIEWER_RELEASE_NOTES_URL] [ReleaseNotes]]
-Source code: https://git.slipstreamviewer.org/sky_line/Slipstream
-Privacy: https://slipstreamviewer.org/privacy.html
+Source code: https://github.com/prestige-viewer/prestige-viewer
+Privacy: Prestige Viewer collects no data.
 
 This software is not provided or supported by Linden Lab, the makers of Second Life.
 </string>

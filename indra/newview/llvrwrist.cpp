@@ -1061,7 +1061,7 @@ void drawPanel(const Painter& P)
     // (#1594 while space warp works the title gives way to "Warp 45 / 90": rendered / shown frames per second)
     const std::string warp = LLVRSpaceWarp::instance().shortText();
     if (head.empty() && !warp.empty()) head = warp;
-    P.text(head.empty() ? std::string("Slipstream") : head, L.header.x, hy, unread || grabOff || !warp.empty() ? L.text : L.dim, LLFontGL::LEFT,
+    P.text(head.empty() ? std::string("Prestige") : head, L.header.x, hy, unread || grabOff || !warp.empty() ? L.text : L.dim, LLFontGL::LEFT,
            L.header.w * (L.settingsButton ? 0.4f : 0.7f));
     {
         const std::time_t t = std::time(nullptr);

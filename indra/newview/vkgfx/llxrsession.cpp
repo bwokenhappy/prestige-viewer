@@ -799,7 +799,7 @@ void LLXrSession::probe()
     for (uint32_t i = 0; i < enableCount; ++i) LL_INFOS("VR") << "enabling XR extension " << enable[i] << LL_ENDL;
 
     XrInstanceCreateInfo ici{XR_TYPE_INSTANCE_CREATE_INFO};
-    std::snprintf(ici.applicationInfo.applicationName, XR_MAX_APPLICATION_NAME_SIZE, "Slipstream");
+    std::snprintf(ici.applicationInfo.applicationName, XR_MAX_APPLICATION_NAME_SIZE, "Prestige");
     ici.applicationInfo.applicationVersion = 1;
     std::snprintf(ici.applicationInfo.engineName, XR_MAX_ENGINE_NAME_SIZE, "slipstream-vk");
     ici.applicationInfo.engineVersion = 1;
@@ -2048,7 +2048,7 @@ void LLXrSession::createActions()
     }
     XrActionSetCreateInfo asci{XR_TYPE_ACTION_SET_CREATE_INFO};
     std::snprintf(asci.actionSetName, XR_MAX_ACTION_SET_NAME_SIZE, "slipstream");
-    std::snprintf(asci.localizedActionSetName, XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE, "Slipstream");
+    std::snprintf(asci.localizedActionSetName, XR_MAX_LOCALIZED_ACTION_SET_NAME_SIZE, "Prestige");
     asci.priority = 0;
     XrResult r = f.createActionSet(m.inst, &asci, &m.actionSet);
     if (XR_FAILED(r))

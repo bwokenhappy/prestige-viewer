@@ -193,7 +193,7 @@ No tutorial is currently available.
    type="alertmodal">
 You turned off the protection against low frame rates in VR.
 
-In a VR headset, a frame rate below the headset's refresh rate, or uneven frame pacing, can cause motion sickness, nausea and disorientation. Without the protection, Slipstream no longer lowers draw distance and other costly settings when frames are missed.
+In a VR headset, a frame rate below the headset's refresh rate, or uneven frame pacing, can cause motion sickness, nausea and disorientation. Without the protection, Prestige no longer lowers draw distance and other costly settings when frames are missed.
 
 If you feel unwell in VR, take the headset off and rest. You can turn the protection back on in Preferences &gt; Safety.
   </notification>
@@ -4097,7 +4097,7 @@ Map of [REGION] imported. The mini-map shows it while you are there.
    type="alertmodal">
 Upload the map of [REGION] to your inventory as a [SIZE] x [SIZE] px texture for L$[COST]?
 
-Give the texture to anyone with Slipstream or GunMetal-DX: in their inventory, right-click it and choose Use as Region Map. Keep its description as it is: it tells the viewer which region the map is of.
+Give the texture to anyone with Prestige or GunMetal-DX: in their inventory, right-click it and choose Use as Region Map. Keep its description as it is: it tells the viewer which region the map is of.
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -4649,7 +4649,7 @@ Graphics settings applied. Optimized shaders for them are still compiling in the
    icon="alertmodal.tga"
    name="VKGpuLostLastSession"
    type="alertmodal">
-Slipstream closed last time because the graphics driver stopped responding ([WHAT]).
+Prestige closed last time because the graphics driver stopped responding ([WHAT]).
 
 This usually comes from the graphics driver, overlays (Overwolf, Discord, recording tools), another graphics-heavy program, an unstable overclock or undervolt, or settings that are too heavy for the graphics card. Updating the graphics driver often helps.
 
@@ -4667,7 +4667,7 @@ You can turn them back on in Preferences &gt; Graphics. The previous session's r
    icon="alertmodal.tga"
    name="VKOomLastSession"
    type="alertmodal">
-Slipstream closed last time because the computer ran out of memory.
+Prestige closed last time because the computer ran out of memory.
 
 Lowering the graphics settings in Preferences &gt; Graphics (texture memory, draw distance, shadows, reflections) reduces the memory it needs, and closing other programs helps too.
 
@@ -4681,7 +4681,7 @@ If it keeps happening, please use Help &gt; Report Bug: the report includes the 
    icon="alertmodal.tga"
    name="VKGpuLostLastSessionInfo"
    type="alertmodal">
-Slipstream closed last time because the graphics driver stopped responding ([WHAT]).
+Prestige closed last time because the graphics driver stopped responding ([WHAT]).
 
 Ray tracing, the async compute queue and real-time reflections are already off. This usually comes from the graphics driver, overlays (Overwolf, Discord, recording tools), another graphics-heavy program or an unstable overclock or undervolt; updating the graphics driver often helps. Lowering the graphics quality in Preferences &gt; Graphics reduces the load further. The previous session's report is in [FILE] in the logs folder.
     <usetemplate
@@ -4701,7 +4701,7 @@ Safer graphics settings applied and saved:[CHANGES]
    icon="notify.tga"
    name="VKRiskySettingReverted"
    type="notify">
-The previous session closed unexpectedly soon after a graphics setting was raised, so Slipstream set it back to what it was before:[CHANGES]
+The previous session closed unexpectedly soon after a graphics setting was raised, so Prestige set it back to what it was before:[CHANGES]
 You can turn it on again in Preferences &gt; Graphics &gt; Advanced Settings. If it crashes again, please send a bug report (Help &gt; Report Bug) so we can fix it.
   </notification>
 
@@ -4734,7 +4734,7 @@ Take a colour snapshot instead, or try again once the restriction is lifted.
    icon="notify.tga"
    name="VKPipelineQuarantined"
    type="notify">
-A graphics feature was turned off because the graphics driver ([DRIVER]) crashed twice while preparing it. Slipstream keeps it off for the next few sessions so the viewer can start.
+A graphics feature was turned off because the graphics driver ([DRIVER]) crashed twice while preparing it. Prestige keeps it off for the next few sessions so the viewer can start.
 It is tried again automatically after a few sessions without a crash, or after a graphics driver update (which may fix the problem).
 Technical name: [NAMES]
   </notification>
@@ -4897,7 +4897,7 @@ We&apos;re having trouble connecting. There may be a problem with your Internet 
 You can either check your Internet connection and try again in a few minutes, click Help to view the [SUPPORT_SITE], or click Teleport to attempt to teleport home.
     <url option="1" name="url">
 
-			https://git.slipstreamviewer.org/sky_line/Slipstream/issues
+			https://github.com/prestige-viewer/prestige-viewer/issues
     </url>
     <form name="form">
       <button
@@ -4925,7 +4925,7 @@ We&apos;re having trouble connecting. There may be a problem with your Internet 
 
 You can either check your Internet connection and try again in a few minutes or click Help to view the [SUPPORT_SITE].
     <url option="1" name="url">
-			https://git.slipstreamviewer.org/sky_line/Slipstream/issues
+			https://github.com/prestige-viewer/prestige-viewer/issues
     </url>
     <form name="form">
       <button
@@ -5419,7 +5419,7 @@ Finished download of raw terrain file to:
    name="RequiredUpdate"
    type="alertmodal">
 Version [VERSION] is required for login.
-Please download the latest version from https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+Please download the latest version from https://github.com/prestige-viewer/prestige-viewer/releases
     <tag>confirm</tag>
     <usetemplate
      name="okbutton"
@@ -8986,7 +8986,7 @@ Pose names cannot contain any of these characters: / \ : * ? &quot; &lt; &gt; |
    icon="notifytip.tga"
    name="SLPoseStudioBeingPosed"
    type="notifytip">
-[NAME] can pose you now. Slipstream users nearby see the pose. To end it, use Stop being posed in the Pose Studio, or the Stop button on the dialog.
+[NAME] can pose you now. Prestige/Slipstream users nearby see the pose. To end it, use Stop being posed in the Pose Studio, or the Stop button on the dialog.
   </notification>
 
   <notification
@@ -9304,7 +9304,7 @@ The attachment &apos;[NAME]&apos; looks like a scripted AO: it starts animations
    name="SLAOServerAODetected"
    persist="true"
    type="notify">
-A script you wear seems to override your animations server-side (llSetAnimationOverride), like a scripted AO does. Slipstream's AO already stands back for the states it overrides, but the two may still alternate on others.
+A script you wear seems to override your animations server-side (llSetAnimationOverride), like a scripted AO does. Prestige's AO already stands back for the states it overrides, but the two may still alternate on others.
     <form name="form">
       <button
        index="0"
@@ -15586,7 +15586,7 @@ Your bug report #[NUMBER] ("[SUMMARY]") has [WHAT].
    type="notify">
 New to [APP_NAME]? Our help pages explain everything [APP_NAME] adds.
 
-You can find them again any time under Help &gt; Slipstream Help (wiki).
+You can find them again any time under Help &gt; Prestige Help (wiki).
     <tag>confirm</tag>
     <form name="form">
       <button

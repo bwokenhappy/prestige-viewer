@@ -304,7 +304,7 @@ class ViewerManifest(LLManifest):
         return CHANNEL_VENDOR_BASE + ' ' + app_suffix
 
     def exec_name(self):
-        return "SlipstreamViewer"
+        return "PrestigeViewer"
 
     def app_name_oneword(self):
         return ''.join(self.app_name().split())

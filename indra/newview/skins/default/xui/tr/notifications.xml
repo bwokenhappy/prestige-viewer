@@ -3345,12 +3345,12 @@ Yeterli yer olduğunda düğme gösterilecek.
 	</notification>
 	<notification name="MeshUploadErrorDetails">
 		[LABEL] karşıya yüklenemedi: [MESSAGE] 
-[DETAILS]Detaylar için Slipstream.log&apos;a bakın
+[DETAILS]Detaylar için Prestige.log&apos;a bakın
 	</notification>
 	<notification name="MeshUploadError">
 		[LABEL] karşıya yüklenemedi: [MESSAGE] 
 
-Detaylar için Slipstream.log&apos;a bakın
+Detaylar için Prestige.log&apos;a bakın
 	</notification>
 	<notification name="MeshUploadPermError">
 		Karşıya örgü yükleme izinleri talep edilirken hata oluştu.

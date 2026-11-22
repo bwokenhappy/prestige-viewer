@@ -101,7 +101,7 @@ std::string LLInstantReplay::videoFolder()
     }
     if (videos.empty()) videos = h + "/Videos";
 #endif
-    return videos + gDirUtilp->getDirDelimiter() + "Slipstream";
+    return videos + gDirUtilp->getDirDelimiter() + "Prestige";
 }
 
 bool LLInstantReplay::encoderAvailable()
@@ -266,7 +266,7 @@ void LLInstantReplay::save()
     const std::time_t tt = std::time(nullptr);
     char stamp[64];
     std::strftime(stamp, sizeof(stamp), "%Y-%m-%d %H-%M-%S", std::localtime(&tt));
-    const std::string path = dir + gDirUtilp->getDirDelimiter() + "Slipstream " + stamp + ".mp4";
+    const std::string path = dir + gDirUtilp->getDirDelimiter() + "Prestige " + stamp + ".mp4";
     const double buffered = s_enc->bufferedSeconds();
     const uint32_t seconds = kReplaySeconds;
     const double t = now();

@@ -250,21 +250,21 @@
         <check_box
          control_name="SLPosSyncShare"
          height="16"
-         label="Share my precise position with nearby Slipstream users"
+         label="Share my precise position with nearby Prestige/Slipstream users"
          layout="topleft"
          left="30"
          name="pos_sync_share"
-         tool_tip="Other Slipstream viewers nearby draw your avatar exactly where your viewer shows it (sent through the #Slipstream Helper). It is only ever drawn within 2 m of where the region has you, and it changes nothing the region decides: hits, collisions, sits and cameras still use the region's position. Off, or while RLV hides your location, nothing is sent. Still being tuned, so it is off until you turn it on."
+         tool_tip="Other Prestige/Slipstream viewers nearby draw your avatar exactly where your viewer shows it (sent through the #Slipstream Helper). It is only ever drawn within 2 m of where the region has you, and it changes nothing the region decides: hits, collisions, sits and cameras still use the region's position. Off, or while RLV hides your location, nothing is sent. Still being tuned, so it is off until you turn it on."
          top_pad="8"
          width="450" />
         <check_box
          control_name="SLPosSyncReceive"
          height="16"
-         label="Draw nearby Slipstream users at their precise positions"
+         label="Draw nearby Prestige/Slipstream users at their precise positions"
          layout="topleft"
          left="30"
          name="pos_sync_receive"
-         tool_tip="Nearby Slipstream users who share their position are drawn exactly where their own viewers show them (received through the #Slipstream Helper), never more than 2 m from where the region has them. Visual only: hits, collisions, sits and cameras still use the region's position. Still being tuned, so it is off until you turn it on."
+         tool_tip="Nearby Prestige/Slipstream users who share their position are drawn exactly where their own viewers show them (received through the #Slipstream Helper), never more than 2 m from where the region has them. Visual only: hits, collisions, sits and cameras still use the region's position. Still being tuned, so it is off until you turn it on."
          top_pad="4"
          width="450" />
     <button
@@ -405,15 +405,13 @@
   </panel>
 
   <panel label="Usage statistics" name="privacy_preferences_usage_statistics" layout="topleft" follows="top|left">
-    <check_box name="usage_statistics_enabled" label="Send anonymous usage statistics" left="20" top="20" width="470" height="20" layout="topleft" />
+    <check_box name="usage_statistics_enabled" visible="false" label="Send anonymous usage statistics" left="20" top="20" width="470" height="20" layout="topleft" />
     <text name="usage_statistics_intro" left="20" top="55" width="470" height="145" word_wrap="true" layout="topleft">
-About two minutes after login, then hourly: hardware model groups, version, graphics settings and aggregate performance, memory and loading statistics. No account identifier, names, location, chat, paths, serial numbers or language. Similar hardware profiles may still correlate reports.
-
-Raw reports expire after 90 days. Turning this off deletes queued reports; a report already being sent may still arrive. Your choice is saved immediately, including if you later cancel Preferences.
+Prestige Viewer does not collect usage statistics. Nothing about you, your computer or your graphics settings is sent anywhere.
     </text>
-    <button name="usage_statistics_preview" label="See what is sent..." left="20" top="215" width="220" height="25" layout="topleft" />
-    <text name="usage_statistics_queue" left="20" top="255" width="470" height="20" layout="topleft">Reports waiting to send: 0</text>
-    <text name="usage_statistics_privacy" left="20" top="295" width="470" height="40" word_wrap="true" trusted_content="true" layout="topleft">[https://slipstreamviewer.org/privacy.html#usage-statistics Privacy statement]</text>
+    <button name="usage_statistics_preview" visible="false" label="See what is sent..." left="20" top="215" width="220" height="25" layout="topleft" />
+    <text name="usage_statistics_queue" visible="false" left="20" top="255" width="470" height="20" layout="topleft">Reports waiting to send: 0</text>
+    <text name="usage_statistics_privacy" visible="false" left="20" top="295" width="470" height="40" word_wrap="true" trusted_content="true" layout="topleft">[https://slipstreamviewer.org/privacy.html#usage-statistics Privacy statement]</text>
   </panel>
   </tab_container>
 

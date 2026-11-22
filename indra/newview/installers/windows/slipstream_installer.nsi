@@ -20,13 +20,13 @@ RequestExecutionLevel user
 !include "FileFunc.nsh"
 
 !ifndef APP_NAME
-  !define APP_NAME    "Slipstream"   ; Jetstream builds: "Slipstream Jetstream" (installs beside it)
+  !define APP_NAME    "Prestige"   ; Jetstream builds: "Slipstream Jetstream" (installs beside it)
 !endif
-!define APP_EXE       "SlipstreamViewer.exe"
-!define APP_DATA      "SlipstreamViewer"
-!define PUBLISHER     "Slipstream Viewer"
-!define WEBSITE       "https://slipstreamviewer.org"
-!define UNINST_EXE    "Uninstall Slipstream.exe"
+!define APP_EXE       "PrestigeViewer.exe"
+!define APP_DATA      "PrestigeViewer"
+!define PUBLISHER     "Prestige Viewer"
+!define WEBSITE       "https://github.com/prestige-viewer"
+!define UNINST_EXE    "Uninstall Prestige.exe"
 !define UNINST_KEY    "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
 !define APP_KEY       "Software\${APP_NAME}"
 

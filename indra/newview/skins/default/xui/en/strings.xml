@@ -7,8 +7,8 @@
 
 	<!-- Default Args - these arguments will be replaced in all strings -->
 	<string name="SECOND_LIFE">Second Life</string>
-    <string name="APP_NAME">Slipstream</string>
-	<string name="CAPITALIZED_APP_NAME">SLIPSTREAM</string>
+    <string name="APP_NAME">Prestige</string>
+	<string name="CAPITALIZED_APP_NAME">PRESTIGE</string>
 	<string name="SECOND_LIFE_GRID">Second Life Grid</string>
 	<string name="SUPPORT_SITE">Second Life Support Portal</string>
 
@@ -20,12 +20,12 @@
 
 	<!-- about dialog/support string-->
 	<string name="AboutHeader">
-Brought to you by Sky Line. Copyright (C) 2026 Bluefast Studios.
+Prestige Viewer, built on the Slipstream Vulkan engine by Sky Line, Copyright (C) 2026 Bluefast Studios.
 
 [CHANNEL] [VIEWER_VERSION_0].[VIEWER_VERSION_1].[VIEWER_VERSION_2].[VIEWER_VERSION_3] ([ADDRESS_SIZE]bit) ([ARCHITECTURE])
 [[VIEWER_RELEASE_NOTES_URL] [ReleaseNotes]]
-Source code: https://git.slipstreamviewer.org/sky_line/Slipstream
-Privacy: https://slipstreamviewer.org/privacy.html
+Source code: https://github.com/prestige-viewer/prestige-viewer
+Privacy: Prestige Viewer collects no data.
 
 This software is not provided or supported by Linden Lab, the makers of Second Life.
 	</string>
@@ -155,7 +155,7 @@ Voice Server Version: [VOICE_VERSION]
 	<string name="AgniGridLabel">Second Life Main Grid (Agni)</string>
 	<string name="AditiGridLabel">Second Life Beta Test Grid (Aditi)</string>
 	
-	<string name="ViewerDownloadURL">https://git.slipstreamviewer.org/sky_line/Slipstream/releases</string>
+	<string name="ViewerDownloadURL">https://github.com/prestige-viewer/prestige-viewer/releases</string>
 	<string name="LoginFailedViewerNotPermitted">
 The viewer you are using can no longer access Second Life. Please visit the following page to download a new viewer:
 http://secondlife.com/download
@@ -384,7 +384,7 @@ are allowed.
 
 	<string name="ReleaseNotes">Release Notes</string>
 	<!-- Always mark translate="false" for strings that are nothing but URLs, as they don't need translation. -->
-	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://git.slipstreamviewer.org/sky_line/Slipstream/releases/tag/</string>
+	<string name="RELEASE_NOTES_BASE_URL" translate="false">https://github.com/prestige-viewer/prestige-viewer/releases/tag/</string>
 
 	<!-- Indicates something is being loaded. Maybe should be merged with RetrievingData -->
 	<string name="LoadingData">Loading...</string>
@@ -468,7 +468,7 @@ http://secondlife.com/support for help fixing this problem.
 	<string name="PreparingShadersCount">Preparing shaders... [DONE] of [TOTAL]</string>
 	<string name="GraphicsRecovering">Graphics driver reset -- recovering...</string>
 	<string name="GraphicsRecoveringWait">Graphics driver reset. Recovering, please wait (this can take up to 30 seconds; you are still connected).</string>
-	<string name="GraphicsRecovered">Slipstream prevented a graphics crash: the graphics driver reset and the display was rebuilt. Scenery may take a moment to reload. Details: Help > Report Bug.</string>
+	<string name="GraphicsRecovered">Prestige prevented a graphics crash: the graphics driver reset and the display was rebuilt. Scenery may take a moment to reload. Details: Help > Report Bug.</string>
 	<string name="AvatarEditingAppearance">(Editing Appearance)</string>
 	<string name="AvatarAway">Away</string>
 	<string name="AvatarDoNotDisturb">Do Not Disturb</string>
@@ -3203,7 +3203,7 @@ Do you wish to continue?
 	<string name="MBWarning">Warning</string>
 	<string name="MBNoAutoUpdate">
 		Automatic updating is not yet implemented for Linux.
-Please download the latest version from https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+Please download the latest version from https://github.com/prestige-viewer/prestige-viewer/releases
 	</string>
 	<string name="MBRegClassFailed">RegisterClass failed</string>
 	<string name="MBError">Error</string>
@@ -3228,12 +3228,12 @@ If you continue to receive this message, contact the [SUPPORT_SITE].
     <string name="MBOutOfMemoryErr">
         [APP_NAME]'s request for memory failed. Application can't proceed and will be closed.
 
-If your computer's RAM is low, quit any heavy applications before running Slipstream, allocate a page file or reduce graphical settings like draw distance.
+If your computer's RAM is low, quit any heavy applications before running Prestige, allocate a page file or reduce graphical settings like draw distance.
     </string>
     <string name="MBMissingFile">
         [APP_NAME] couldn't access or find some of the files it needs and will be closed.
 
-Please reinstall viewer from https://git.slipstreamviewer.org/sky_line/Slipstream/releases and contact the Slipstream Viewer team if issue persists after reinstall.
+Please reinstall viewer from https://github.com/prestige-viewer/prestige-viewer/releases and contact the Prestige Viewer team if issue persists after reinstall.
     </string>
 
     <!-- Avatar Shape Information -->
@@ -3847,7 +3847,7 @@ Please reinstall viewer from https://git.slipstreamviewer.org/sky_line/Slipstrea
 	  Failed to download update
 	</string>
 	<string name="UpdaterFailUpdateDescriptive">
-	  An error occurred while updating [APP_NAME]. Please download the latest version from https://git.slipstreamviewer.org/sky_line/Slipstream/releases
+	  An error occurred while updating [APP_NAME]. Please download the latest version from https://github.com/prestige-viewer/prestige-viewer/releases
 	</string>
 	<string name="UpdaterFailInstallTitle">
 	  Failed to install update

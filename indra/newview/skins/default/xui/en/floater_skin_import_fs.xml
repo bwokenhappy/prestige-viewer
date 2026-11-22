@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater
+ legacy_header_height="18"
+ can_resize="true"
+ height="380"
+ min_height="260"
+ layout="topleft"
+ name="skin_import_fs"
+ save_rect="true"
+ single_instance="true"
+ title="IMPORT A FIRESTORM SKIN"
+ min_width="460"
+ width="600">
+    <floater.string name="none_found">No Firestorm skins found. Use Browse to pick a Firestorm skins, skin or theme folder.</floater.string>
+    <text
+     follows="left|top|right"
+     height="44"
+     layout="topleft"
+     left="12"
+     name="fs_hint"
+     top="24"
+     width="576"
+     word_wrap="true">
+Pick a Firestorm skin and theme. Its colours and images are converted into a new skin here; colours and images this viewer does not use are skipped, and anything broken keeps ours. Nothing in Firestorm is changed.
+    </text>
+    <scroll_list
+     draw_heading="true"
+     follows="all"
+     height="240"
+     layout="topleft"
+     left="12"
+     multi_select="false"
+     name="fs_skin_list"
+     top="72"
+     width="576">
+        <scroll_list.columns
+         label="Skin"
+         name="skin"
+         width="140" />
+        <scroll_list.columns
+         label="Theme"
+         name="theme"
+         width="140" />
+        <scroll_list.columns
+         dynamic_width="true"
+         label="Found in"
+         name="where" />
+    </scroll_list>
+    <check_box
+     follows="left|bottom"
+     height="16"
+     initial_value="false"
+     label="Include layout files (advanced)"
+     layout="topleft"
+     left="12"
+     name="include_layout"
+     tool_tip="Also import the skin's layout (XUI) files. Each one is checked against ours and skipped if it would remove controls this viewer needs."
+     top="318"
+     width="260" />
+    <button
+     follows="left|bottom"
+     height="23"
+     label="Browse..."
+     layout="topleft"
+     left="12"
+     name="browse_btn"
+     tool_tip="Pick a Firestorm skins folder, one skin folder, or one theme folder (skins/&lt;skin&gt;/themes/&lt;theme&gt;)."
+     top="345"
+     width="100" />
+    <button
+     follows="right|bottom"
+     height="23"
+     label="Import"
+     layout="topleft"
+     left="380"
+     name="import_btn"
+     top="345"
+     width="100" />
+    <button
+     follows="right|bottom"
+     height="23"
+     label="Close"
+     layout="topleft"
+     left_pad="8"
+     name="close_btn"
+     top="345"
+     width="100" />
+</floater>

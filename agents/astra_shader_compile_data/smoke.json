@@ -1,0 +1,20 @@
+{
+  "helper_completed": true,
+  "login_rc_zero": true,
+  "state_started": true,
+  "no_owned_processes_remain": true,
+  "markers": {
+    "Validation Error": 0,
+    "VUID-": 0,
+    "SYNC-HAZARD": 0,
+    "GPU LOST": 0,
+    "Segmentation fault": 0,
+    "Bad shutdown": 0
+  },
+  "layer": {
+    "khronos_validation_mapped": true,
+    "sync_requested": true,
+    "layers_requested": true,
+    "isolated_home": true
+  }
+}

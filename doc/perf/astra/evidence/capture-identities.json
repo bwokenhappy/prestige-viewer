@@ -1,0 +1,344 @@
+[
+  {
+    "capture": "capture-street",
+    "file_count": 11,
+    "bytes": 283242,
+    "tree_sha256": "faf4790392fc799909af011bbd883e3c7aaa628ab1e527cac38ac60eaf7d2882",
+    "tree_serialization": "UTF8 compact JSON sorted [relative_posix_path,bytes,sha256] arrays",
+    "manifest_sha256": "a9fb3d9a956c979d9379d79bb6a93d94ad38eaf516209c8097a0d1aad9c0b244",
+    "format_version": 1,
+    "truncated": false,
+    "counts": {
+      "instances": 504,
+      "skipped_rigged": 0,
+      "skipped_hud": 0,
+      "skipped_worn": 0,
+      "groups": 5,
+      "slots": 5,
+      "slots_missing": 0,
+      "materials": 5,
+      "terrain_records": 0,
+      "probes": 0,
+      "probe_regions": 0,
+      "light_samples": 2,
+      "lights_max": 225,
+      "mover_samples": 2,
+      "textures": 0,
+      "textures_missing": 0
+    },
+    "coverage_exclusions": [
+      "avatars (rigged rows, skins, joint and pose tracks)",
+      "HUD and worn rigid attachments",
+      "particles",
+      "objects that appear after the capture starts",
+      "environment changes during the capture (the first frame's sky and water are kept)",
+      "light-takeover face links",
+      "environment: only sun direction / colour, ambient and sky gradient are set (atmosphere, water, clouds, sky textures are zero; see synthetic.json)"
+    ]
+  },
+  {
+    "capture": "capture-club",
+    "file_count": 73,
+    "bytes": 871802086,
+    "tree_sha256": "80e35293f898e5064e595ff1d804c6fef7cecff92f36f84802f14057966e36c8",
+    "tree_serialization": "UTF8 compact JSON sorted [relative_posix_path,bytes,sha256] arrays",
+    "manifest_sha256": "3b7822a5597b38eeca709a7540a2669b27dbf1731a204581abe71666025d7566",
+    "format_version": 2,
+    "truncated": false,
+    "counts": {
+      "instances": 3036,
+      "skipped_rigged": 0,
+      "skipped_hud": 0,
+      "skipped_worn": 0,
+      "groups": 1475,
+      "slots": 1475,
+      "slots_missing": 0,
+      "materials": 135,
+      "terrain_records": 0,
+      "probes": 0,
+      "probe_regions": 0,
+      "light_samples": 1799,
+      "lights_max": 241,
+      "mover_samples": 1799,
+      "textures": 60,
+      "textures_missing": 0,
+      "skins": 196,
+      "armatures": 81,
+      "pose_samples": 1799,
+      "rigged_rows": 1168
+    },
+    "coverage_exclusions": [
+      "HUD and worn rigid attachments",
+      "particles",
+      "objects that appear after the capture starts",
+      "environment changes during the capture (the first frame's sky and water are kept)",
+      "light-takeover face links",
+      "environment: only sun direction / colour, ambient and sky gradient are set (atmosphere, water, clouds, sky textures are zero; see synthetic.json)",
+      "synthetic: world shader (1: sky) -> synthetic.json"
+    ]
+  },
+  {
+    "name": "dense_light_controls",
+    "identities": {
+      "closed128": {
+        "manifest_sha256": "af89bbcdff49b1608613217bcc7bb20b13fb368d5b3bd757f7678d6f06049faa",
+        "tree_sha256": "2d1611df07d86537e39e4a510f9228e9411cb1370ca5643559cd13e9339d19ff",
+        "files": [
+          [
+            "camera.json",
+            397,
+            "714e9db6da739ecb41b5d4710e78dc26f13a66e36063bcced49816dee14a12bb"
+          ],
+          [
+            "env.bin",
+            880,
+            "e642d735452de19a317042b704bd307b660f4a089245e5d2b565bb52d8060ddb"
+          ],
+          [
+            "groups.bin",
+            124,
+            "5e2dd8f8fd5b679ac829d63996cd98d82bf1868b2d944bcdb2f94832ebaee2cf"
+          ],
+          [
+            "instances.bin",
+            1416,
+            "2943d7de4e9551672f3c3cb3562dd7f354c156917663df12f755d44e608b4e35"
+          ],
+          [
+            "lights.bin",
+            67624,
+            "e513ad8d744fc23422eb74bebb3119ba4ee9536fc0b0449311981a76e69a65e2"
+          ],
+          [
+            "manifest.json",
+            1804,
+            "af89bbcdff49b1608613217bcc7bb20b13fb368d5b3bd757f7678d6f06049faa"
+          ],
+          [
+            "materials.bin",
+            904,
+            "d1beec8e0630f2147c09261be17f563928f5fc559898ef27be58f35cea8c7ef2"
+          ],
+          [
+            "movers.bin",
+            40,
+            "00bcc30956d101fb0267e3411acd2cc6448d3ff821d975069572e755df5adcd3"
+          ],
+          [
+            "slots.bin",
+            1684,
+            "97b262f20ee74c72f289df92e6d057b6620960d517bca4d900912787221d5075"
+          ],
+          [
+            "synthetic.json",
+            22427,
+            "e7df071fe56f9c46fbb97c8ab4104de865d6fce38d3eba47935964fec7dcc153"
+          ],
+          [
+            "terrain.bin",
+            24,
+            "b81a3a4516dda1db99ecfb8efebfe218ee0f32638d687b79a6b8e3f2d7ee9825"
+          ]
+        ],
+        "local_lights": 128,
+        "visible": false,
+        "light_record_bytes": 264
+      },
+      "visible128": {
+        "manifest_sha256": "cb8b7e0558493db0e39ce3515b4a680961c1a684945a5b2e7f4b840698feeea4",
+        "tree_sha256": "f3acd4d2c949acea2d8537dca1602de38844b0d4c3e3d3d4340186644dc95fe0",
+        "files": [
+          [
+            "camera.json",
+            397,
+            "714e9db6da739ecb41b5d4710e78dc26f13a66e36063bcced49816dee14a12bb"
+          ],
+          [
+            "env.bin",
+            880,
+            "e642d735452de19a317042b704bd307b660f4a089245e5d2b565bb52d8060ddb"
+          ],
+          [
+            "groups.bin",
+            124,
+            "5e2dd8f8fd5b679ac829d63996cd98d82bf1868b2d944bcdb2f94832ebaee2cf"
+          ],
+          [
+            "instances.bin",
+            1416,
+            "60eb9d78d746f50e3bccc9b8ec2a99969937724adc22ed039009ef5f7de13c39"
+          ],
+          [
+            "lights.bin",
+            67624,
+            "e513ad8d744fc23422eb74bebb3119ba4ee9536fc0b0449311981a76e69a65e2"
+          ],
+          [
+            "manifest.json",
+            1804,
+            "cb8b7e0558493db0e39ce3515b4a680961c1a684945a5b2e7f4b840698feeea4"
+          ],
+          [
+            "materials.bin",
+            904,
+            "d1beec8e0630f2147c09261be17f563928f5fc559898ef27be58f35cea8c7ef2"
+          ],
+          [
+            "movers.bin",
+            40,
+            "00bcc30956d101fb0267e3411acd2cc6448d3ff821d975069572e755df5adcd3"
+          ],
+          [
+            "slots.bin",
+            1684,
+            "97b262f20ee74c72f289df92e6d057b6620960d517bca4d900912787221d5075"
+          ],
+          [
+            "synthetic.json",
+            22426,
+            "a3bbdadb22c825e66cd7edf1bd707ac23701236bd0d89f5ca1d112fc268ed5d7"
+          ],
+          [
+            "terrain.bin",
+            24,
+            "b81a3a4516dda1db99ecfb8efebfe218ee0f32638d687b79a6b8e3f2d7ee9825"
+          ]
+        ],
+        "local_lights": 128,
+        "visible": true,
+        "light_record_bytes": 264
+      },
+      "closed0": {
+        "manifest_sha256": "fd3cce4a58ce0562ef0f7f0a6b4a466fe3bf83e60b97c458fa76c3acc3f3909d",
+        "tree_sha256": "081a6b3f6d539c3f0f8081481f646798338ce7546c6a8f5e07df84f6385d6f30",
+        "files": [
+          [
+            "camera.json",
+            397,
+            "714e9db6da739ecb41b5d4710e78dc26f13a66e36063bcced49816dee14a12bb"
+          ],
+          [
+            "env.bin",
+            880,
+            "e642d735452de19a317042b704bd307b660f4a089245e5d2b565bb52d8060ddb"
+          ],
+          [
+            "groups.bin",
+            124,
+            "5e2dd8f8fd5b679ac829d63996cd98d82bf1868b2d944bcdb2f94832ebaee2cf"
+          ],
+          [
+            "instances.bin",
+            1416,
+            "2943d7de4e9551672f3c3cb3562dd7f354c156917663df12f755d44e608b4e35"
+          ],
+          [
+            "lights.bin",
+            40,
+            "860b59fdd02245a0d4c977a0e922e1d63e10465aff63fa35be255c3628dc1e37"
+          ],
+          [
+            "manifest.json",
+            1796,
+            "fd3cce4a58ce0562ef0f7f0a6b4a466fe3bf83e60b97c458fa76c3acc3f3909d"
+          ],
+          [
+            "materials.bin",
+            904,
+            "d1beec8e0630f2147c09261be17f563928f5fc559898ef27be58f35cea8c7ef2"
+          ],
+          [
+            "movers.bin",
+            40,
+            "00bcc30956d101fb0267e3411acd2cc6448d3ff821d975069572e755df5adcd3"
+          ],
+          [
+            "slots.bin",
+            1684,
+            "97b262f20ee74c72f289df92e6d057b6620960d517bca4d900912787221d5075"
+          ],
+          [
+            "synthetic.json",
+            536,
+            "5e334c9f74e10aeaa9de59b40f7a33564e6a0f65774006335dcb2c85f4a8cbea"
+          ],
+          [
+            "terrain.bin",
+            24,
+            "b81a3a4516dda1db99ecfb8efebfe218ee0f32638d687b79a6b8e3f2d7ee9825"
+          ]
+        ],
+        "local_lights": 0,
+        "visible": false,
+        "light_record_bytes": 264
+      },
+      "visible0": {
+        "manifest_sha256": "d1e5ef9e16a7994b3f20ce629664e722529284d0eaad80b868241383e3275cc3",
+        "tree_sha256": "2b3070b678f3d6018c3f04ed6822e828c6324b0e254526d8d493b5a8771f5853",
+        "files": [
+          [
+            "camera.json",
+            397,
+            "714e9db6da739ecb41b5d4710e78dc26f13a66e36063bcced49816dee14a12bb"
+          ],
+          [
+            "env.bin",
+            880,
+            "e642d735452de19a317042b704bd307b660f4a089245e5d2b565bb52d8060ddb"
+          ],
+          [
+            "groups.bin",
+            124,
+            "5e2dd8f8fd5b679ac829d63996cd98d82bf1868b2d944bcdb2f94832ebaee2cf"
+          ],
+          [
+            "instances.bin",
+            1416,
+            "60eb9d78d746f50e3bccc9b8ec2a99969937724adc22ed039009ef5f7de13c39"
+          ],
+          [
+            "lights.bin",
+            40,
+            "860b59fdd02245a0d4c977a0e922e1d63e10465aff63fa35be255c3628dc1e37"
+          ],
+          [
+            "manifest.json",
+            1796,
+            "d1e5ef9e16a7994b3f20ce629664e722529284d0eaad80b868241383e3275cc3"
+          ],
+          [
+            "materials.bin",
+            904,
+            "d1beec8e0630f2147c09261be17f563928f5fc559898ef27be58f35cea8c7ef2"
+          ],
+          [
+            "movers.bin",
+            40,
+            "00bcc30956d101fb0267e3411acd2cc6448d3ff821d975069572e755df5adcd3"
+          ],
+          [
+            "slots.bin",
+            1684,
+            "97b262f20ee74c72f289df92e6d057b6620960d517bca4d900912787221d5075"
+          ],
+          [
+            "synthetic.json",
+            535,
+            "d9c28084ae79b122b8ab72e86a7666c96d6de3f20dc072137dac63bd9707f650"
+          ],
+          [
+            "terrain.bin",
+            24,
+            "b81a3a4516dda1db99ecfb8efebfe218ee0f32638d687b79a6b8e3f2d7ee9825"
+          ]
+        ],
+        "local_lights": 0,
+        "visible": true,
+        "light_record_bytes": 264
+      },
+      "path_sha256": "6514dad3ea2a53db183936a7335fb316fd033eea685810814f72c297eaddb21a"
+    },
+    "coverage": "Complete synthetic geometry/materials, no textures missing, zero captured probes/avatars, fallback atmosphere. Closed/visible differ in one wall transform. Zero-light fixtures generated but not run.",
+    "tree_hash_method": "SHA256 of compact UTF8 JSON sorted [relative_path,bytes,sha256] entries"
+  }
+]

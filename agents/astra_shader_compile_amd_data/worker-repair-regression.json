@@ -1,0 +1,25 @@
+{
+  "baseline": "5a6373627035d362314dde16bd07c763fe4e0994",
+  "exit_code": 1,
+  "production_roundtrip_failed": true,
+  "failed_assertion": "refreshed==recorded",
+  "core_dumps_disabled": true,
+  "fixed_commit": "ed54b448f0c90a2ec0f2b0cb19e3d83541e61da2",
+  "fixed_focused_check": "PASS",
+  "full_source_checks": "PASS 108",
+  "full_linux_viewer_build": "not run",
+  "full_windows_viewer_build": "not run",
+  "gpu_validation": "not run",
+  "recipe_version_before": 4,
+  "recipe_version_after": 5,
+  "pipeline_cache_files_preserved": true,
+  "diagnostic_quarantine_labels_preserved": true,
+  "content_and_create_info_hash_implementation_unchanged": true,
+  "first_full_source_check": {
+    "passed": 107,
+    "failed": 1,
+    "failure": "in-progress test edit: old loaded extractor omitted moduleLabel added to fixture",
+    "retry": "PASS 108 on frozen sources"
+  },
+  "full_source_check_log_sha256": "52e90c807f2b8f69b67e6d4a517c829f96732240cf0a6b4e5c007a5a70fdc5dc"
+}

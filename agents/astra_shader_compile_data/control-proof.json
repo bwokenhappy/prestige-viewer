@@ -1,0 +1,51 @@
+{
+  "worker_warm1": {
+    "worker_batch_numeric": [
+      [
+        "52",
+        "36",
+        "16",
+        "181",
+        "209",
+        "52",
+        "0"
+      ]
+    ],
+    "viewer_hash_match_differ_not_compared": [
+      [
+        "52",
+        "0",
+        "0"
+      ]
+    ],
+    "early_worker_started": true
+  },
+  "worker_warm2": {
+    "worker_batch_numeric": [
+      [
+        "52",
+        "36",
+        "16",
+        "146",
+        "200",
+        "52",
+        "0"
+      ]
+    ],
+    "viewer_hash_match_differ_not_compared": [
+      [
+        "52",
+        "0",
+        "0"
+      ]
+    ],
+    "early_worker_started": true
+  },
+  "merge_save_failure_logged": true,
+  "base-v2-normal_complete": true,
+  "base-v2-oversize_complete": true,
+  "after-v2-normal_complete": true,
+  "after-v2-oversize_complete": true,
+  "driver-v2_complete": true,
+  "worker-v2_complete": true
+}

@@ -1,0 +1,31 @@
+#version 460
+#extension GL_EXT_buffer_reference : require
+#extension GL_EXT_buffer_reference_uvec2 : require
+// vkclean -- DELIBERATE GPU HANG (#1547 testing aid, RenderVKDebugGpuHang; LLVulkanContext::recordDebugGpuHang).
+// One invocation spins on a word of a host-visible buffer that the CPU never changes (it stays 0). Every
+// iteration reloads it (volatile), so the compiler can neither hoist the load nor prove the loop finite.
+//   iterations == 0: no bound -- the driver's own watchdog / channel reset must end it (a real device loss).
+//   iterations  > 0: a long but finite loop (a long frame without a hang verdict, unless it outlasts one).
+// Never part of a frame unless that one-shot debug setting asked for it.
+layout(local_size_x = 1) in;
+
+layout(push_constant) uniform Push {
+    uvec2 flag;         // the word's device address (lo, hi)
+    uint  iterations;   // 0 = unbounded
+    uint  pad;
+} pc;
+
+layout(buffer_reference, std430, buffer_reference_align = 4) volatile coherent buffer HangFlag { uint v; };
+
+void main()
+{
+    HangFlag f = HangFlag(pc.flag);
+    uint n = 0u;
+    while (f.v == 0u)
+    {
+        n += 1u;
+        if (pc.iterations != 0u && n >= pc.iterations) break;
+    }
+    // (a store the CPU never sees: keeps the loop's result observable; the word stays 0 for any n < ~0)
+    if (n == 0xFFFFFFFFu) f.v = 2u;
+}

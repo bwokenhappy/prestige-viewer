@@ -1,0 +1,112 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#extension GL_KHR_shader_subgroup_basic : require
+#extension GL_KHR_shader_subgroup_arithmetic : require
+// vkclean -- DENOISER NOISE PROBE (RenderVKNoiseStats; LLCleanDenoiserVK::recordNoise). Measurement only: nothing in
+// the frame reads what it writes.
+//
+// Per denoiser texel, the luminance of one signal (the producer's RAW in IN before the temporal pass, or the FINAL
+// image after the a-trous: IN or OUT by the iteration count) summed over the layers in ctl.y bits 8-11, against the
+// same texel's value last frame (a still camera: no reprojection) -- the frame-to-frame change the viewer shows,
+// per group of texels:
+//   0 all surface texels, 1 near (view depth < 4 m), 2 mid (4-16 m), 3 far (>= 16 m),
+//   4 EDGE texels (a 3x3 neighbour off this surface: a depth step over 3 % or no surface) -- contact shadows,
+//     crevices, thin geometry, silhouettes -- and 5 the INTERIOR (the rest).
+// Per group four sums: texels, sum |L - L_prev|, sum L, and FLIPS (|L - L_prev| > 0.5 max(L, L_prev): a texel that
+// switched between lit and dark between two frames -- the crevice that flickers, not the grain on a flat wall; changes
+// below ctl.w never count). RAW texels the producer did not sample this frame (IN layer 0 alpha < 0: a weight-0
+// sample, RenderVKGITraceEvery / the bleed fix) are neither compared nor stored: their rgb is no fresh sample.
+// TRAD = sum |dL| / sum L (the shadow metric's definition, RenderVKShadowNoiseStats), flip rate = flips / texels.
+//
+// Layout: set 1 = the denoiser's own set (only IN, GEOM and OUT are read), set 2 = the probe's buffer:
+//   acc[0 .. 47]   slot s (0 raw, 1 final) group g: acc[s * 24 + g * 4 + {0 texels, 1 |dL| x 16, 2 L x 16, 3 flips}]
+//   acc[48 .. 63]  spare
+//   prev[]         slot s: prev[s * w * h + y * w + x] = last frame's L (< 0: no surface)
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(set = 1, binding = 0, rgba16f) uniform readonly image2DArray uDnIn;
+layout(set = 1, binding = 2, rgba32ui) uniform readonly uimage2DArray uDnGeom;
+layout(set = 1, binding = 4, rgba16f) uniform readonly image2DArray uDnOut;
+layout(set = 2, binding = 0, std430) buffer NoiseBuf { uint acc[64]; float prev[]; } nb;
+
+// ctl.x  w | h << 16 (the denoiser extent)
+// ctl.y  bit 0 read OUT (else IN), bit 1 the GEOM parity layer, bit 2 last frame's values are valid (same extent, a
+//        probe of this slot ran last frame, the camera did not move), bits 8-11 the layers summed
+// ctl.z  the slot (0 raw, 1 final)
+// ctl.w  the flip test's floor (float bits): a change below it is never a flip -- 5 % of the signal's mean luminance over
+//        the last window, so the grain of a dark wall at the noise floor does not count as lit / dark switching
+layout(push_constant) uniform NoisePush { uvec4 ctl; } np;
+
+const float kScale = 16.0;
+
+float dnNoiseDepth(ivec2 q, ivec2 D, int par)
+{
+    if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, D))) return 0.0;
+    return uintBitsToFloat(imageLoad(uDnGeom, ivec3(q, par)).x);
+}
+
+void dnNoiseAdd(uint base, bool in_, float d, float L, bool flip)
+{
+    const uint n = subgroupAdd(in_ ? 1u : 0u);
+    const float sd = subgroupAdd(in_ ? d : 0.0);
+    const float sl = subgroupAdd(in_ ? L : 0.0);
+    const uint nf = subgroupAdd(in_ && flip ? 1u : 0u);
+    if (subgroupElect() && n != 0u)
+    {
+        atomicAdd(nb.acc[base + 0u], n);
+        atomicAdd(nb.acc[base + 1u], uint(min(sd * kScale, 4.0e9)));
+        atomicAdd(nb.acc[base + 2u], uint(min(sl * kScale, 4.0e9)));
+        atomicAdd(nb.acc[base + 3u], nf);
+    }
+}
+
+void main()
+{
+    const ivec2 D = ivec2(int(np.ctl.x & 0xFFFFu), int(np.ctl.x >> 16u));
+    const ivec2 m = ivec2(gl_GlobalInvocationID.xy);
+    const bool inD = all(lessThan(m, D));
+    const int par = int((np.ctl.y >> 1u) & 1u);
+    const uint slot = np.ctl.z & 1u;
+    const uint layers = (np.ctl.y >> 8u) & 15u;
+    float z = 0.0, L = 0.0;
+    bool edge = false;
+    if (inD)
+    {
+        z = dnNoiseDepth(m, D, par);
+        if (z > 0.0)
+        {
+            vec3 c = vec3(0.0);
+            for (int l = 0; l < 4; ++l)
+            {
+                if ((layers & (1u << uint(l))) == 0u) continue;
+                c += (np.ctl.y & 1u) != 0u ? imageLoad(uDnOut, ivec3(m, l)).rgb : imageLoad(uDnIn, ivec3(m, l)).rgb;
+            }
+            L = max(dot(c, vec3(0.2126, 0.7152, 0.0722)), 0.0);
+            // (the raw slot: an unsampled texel -- alpha < 0 -- carries no fresh sample)
+            if ((np.ctl.y & 1u) == 0u && slot == 0u && imageLoad(uDnIn, ivec3(m, 0)).a < 0.0) z = -1.0;
+            if (!(L < 1.0e6)) L = 0.0;
+            for (int dy = -1; dy <= 1 && !edge; ++dy)
+                for (int dx = -1; dx <= 1; ++dx)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    const float zq = dnNoiseDepth(m + ivec2(dx, dy), D, par);
+                    if (!(zq > 0.0) || abs(zq - z) > 0.03 * z) { edge = true; break; }
+                }
+        }
+    }
+    const uint idx = uint(m.y * D.x + m.x);
+    const uint off = slot * uint(D.x * D.y);
+    float prevL = -1.0;
+    if (inD) prevL = nb.prev[off + idx];
+    const bool valid = inD && z > 0.0 && prevL >= 0.0 && (np.ctl.y & 4u) != 0u;
+    const float d = abs(L - prevL);
+    const bool flip = d > max(0.5 * max(L, prevL), uintBitsToFloat(np.ctl.w));
+    const uint base = slot * 24u;
+    dnNoiseAdd(base + 0u,  valid, d, L, flip);
+    dnNoiseAdd(base + 4u,  valid && z < 4.0, d, L, flip);
+    dnNoiseAdd(base + 8u,  valid && z >= 4.0 && z < 16.0, d, L, flip);
+    dnNoiseAdd(base + 12u, valid && z >= 16.0, d, L, flip);
+    dnNoiseAdd(base + 16u, valid && edge, d, L, flip);
+    dnNoiseAdd(base + 20u, valid && !edge, d, L, flip);
+    if (inD && z >= 0.0) nb.prev[off + idx] = z > 0.0 ? L : -1.0;   // (z < 0: an unsampled raw texel keeps its last value)
+}

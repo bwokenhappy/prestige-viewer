@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- Water effects (#1636): Preferences > Graphics > "Water effects...". Every control binds a
+     setting, so the choices persist; the quality presets (featuretable) still set the wave quality. -->
+<floater
+ can_close="true"
+ can_minimize="false"
+ can_resize="false"
+ height="374"
+ layout="topleft"
+ name="water_options"
+ save_rect="true"
+ single_instance="true"
+ title="WATER EFFECTS"
+ width="380">
+  <text
+   follows="left|top"
+   height="30"
+   layout="topleft"
+   left="12"
+   name="water_options_intro"
+   top="8"
+   type="string"
+   word_wrap="true"
+   width="356">
+    Turn water effects on or off. An effect that is off does no work, so switching one off can only save frame time.
+  </text>
+  <text
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="12"
+   name="RenderVKWaterWaves_label"
+   top_pad="10"
+   type="string"
+   width="110">
+    Waves
+  </text>
+  <combo_box
+   control_name="RenderVKWaterWaves"
+   follows="left|top"
+   height="20"
+   layout="topleft"
+   left="126"
+   top_delta="-3"
+   name="water_waves"
+   tool_tip="Wave quality. Off is flat water. Low uses a coarser mesh near the camera; High costs a little more GPU time on big water."
+   width="242">
+    <combo_box.item label="Off (flat water)" name="waves_off" value="0" />
+    <combo_box.item label="Low" name="waves_low" value="1" />
+    <combo_box.item label="High" name="waves_high" value="2" />
+  </combo_box>
+  <slider
+   can_edit_text="true"
+   control_name="RenderVKWaterWaveIntensity"
+   decimal_digits="2"
+   follows="left|top"
+   height="16"
+   increment="0.05"
+   initial_value="1"
+   label="Wave intensity"
+   label_width="110"
+   layout="topleft"
+   left="12"
+   max_val="2"
+   min_val="0"
+   name="water_wave_intensity"
+   tool_tip="How big the sea is: 0 is glassy calm, 1 is as the wind and weather make it, 2 is double the wave height. Scales the wave heights, the wind ripples, the surf and the foam. Needs Waves on. No performance cost."
+   top_pad="8"
+   width="356" />
+  <slider
+   can_edit_text="true"
+   control_name="RenderVKWaterFoam"
+   decimal_digits="2"
+   follows="left|top"
+   height="16"
+   increment="0.05"
+   initial_value="1"
+   label="Foam"
+   label_width="110"
+   layout="topleft"
+   left="12"
+   max_val="2"
+   min_val="0"
+   name="water_foam"
+   tool_tip="The foam where water meets shores, rocks, piers and legs, plus the surf and whitecaps. 0 turns all foam off (no foam work is done), 1 is the default, 2 is twice the coverage. Small GPU cost, higher with more foam on screen."
+   top_pad="8"
+   width="356" />
+  <check_box
+   control_name="RenderVKWaterWhitecaps"
+   follows="left|top"
+   height="16"
+   label="Whitecaps and surf lines"
+   layout="topleft"
+   left="12"
+   name="water_whitecaps"
+   tool_tip="Foam on the wave crests and the breaking lines on beaches. Off keeps only the foam where water touches things. Needs Waves on, Foam above 0 and water interaction at Medium or higher. Off skips that shader work; the shoreline band stays (its foam pattern is a little plainer)."
+   top_pad="12"
+   width="356" />
+  <text
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="12"
+   name="RenderVKWaterInteraction_label"
+   top_pad="14"
+   type="string"
+   width="110">
+    Water interaction
+  </text>
+  <combo_box
+   control_name="RenderVKWaterInteraction"
+   follows="left|top"
+   height="20"
+   layout="topleft"
+   left="126"
+   top_delta="-3"
+   name="water_interaction"
+   tool_tip="How much the water reacts to avatars and objects. Off frees its memory. Low is foam and splashes only. Medium adds ripples. High has finer ripples (a bigger field, more GPU and video memory). Cards under 4.5 GB of video memory run at most Medium."
+   width="242">
+    <combo_box.item label="Off" name="wi_off" value="0" />
+    <combo_box.item label="Low (foam and splashes)" name="wi_low" value="1" />
+    <combo_box.item label="Medium (adds ripples)" name="wi_medium" value="2" />
+    <combo_box.item label="High (finer ripples)" name="wi_high" value="3" />
+  </combo_box>
+  <check_box
+   control_name="RenderVKWaterRipples"
+   follows="left|top"
+   height="16"
+   label="Ripples from avatars and objects"
+   layout="topleft"
+   left="12"
+   name="water_ripples"
+   tool_tip="Rings spread from wading, landing, falling in and moving objects. Off frees the ripple field (2 to 8 MB of video memory) and its per-frame compute pass. Needs water interaction at Medium or higher."
+   top_pad="8"
+   width="356" />
+  <check_box
+   control_name="RenderVKWaterSplashes"
+   follows="left|top"
+   height="16"
+   label="Splashes from avatars and objects"
+   layout="topleft"
+   left="12"
+   name="water_splashes"
+   tool_tip="Spray particles when something enters, wades through or leaves the water. Off draws no droplets. Needs water interaction above Off."
+   top_pad="4"
+   width="356" />
+  <check_box
+   control_name="RenderVKWeatherRipples"
+   follows="left|top"
+   height="16"
+   label="Rain ripples (wet ground)"
+   layout="topleft"
+   left="12"
+   name="water_rain_ripples"
+   tool_tip="Animated rain ripples on wet, flat, sky-exposed surfaces such as puddles (not only water). Off skips them. Small GPU cost during rain."
+   top_pad="4"
+   width="356" />
+  <check_box
+   control_name="RenderVKWeatherSplashes"
+   follows="left|top"
+   height="16"
+   label="Rain splashes (ground, roofs, water)"
+   layout="topleft"
+   left="12"
+   name="water_rain_splashes"
+   tool_tip="Small splashes where raindrops hit the ground, roofs and water near you. Off spawns none. Small GPU cost during rain."
+   top_pad="4"
+   width="356" />
+  <check_box
+   control_name="RenderVKWaterCaustics"
+   follows="left|top"
+   height="16"
+   label="Underwater sun and moon caustics"
+   layout="topleft"
+   left="12"
+   name="water_caustics"
+   tool_tip="Moving light patterns on submerged opaque surfaces. Follows the waves and water detail; fades in shade and deep water. Needs transparent water and sun/moon shadows. Off skips the caustic work."
+   top_pad="8"
+   width="356" />
+  <text
+   follows="left|top"
+   height="30"
+   layout="topleft"
+   left="12"
+   name="water_options_note"
+   top_pad="10"
+   type="string"
+   word_wrap="true"
+   width="356">
+    Transparent water is under Advanced Graphics Preferences.
+  </text>
+</floater>

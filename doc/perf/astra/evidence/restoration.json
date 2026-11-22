@@ -1,0 +1,13 @@
+{
+  "amdbox": {
+    "restored": true,
+    "verified": "original job.ps1/job.log/job.done restored and hashes verified; owner settings unchanged; no viewer/task; owned lock released; no system/security changes",
+    "receipt_sha256": "4842a170843d221f412b84b962b2558d02608e795338ac50bb96bbc03431b796"
+  },
+  "garbage": {
+    "restored": true,
+    "verified": "owner settings/dialogs/run.log verified; exact original current target restored; own validation symlink removed; no viewer; owned lock released",
+    "receipt_sha256": "45e54c5610573b52040d83e70b776bb59dee9bbecf4f67518885d09f36cd41ca",
+    "original_symlink": "Exact backed-up target restored; it was already dangling before ASTRA. No repair was inferred."
+  }
+}

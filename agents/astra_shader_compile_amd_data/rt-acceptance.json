@@ -1,0 +1,156 @@
+[
+  {
+    "run": "amd_base_warm3",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_base_warm2",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_base_warm1",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_base_cold",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_fixed_warm3",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_fixed_warm2",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_fixed_warm1",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_fixed_cold",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_fixed_crossbuild",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_base_warm4",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  },
+  {
+    "run": "amd_base_driver_warm_cold",
+    "timed_frames": 366,
+    "rt_coverage": {
+      "c_gi_trace": 366,
+      "c_defer_shadowvis": 366,
+      "c_defer_rtrefl": 366,
+      "c_defer_rtrefl_trace": 366,
+      "c_mirror": 366
+    },
+    "gi3_active": true,
+    "restir_active": true,
+    "capture_injection_failed": 0
+  }
+]

@@ -1,0 +1,78 @@
+{
+  "pascal-smoke": {
+    "source": "4fe5cda01de83dd87b0504b4ea97f10811f2945a",
+    "executable_sha256": "0e520c77546b7a707d47ab024729664c4cc65432d12d897a46ba7a0ff9ce6007",
+    "sync_requested": true,
+    "actual_home_unchanged": true,
+    "helper_returncode": 0,
+    "logged_in": true,
+    "validation_layer_mapped": true,
+    "markers": {
+      "Validation Error": 0,
+      "VUID-": 0,
+      "SYNC-HAZARD": 0,
+      "GPU LOST": 0,
+      "Segmentation fault": 0,
+      "Bad shutdown": 0
+    },
+    "passed": true,
+    "owner_credential_hashes_unchanged": true,
+    "isolated_credential_copy_restored": true,
+    "original_helpers_unchanged": true,
+    "no_owned_viewer": true
+  },
+  "pascal-restoration": {
+    "settings.xml": true,
+    "ignorable_dialogs.xml": true,
+    "run.log": true,
+    "current": true,
+    "slctl.py": true,
+    "valrun.sh": true,
+    "slrun.sh": true,
+    "no_viewer_or_campaign": true,
+    "owned_lock_released": true
+  },
+  "amd-restoration": {
+    "owned_lock_released": true,
+    "desktop_controller_idle": true,
+    "no_viewer": true,
+    "files": [
+      {
+        "verified": true,
+        "originally_present": true,
+        "kind": "job.ps1"
+      },
+      {
+        "verified": true,
+        "originally_present": true,
+        "kind": "job.log"
+      },
+      {
+        "verified": true,
+        "originally_present": true,
+        "kind": "job.done"
+      },
+      {
+        "verified": true,
+        "originally_present": false,
+        "kind": "settings.xml"
+      },
+      {
+        "verified": true,
+        "originally_present": false,
+        "kind": "ignorable_dialogs.xml"
+      },
+      {
+        "verified": true,
+        "originally_present": true,
+        "kind": "settings.xml"
+      },
+      {
+        "verified": true,
+        "originally_present": true,
+        "kind": "ignorable_dialogs.xml"
+      }
+    ],
+    "restored": true
+  }
+}

@@ -1,0 +1,322 @@
+<?xml version="1.0" ?>
+<!-- Pose Studio IK handles (#530): the bone chains that get a draggable handle.
+       joints   root -> end. Every joint before the last is solved, the last one keeps
+                (or takes) the handle's orientation.
+                The handle sits where the WORN RIGGED MESH ends the limb: of the joints at
+                and below the end joint that a worn rigged mesh weights vertices to, the
+                one whose vertex region reaches farthest from the chain's root, at that
+                region's far end (so a hoof's handle is on the hoof even when the wrist or
+                ankle is the "knee"). Joint-position overrides and scale are included. The
+                choice is logged at INFO ("IK chain ...") when Pose Studio shows the handles
+                and whenever the outfit's rigging changes.
+       tip      fallback when nothing worn is rigged at / below the end joint (system
+                avatar, mesh still loading): the first of these joints the avatar has.
+       hand_branches, hand_depth   a hand: when at least hand_branches children of the end
+                joint carry rigged fingers, the search stops hand_depth joints below it, so
+                a human hand's handle sits at the knuckles instead of a fingertip. A hoof
+                rigged on the hand bones uses fewer branches and is not capped.
+       hand_skip   a hand: joints whose name contains this (the thumb) never set the handle
+                point, and the handle is attached to the end joint (the wrist), not a finger
+       rigged   1: only shown when a worn rigged mesh binds the chain (at or below it)
+       group    wings: shown by "IK wings" (SLPoseStudioIKWings, default on) instead of
+                the Bento setting
+       solver   twobone  a limb with an elbow / knee (pole) handle on its second joint:
+                         analytic two-bone IK for 3 joints, FABRIK (every joint folds,
+                         the pole turns the bend plane) when the chain is longer or has
+                         grown to its hoof (extend). Only the root keeps its dial ranges
+                         under "IK limits"; the hinges are capped by max_bend.
+                ccd      tail, wings, ears: FABRIK (analytic for 3 joints) with every joint
+                         held to its dial ranges, then damped CCD to close what the limits
+                         allow
+                lookat   aim the last joint's forward axis at the handle, the joints
+                         before it share part of the turn (neck + head)
+                reach    (#1566) the joints plus the tip (the nose) as one FABRIK chain:
+                         pulling the handle on the nose bends the neck so the nose reaches
+                         the point; Ctrl / the rings turn the head in place
+                gaze     (#1566) a look-at point: the eyes turn first, up to their limit,
+                         then the head, then the neck (limits)
+                pelvis   the root diamond, under the hips: move / turn the pelvis itself;
+                         the other chains' targets come along with "IK targets follow the
+                         hips" on (SLPoseStudioIKFollowRoot), else they stay and re-solve
+                hips     (#1566) the hips box: moves / turns the pelvis; planted chains
+                         (and pinned ones) stay where they are and re-solve, the rest follow
+       shape    box: drawn as a box (hips, chest). A box ccd chain (the chest) carries the
+                chains below its end (arms, head) like the hips do
+       planted  1: stays put when the hips box moves (legs, hind legs)
+       eye_sets gaze only: the eye bones it can turn, one set picked by "Eye IK" in Pose Studio
+                (SLPoseStudioIKEyeBones): eyes (mEyeLeft / Right), alt (mFaceEyeAlt*, Bento mesh
+                heads), nose (mFaceNoseLeft / Right: the Open Pony rig's eyes), both (eyes + alt).
+                Auto picks by what the worn rigged meshes weight: alt (with eyes too: both),
+                else eyes, else nose, else eyes. forward: the set's aim axis in its parent's
+                frame (every SL bone binds unrotated, so +X, the way the avatar faces)
+                type pupil (#1567): eyes that look by SLIDING the bone over the eye (the Open
+                Pony's pupils): a position offset from the bone's rest, and (model "shell") a
+                turn that keeps the pupil lying flat on the eye. Everything is in the bone's
+                parent frame (+X forward, +Y left, +Z up), metres, relative to the bone's rest
+                position. "pupil" maps each joint to:
+                  model "shell"    the Open Pony dev kit's own eye-tracking rig (below):
+                    pivot, arm       an arm of this length pivoting here aims at the target
+                    aim_offset       ... plus this offset (the rig's per-eye target offset),
+                    aim_center       turned by the look's yaw as seen from this point
+                    shell_center, shell_axes   the eye shell, an ellipsoid (its centre and three
+                                     semi-axis vectors at right angles; or shell_radius: a
+                                     sphere): the pupil is the point of its front nearest the
+                                     arm's tip
+                    axis             the bone's rest axis (head -> tail): turned onto the
+                                     shell's normal there (absent: never turned)
+                  model "linear"   (default) for other rigs, from gains:
+                    h_axis, h_sign   the axis (x / y / z) the pupil moves along for a look to
+                                     the left, and which way (+1 / -1); v_axis, v_sign: look up
+                    gain_h, gain_v   metres per degree of look
+                    range            [h, v]: the ellipse the pupil stays in
+                    vergence         extra inward offset in metres at 1 m, scaled by 1 / distance
+                    inward           which way along h_axis is toward the nose (+1 / -1)
+                  center           [x, y, z]: added to the result (a calibrated rest offset)
+                The look is held within the eye limit (Pose Studio) / eye range (look-at) of
+                the set's forward. Each eye measures the target from its own place.
+                THE OPEN PONY ("nose" set), read from the dev kit V3.2 ([OP] OpenPony Mesh and
+                Rigging.blend, same rig in Animations Full.blend) with scripts/tools/
+                blend_rig_dump.py. FaceNoseLeft / Right (the controls mFaceNose* copy in world
+                space, location and rotation) carry "Copy Location" of IKEyeLeft / Right's TAIL
+                (enabled by a driver when the IKEyeTrackDriver slider > 0.1) then "Shrinkwrap"
+                (nearest surface point, distance 0, "Align to Normal" on the bone's Y axis) onto
+                the OBIKEye mesh (one shell per eye; the bind pupil disc sits 0 .. 0.65 mm over
+                it, ~1.9 mm over the eye white OBEye). IKEyeLeft: head (pivot) Blender (0.06933, -0.28784,
+                0.90820), 55.87 mm long, Damped Track to IKEyeTargetLeft; IKEyecenter (its
+                parent) is Child Of Head, at Blender (0, -0.27020, 0.92073). The targets are
+                children of IKEyefocus (which Locked + Damped Tracks IKEyecenter, so it turns
+                with the look), offset +-91.93 mm along its side axis, so the eyes aim at focus
+                +- 91.93 mm: parallel, no convergence. The bind pupil (mFaceNoseLeft head) is
+                Blender (0.09209, -0.34602, 0.91801), tail (0.10370, -0.35835, 0.91801);
+                Blender -> SL is (x, y, z) -> (-y, x, z). So, SL, relative to the bind pupil
+                (left eye; the right mirrors y): pivot (-58.18, -22.76, -9.81) mm, aim offset
+                (0, +91.93, 0) mm, aim centre (-75.82, -92.09, 2.72) mm, axis (0.7281, 0.6856, 0).
+                The shell's front is an ellipsoid to 0.036 mm (algebraic fit of the OBIKEye
+                vertices within 60 mm of the straight-look pupil: all the eye range reaches):
+                centre (-26.38, -19.56, 0.43) mm, semi-axes 124.80 mm (vertical), 93.59 mm
+                (along the eye), 32.31 mm (outward). The rig's straight look puts the pupil at
+                (+10.3, -12.1, -10.1) mm (left), turned ~3.5 degrees from its bind; looks move
+                it ~0.5 mm per degree sideways (yaw: along (-0.7, +0.7, 0) for the left eye,
+                mirrored on the right, so both slide the same way) and ~1 mm per degree up /
+                down. Measured against the rig on its own mesh (yaw / pitch to 45 degrees, both
+                eyes): the pupil within 0.3 mm of the rig's and of the shell, its turn within
+                0.1 degree, the pupil disc's gap over the eye white within the rig's own -0.30
+                .. +0.17 mm of the bind. The turn matters: the pupils are curved discs ~80 mm
+                wide; slid without it, one side cut 2.4 mm into the eye white and the other
+                lifted 3 mm at 30 degrees. The kit's keyed eye animations (eyesL / eyesR
+                layers, shrinkwrapped the same way) sit at (+14.5, -17.1, 0) mm most often and
+                span about 25 mm. Cross-check in world: SLEyeCaptureLog +
+                scripts/tools/eye_capture_summary.py.
+       limits   gaze only: cone limits in degrees, eyes first, then the joints tip -> root
+       tip_length  reach only: the nose's distance in front of the head when no tip joint
+                exists (metres, scaled with the avatar)
+       mirror   the opposite chain (mirror mode drags it mirrored; just for display)
+       color    RGB of the handle
+       bend     twobone only: where the lower bone swings when a straight limb starts to
+                bend, in the root joint's frame (forearm forward: +X; shin back: -X); the
+                elbow / knee handle (pole) overrides it once dragged
+       extend   when the handle point (worn mesh) lies on a joint below the chain's end
+                and the end is not a hand (see hand_branches), the chain grows by up to
+                this many joints toward it: a pony's hoof below the wrist / cannon becomes
+                the end bone (it takes the handle's orientation) and the wrist / cannon
+                folds with the elbow and shoulder. 0 / absent: never (human legs: the
+                foot is not a limb segment).
+       max_bend twobone: how far a hinge may fold, degrees from straight (default 160)
+       bento    1: an optional Bento chain (tail, ears, hind limbs), only shown with
+                "Bento IK handles" (SLPoseStudioIKBentoChains) on
+       forward  lookat only: the aiming axis in the last joint's frame (avatars face +X)
+       share    lookat only: the part of the turn each joint before the last takes
+     Chains whose joints the avatar does not have are skipped. Data-driven so pony /
+     quadruped and human skeletons both work: edit or add chains here. -->
+<llsd>
+<array>
+  <map>
+    <key>name</key><string>arm_left</string>
+    <key>extend</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>joints</key><array><string>mShoulderLeft</string><string>mElbowLeft</string><string>mWristLeft</string></array>
+    <key>tip</key><array><string>mHandMiddle1Left</string><string>mHandIndex1Left</string><string>mHandRing1Left</string></array>
+    <key>hand_branches</key><integer>3</integer>
+    <key>hand_depth</key><integer>1</integer>
+    <key>hand_skip</key><string>Thumb</string>
+    <key>mirror</key><string>arm_right</string>
+    <key>bend</key><array><real>1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>0.25</real><real>0.85</real><real>1.0</real></array>
+  </map>
+  <map>
+    <key>name</key><string>arm_right</string>
+    <key>extend</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>joints</key><array><string>mShoulderRight</string><string>mElbowRight</string><string>mWristRight</string></array>
+    <key>tip</key><array><string>mHandMiddle1Right</string><string>mHandIndex1Right</string><string>mHandRing1Right</string></array>
+    <key>hand_branches</key><integer>3</integer>
+    <key>hand_depth</key><integer>1</integer>
+    <key>hand_skip</key><string>Thumb</string>
+    <key>mirror</key><string>arm_left</string>
+    <key>bend</key><array><real>1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>1.0</real><real>0.55</real><real>0.25</real></array>
+  </map>
+  <map>
+    <key>name</key><string>leg_left</string>
+    <key>planted</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>joints</key><array><string>mHipLeft</string><string>mKneeLeft</string><string>mAnkleLeft</string></array>
+    <key>tip</key><array><string>mToeLeft</string><string>mFootLeft</string></array>
+    <key>mirror</key><string>leg_right</string>
+    <key>bend</key><array><real>-1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>0.3</real><real>0.55</real><real>1.0</real></array>
+  </map>
+  <map>
+    <key>name</key><string>leg_right</string>
+    <key>planted</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>joints</key><array><string>mHipRight</string><string>mKneeRight</string><string>mAnkleRight</string></array>
+    <key>tip</key><array><string>mToeRight</string><string>mFootRight</string></array>
+    <key>mirror</key><string>leg_left</string>
+    <key>bend</key><array><real>-1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>1.0</real><real>0.3</real><real>0.35</real></array>
+  </map>
+  <map>
+    <key>name</key><string>head</string>
+    <key>solver</key><string>reach</string>
+    <key>joints</key><array><string>mNeck</string><string>mHead</string></array>
+    <key>tip</key><array><string>mFaceNoseCenter</string><string>mFaceNoseBase</string></array>
+    <key>tip_length</key><real>0.12</real>
+    <key>forward</key><array><real>1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>1.0</real><real>0.9</real><real>0.25</real></array>
+  </map>
+  <map>
+    <key>name</key><string>eyes</string>
+    <key>solver</key><string>gaze</string>
+    <key>joints</key><array><string>mNeck</string><string>mHead</string></array>
+    <key>eye_sets</key>
+    <array>
+      <map><key>name</key><string>eyes</string><key>joints</key><array><string>mEyeLeft</string><string>mEyeRight</string></array><key>forward</key><array><real>1</real><real>0</real><real>0</real></array></map>
+      <map><key>name</key><string>alt</string><key>joints</key><array><string>mFaceEyeAltLeft</string><string>mFaceEyeAltRight</string></array><key>forward</key><array><real>1</real><real>0</real><real>0</real></array></map>
+      <map><key>name</key><string>nose</string><key>joints</key><array><string>mFaceNoseLeft</string><string>mFaceNoseRight</string></array><key>forward</key><array><real>1</real><real>0</real><real>0</real></array>
+        <key>type</key><string>pupil</string>
+        <key>pupil</key>
+        <map>
+          <key>mFaceNoseLeft</key>
+          <map><key>model</key><string>shell</string>
+            <key>pivot</key><array><real>-0.05818</real><real>-0.02276</real><real>-0.00981</real></array><key>arm</key><real>0.05587</real>
+            <key>aim_offset</key><array><real>0</real><real>0.09193</real><real>0</real></array>
+            <key>aim_center</key><array><real>-0.07582</real><real>-0.09209</real><real>0.00272</real></array>
+            <key>shell_center</key><array><real>-0.026377</real><real>-0.019559</real><real>0.000427</real></array>
+            <key>shell_axes</key><array>
+              <array><real>0.000039</real><real>-0.000028</real><real>0.124796</real></array>
+              <array><real>-0.065334</real><real>0.067007</real><real>0.000035</real></array>
+              <array><real>0.023134</real><real>0.022557</real><real>-0.000002</real></array></array>
+            <key>axis</key><array><real>0.7281</real><real>0.6856</real><real>0</real></array></map>
+          <key>mFaceNoseRight</key>
+          <map><key>model</key><string>shell</string>
+            <key>pivot</key><array><real>-0.05818</real><real>0.02276</real><real>-0.00981</real></array><key>arm</key><real>0.05587</real>
+            <key>aim_offset</key><array><real>0</real><real>-0.09193</real><real>0</real></array>
+            <key>aim_center</key><array><real>-0.07582</real><real>0.09209</real><real>0.00272</real></array>
+            <key>shell_center</key><array><real>-0.026377</real><real>0.019559</real><real>0.000427</real></array>
+            <key>shell_axes</key><array>
+              <array><real>0.000039</real><real>0.000028</real><real>0.124796</real></array>
+              <array><real>-0.065334</real><real>-0.067007</real><real>0.000035</real></array>
+              <array><real>0.023134</real><real>-0.022557</real><real>-0.000002</real></array></array>
+            <key>axis</key><array><real>0.7281</real><real>-0.6856</real><real>0</real></array></map>
+        </map>
+      </map>
+      <map><key>name</key><string>both</string><key>joints</key><array><string>mEyeLeft</string><string>mEyeRight</string><string>mFaceEyeAltLeft</string><string>mFaceEyeAltRight</string></array><key>forward</key><array><real>1</real><real>0</real><real>0</real></array></map>
+    </array>
+    <key>limits</key><array><real>30</real><real>45</real><real>35</real></array>
+    <key>forward</key><array><real>1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>0.95</real><real>0.95</real><real>0.95</real></array>
+  </map>
+  <map>
+    <key>name</key><string>pelvis</string>
+    <key>solver</key><string>pelvis</string>
+    <key>joints</key><array><string>mPelvis</string></array>
+    <key>color</key><array><real>0.75</real><real>0.4</real><real>1.0</real></array>
+  </map>
+  <map>
+    <key>name</key><string>hips</string>
+    <key>solver</key><string>hips</string>
+    <key>shape</key><string>box</string>
+    <key>joints</key><array><string>mPelvis</string></array>
+    <key>color</key><array><real>0.6</real><real>0.45</real><real>0.9</real></array>
+  </map>
+  <map>
+    <key>name</key><string>chest</string>
+    <key>solver</key><string>ccd</string>
+    <key>shape</key><string>box</string>
+    <key>joints</key><array><string>mTorso</string><string>mChest</string></array>
+    <key>color</key><array><real>0.55</real><real>0.65</real><real>0.95</real></array>
+  </map>
+  <map>
+    <key>name</key><string>tail</string>
+    <key>solver</key><string>ccd</string>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mTail1</string><string>mTail2</string><string>mTail3</string><string>mTail4</string><string>mTail5</string><string>mTail6</string></array>
+    <key>color</key><array><real>0.4</real><real>1.0</real><real>0.45</real></array>
+  </map>
+  <map>
+    <key>name</key><string>wing_left</string>
+    <key>solver</key><string>ccd</string>
+    <key>group</key><string>wings</string>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mWing1Left</string><string>mWing2Left</string><string>mWing3Left</string></array>
+    <key>tip</key><array><string>mWing4Left</string><string>mWing4FanLeft</string></array>
+    <key>mirror</key><string>wing_right</string>
+    <key>color</key><array><real>0.55</real><real>0.95</real><real>0.9</real></array>
+  </map>
+  <map>
+    <key>name</key><string>wing_right</string>
+    <key>solver</key><string>ccd</string>
+    <key>group</key><string>wings</string>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mWing1Right</string><string>mWing2Right</string><string>mWing3Right</string></array>
+    <key>tip</key><array><string>mWing4Right</string><string>mWing4FanRight</string></array>
+    <key>mirror</key><string>wing_left</string>
+    <key>color</key><array><real>0.95</real><real>0.75</real><real>0.55</real></array>
+  </map>
+  <map>
+    <key>name</key><string>ear_left</string>
+    <key>solver</key><string>ccd</string>
+    <key>bento</key><integer>1</integer>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mFaceEar1Left</string><string>mFaceEar2Left</string></array>
+    <key>mirror</key><string>ear_right</string>
+    <key>color</key><array><real>0.85</real><real>0.6</real><real>1.0</real></array>
+  </map>
+  <map>
+    <key>name</key><string>ear_right</string>
+    <key>solver</key><string>ccd</string>
+    <key>bento</key><integer>1</integer>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mFaceEar1Right</string><string>mFaceEar2Right</string></array>
+    <key>mirror</key><string>ear_left</string>
+    <key>color</key><array><real>1.0</real><real>0.6</real><real>0.85</real></array>
+  </map>
+  <map>
+    <key>name</key><string>hind_left</string>
+    <key>planted</key><integer>1</integer>
+    <key>extend</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>bento</key><integer>1</integer>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mHindLimb1Left</string><string>mHindLimb2Left</string><string>mHindLimb3Left</string></array>
+    <key>tip</key><array><string>mHindLimb4Left</string></array>
+    <key>mirror</key><string>hind_right</string>
+    <key>bend</key><array><real>-1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>0.3</real><real>0.7</real><real>0.85</real></array>
+  </map>
+  <map>
+    <key>name</key><string>hind_right</string>
+    <key>planted</key><integer>1</integer>
+    <key>extend</key><integer>1</integer>
+    <key>solver</key><string>twobone</string>
+    <key>bento</key><integer>1</integer>
+    <key>rigged</key><integer>1</integer>
+    <key>joints</key><array><string>mHindLimb1Right</string><string>mHindLimb2Right</string><string>mHindLimb3Right</string></array>
+    <key>tip</key><array><string>mHindLimb4Right</string></array>
+    <key>mirror</key><string>hind_left</string>
+    <key>bend</key><array><real>-1</real><real>0</real><real>0</real></array>
+    <key>color</key><array><real>0.85</real><real>0.45</real><real>0.3</real></array>
+  </map>
+</array>
+</llsd>

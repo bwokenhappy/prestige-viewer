@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+  Rebindable keyboard commands that are not menu items and not movement/camera actions
+  (#863). Every key check in code goes through SLKeyCommands::matches("<name>", key, mask)
+  for one of the commands declared here; the default key is the shortcut attribute, written
+  like the shortcut attribute of menu items. The user's changes are stored in key_bindings.xml
+  and listed in Preferences > Controls > Menu and other shortcuts.
+
+  Menu accelerators do not need an entry: every menu item with a shortcut attribute is
+  picked up from the menu XUI files by name (see slkeycommands.cpp).
+  The key-commands check (scripts/check/, `make check`) fails the build on a shortcut or a key check that is
+  not registered.
+-->
+<commands>
+  <group name="interface" label="Interface" />
+  <group name="chat" label="Chat" />
+  <group name="floaters" label="Floaters" />
+  <group name="slipstream" label="Slipstream features" />
+  <group name="camera" label="Camera mode" />
+  <group name="studio" label="Video Studio" />
+
+  <!-- Menu files that are not a menu bar of their own: one heading for the whole file -->
+  <scope_group scope="login" label="Login screen menu" prefix="true" />
+  <scope_group scope="edit" label="Standard editing" />
+  <scope_group scope="inventory_add" label="Inventory" />
+  <scope_group scope="inventory_gear" label="Inventory" />
+  <scope_group scope="script_editor" label="Script editor" prefix="true" />
+
+  <!-- Keys that stay fixed; listed read-only in the Controls panel (see scripts/check/data/key_compare_allowlist.txt) -->
+  <fixed_group label="Fixed keys (cannot be changed)" />
+  <fixed_key label="Say the typed chat" keys="Enter" />
+  <fixed_key label="Cancel chat typing, close dialogs and pickers" keys="Esc" />
+  <fixed_key label="Confirm a dialog" keys="Enter" />
+  <fixed_key label="Move between buttons of a dialog" keys="Tab, Shift+Tab, Left, Right" />
+  <fixed_key label="Earlier / later line of the chat history" keys="Ctrl+Up, Ctrl+Down" />
+  <fixed_key label="Previous / next conversation" keys="Alt+Up, Alt+Down, Alt+Left, Alt+Right" />
+  <fixed_key label="Expand the conversation" keys="Alt+Enter" />
+  <fixed_key label="Save a notecard, gesture or script" keys="Ctrl+S" />
+  <fixed_key label="Paste into the location bar" keys="Ctrl+V" />
+  <fixed_key label="Select all in a script or area list" keys="Ctrl+A" />
+  <fixed_key label="Copy from the area search list" keys="Ctrl+C" />
+  <fixed_key label="Move through lists and inventory" keys="Up, Down, Left, Right, PgUp, PgDn, Home, End" />
+  <fixed_key label="Rename or delete in inventory and galleries" keys="F2, Del, Backspace" />
+  <fixed_key label="Cancel setting a shortcut" keys="Esc, Ctrl+Q" />
+  <fixed_key label="Clear a shortcut while setting it" keys="Del" />
+
+  <command
+   name="restore_ui"
+   group="interface"
+   label="Show the interface again after it was hidden"
+   shortcut="Esc" />
+  <!-- #703: the new interface's command surface (UIRenderer 2 only; there it is taken before
+       the menus, so Camera Controls' Ctrl+K is reached through the command surface). -->
+  <command
+   name="command_palette"
+   group="interface"
+   context="new_ui"
+   label="Open the command surface (new interface)"
+   shortcut="control|K" />
+  <command
+   name="cycle_floaters_next"
+   group="interface"
+   label="Switch to the next window"
+   shortcut="control|Tab" />
+  <command
+   name="cycle_floaters_prev"
+   group="interface"
+   label="Switch to the previous window"
+   shortcut="control|shift|Tab" />
+
+  <command
+   name="chat_shout"
+   group="chat"
+   label="Send the typed chat as a shout"
+   shortcut="control|Enter" />
+  <command
+   name="chat_whisper"
+   group="chat"
+   label="Send the typed chat as a whisper"
+   shortcut="shift|Enter" />
+  <command
+   name="chat_ooc"
+   group="chat"
+   label="Send the typed chat out of character"
+   shortcut="alt|Enter" />
+
+  <command
+   name="find_in_floater"
+   group="floaters"
+   label="Jump to the search or filter field of a floater"
+   context="floaters"
+   shortcut="control|F" />
+
+  <command
+   name="photo_undo"
+   group="slipstream"
+   label="Photo Studio: undo"
+   context="photo_studio"
+   shortcut="control|Z" />
+  <command
+   name="photo_redo"
+   group="slipstream"
+   label="Photo Studio: redo"
+   context="photo_studio"
+   shortcut="control|Y" />
+  <!-- #1579: camera mode (#1572). Only while camera mode is up, where the interface is hidden
+       and nothing else takes these keys; the movement keys keep working around them. -->
+  <command
+   name="camera_shoot"
+   group="camera"
+   label="Camera mode: shoot (the drive mode's press)"
+   context="camera_mode"
+   shortcut="Enter" />
+  <command
+   name="camera_af_on"
+   group="camera"
+   label="Camera mode: AF-ON (focus at the AF point)"
+   context="camera_mode"
+   shortcut="B" />
+  <command
+   name="camera_af_lock"
+   group="camera"
+   label="Camera mode: AF-L (hold the focus, or let it go)"
+   context="camera_mode"
+   shortcut="L" />
+  <command
+   name="camera_dof_preview"
+   group="camera"
+   label="Camera mode: depth of field preview (hold)"
+   context="camera_mode"
+   shortcut="V" />
+  <command
+   name="camera_review"
+   group="camera"
+   label="Camera mode: review the session's shots"
+   context="camera_mode"
+   shortcut="R" />
+  <command
+   name="camera_q_menu"
+   group="camera"
+   label="Camera mode: Q menu (quick settings)"
+   context="camera_mode"
+   shortcut="Q" />
+  <command
+   name="camera_exit"
+   group="camera"
+   label="Camera mode: close the open menu, card or popover, else leave camera mode"
+   context="camera_mode"
+   shortcut="Esc" />
+  <command
+   name="camera_toggle_bar"
+   group="camera"
+   label="Camera mode: take the bar out of the frame, or bring it back"
+   context="camera_mode"
+   shortcut="H" />
+  <!-- #1668: Video Studio. Only while the studio is up (the interface is hidden); the movement keys keep working. -->
+  <command
+   name="studio_exit"
+   group="studio"
+   label="Video Studio: stop the ride or recording, else leave the studio"
+   context="video_studio"
+   shortcut="Esc" />
+  <command
+   name="studio_play"
+   group="studio"
+   label="Video Studio: play or stop the ride"
+   context="video_studio"
+   shortcut="Space" />
+  <command
+   name="camera_help"
+   group="camera"
+   label="Camera mode: the mouse and keys card"
+   context="camera_mode"
+   shortcut="F1" />
+  <command
+   name="photo_redo_alt"
+   group="slipstream"
+   label="Photo Studio: redo (alternate)"
+   context="photo_studio"
+   shortcut="control|shift|Z" />
+</commands>

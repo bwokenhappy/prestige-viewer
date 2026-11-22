@@ -1,0 +1,22 @@
+[
+  {
+    "campaign": "house-current-01",
+    "name": "wrong-projector-1 runs",
+    "reason": "Wrong path: projector=1 did not execute required stochastic/ReSTIR/pass15. Not an accepted baseline; private original receipts retained."
+  },
+  {
+    "campaign": "house-after1604-01",
+    "name": "after1604_a1",
+    "reason": "after1604_a1: partial path c_gi_trace 1229/1594"
+  },
+  {
+    "campaign": "house-before1604-01",
+    "name": "before1604_a1",
+    "reason": "before1604_a1: partial path c_gi_trace 1229/1594"
+  },
+  {
+    "campaign": "house-historical-01",
+    "name": "historical_a1",
+    "reason": "historical_a1: partial path c_gi_trace 1157/1594"
+  }
+]

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- #1592 VR body mapping. Sized for the VR UI wall and a laser pointer: large text, 40 px rows,
+     large dropdowns. The role rows and the weight sliders are built in code
+     (slfloatervrbodymap.cpp); the preview is drawn into preview_area. -->
+<floater
+    name="vr_body_mapping"
+    title="VR BODY MAPPING"
+    single_instance="true"
+    can_minimize="true"
+    can_close="true"
+    can_resize="false"
+    save_rect="true"
+    layout="topleft"
+    height="880"
+    width="1200">
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="30"
+      layout="topleft"
+      left="12"
+      name="profile_label"
+      top="34"
+      width="90">
+    Profile:
+  </text>
+  <combo_box
+      follows="left|top"
+      font="SansSerifLarge"
+      height="36"
+      layout="topleft"
+      left_pad="4"
+      max_chars="40"
+      name="profile"
+      tool_tip="Saved for each avatar. Auto picks from the worn rigging: the Open Pony gets Arms only, another quadruped Head only, else Human. Open Pony Bipedal stands the pony on its hind legs (your legs drive its hind legs, your arms its forelegs, the headset its head). Arms only: the pony stays on its animations, the forelegs follow the controllers with the hooves in your hands, the head the headset. Head only: just the head and neck. No bone names needed: the Open Pony profiles know its rig. Any edit below makes it Custom."
+      top_delta="-6"
+      width="340">
+    <combo_box.drop_down_button
+        font="SansSerifLarge" />
+  </combo_box>
+  <check_box
+      follows="left|top"
+      font="SansSerifLarge"
+      height="36"
+      label="Stands on its hind legs (bipedal)"
+      layout="topleft"
+      left_pad="24"
+      name="upright"
+      tool_tip="Stand a four-legged body up: the barrel pitches up around the hips, the hind legs stand under the hips, the forelegs become arms. Tracking the spine or chest of an Open Pony profile turns this on; unticking puts the hips, spine and hind legs back on the animation."
+      top_delta="2"
+      width="420" />
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="54"
+      layout="topleft"
+      left="12"
+      name="status"
+      top="78"
+      width="1176"
+      wrap="true">
+    In use: Human.
+  </text>
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="26"
+      layout="topleft"
+      left="18"
+      name="col_role"
+      top="136"
+      width="200">
+    Role
+  </text>
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="26"
+      layout="topleft"
+      left="226"
+      name="col_joint"
+      top="136"
+      width="250">
+    Avatar joint
+  </text>
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="26"
+      layout="topleft"
+      left="484"
+      name="col_state"
+      top="136"
+      width="170">
+    Drives it
+  </text>
+  <scroll_container
+      color="DkGray2"
+      follows="left|top"
+      height="490"
+      layout="topleft"
+      left="10"
+      name="roles_scroll"
+      opaque="true"
+      reserve_scroll_corner="false"
+      top="164"
+      width="676">
+    <panel
+        follows="left|top"
+        height="848"
+        layout="topleft"
+        left="0"
+        name="roles_panel"
+        top="0"
+        width="650" />
+  </scroll_container>
+  <panel
+      follows="left|top"
+      height="518"
+      layout="topleft"
+      left="696"
+      mouse_opaque="false"
+      name="preview_area"
+      top="136"
+      width="494" />
+  <text
+      type="string"
+      follows="left|top"
+      font="SansSerifLarge"
+      height="26"
+      layout="topleft"
+      left="12"
+      name="weights_label"
+      top="664"
+      width="400">
+    Weight per part
+  </text>
+  <panel
+      follows="left|top"
+      height="124"
+      layout="topleft"
+      left="10"
+      name="weights_panel"
+      top="692"
+      width="1180" />
+  <button
+      follows="left|top"
+      font="SansSerifLarge"
+      height="36"
+      label="Reset to profile"
+      layout="topleft"
+      left="12"
+      name="reset"
+      tool_tip="Undo your edits: back to the built-in profile they started from"
+      top="830"
+      width="220" />
+  <button
+      follows="left|top"
+      font="SansSerifLarge"
+      height="36"
+      label="Import..."
+      layout="topleft"
+      left_pad="12"
+      name="import"
+      tool_tip="Load a body mapping file (it becomes this avatar's Custom profile)"
+      top_delta="0"
+      width="160" />
+  <button
+      follows="left|top"
+      font="SansSerifLarge"
+      height="36"
+      label="Export..."
+      layout="topleft"
+      left_pad="12"
+      name="export"
+      tool_tip="Save the mapping in use to a file (text: role, joint and state per line)"
+      top_delta="0"
+      width="160" />
+</floater>

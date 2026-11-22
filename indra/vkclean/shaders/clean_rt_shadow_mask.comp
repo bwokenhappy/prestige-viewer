@@ -1,0 +1,1968 @@
+#version 460
+#extension GL_EXT_ray_query : require
+#extension GL_EXT_nonuniform_qualifier : require
+#extension GL_KHR_shader_subgroup_basic : require       // (the MOVER CULL: one tile per subgroup)
+#extension GL_KHR_shader_subgroup_arithmetic : require
+#extension GL_KHR_shader_subgroup_ballot : require
+#extension GL_KHR_shader_subgroup_vote : require
+// vkclean — RAY-TRACED SHADOW MASK (#195). After the depth pre-pass, one invocation per
+// mask pixel rebuilds the receiver from depth and traces what the lit FS used to trace
+// inline for opaque receivers:
+//   * the sun / moon (RenderVKSunShadows 2): rgb = visibility x translucent tint (#212),
+//     the cascade-range fade applied here;
+//   * up to 4 ray-traced projectors covering the pixel, in cluster order (the cluster's
+//     leading shadowed-projector run, clean_lights.comp), with the lit
+//     FS's own gates (range, attenuation, projected frustum, facing, gobo texel):
+//     slot k = (light index + 1, rgb visibility); past 4, every further one is traced into
+//     the REST slot (PROJ_MASK_REST_ID: one light-weighted visibility for all of them).
+// Pass 1 then binds the PLAIN lit FS (no ray queries -- lighter, better occupancy) and
+// reads the mask by light index (clean_shadow_mask_read.glsl). The mask can run below
+// render resolution (rt_mask.y); the noise pixel is the full-resolution one.
+// SHADOW DENOISER: this pass writes only the RAW one-frame estimate (+ a penumbra radius
+// from the blocker distance, + the receiver's depth plane); clean_rt_mask_temporal.comp
+// accumulates it and clean_rt_mask_spatial.comp blurs the penumbrae into the final mask
+// (layout: clean_rt_mask_common.glsl).
+// #1075 LAYERED STEREO: a stereo frame's mask is one layer per view, traced in one dispatch with z = N
+// (clean_view.glsl CLEAN_VIEW_Z; folded to view 0 on the desktop pipeline). clean_rt_mask_common.glsl
+// RT_MASK_L / RT_MASK_PL: the layer of this view (projector slot s: view x 4 + s).
+#define CLEAN_VIEW CLEAN_VIEW_Z
+#define RT_MASK_L int(CLEAN_VIEW)
+#define RT_MASK_PL(s) (int(CLEAN_VIEW) * 4 + (s))
+layout(local_size_x = 8, local_size_y = 8) in;
+
+#include "clean_lights_common.glsl"
+layout(std430, set = 0, binding = 3) readonly buffer Lights { Light lights[]; };
+layout(std430, set = 0, binding = 4) readonly buffer CCount { uint cluster_count[]; };
+layout(std430, set = 0, binding = 5) readonly buffer CIndex { uint cluster_index[]; };
+layout(std140, set = 0, binding = 6) uniform LInfo { LightInfo linfo; };   // (draw set 0: UBO, #814)
+#include "clean_frame_info.glsl"
+#include "clean_atmos_common.glsl"
+layout(set = 1, binding = 0) uniform sampler2D uTextures[];
+// Blocker identity (clean_rt_common.glsl RT_TRACK_BLOCKER): rtNoteBlocker below.
+#define RT_TRACK_BLOCKER
+// MOVER SHADOW ROUTING (RenderVKShadowMoverMask; clean_rt_movers.glsl, frame info moverBits): the walks'
+// caster classes and blend filter (clean_vis_walk.glsl RT_WALK_MASK_AND / RT_WALK_MOVER_FILTER), switched
+// per ray below: all casters (the default), MOVERS ONLY (the mover rays) or STATIC ONLY (the weight rays of
+// a light ratio). The point lights' mover rays take the own-fixture rule (a carried lantern's own prim).
+uint g_mv_and = 0xFFu;
+uint g_mv_filter = 0u;
+#define RT_WALK_MASK_AND g_mv_and
+#define RT_WALK_MOVER_FILTER g_mv_filter
+#define RT_WALK_FIXTURE
+// (THE MOVER RAYS ARE THE MASK'S OWN RT SHADOW RAYS, 2026-11-12, the owner: the routing changes WHICH casters a ray
+//  sees -- movers vs static, g_mv_and / g_mv_filter -- never HOW it is set up. The mover-only self-shadow rules of
+//  2026-11-09 .. 11 -- a receiver probe, a one-ring / per-skin reach skip, own-mesh exits, an outfit shell -- are gone:
+//  a mover ray leaves the receiver as the static RT shadow rays do -- rtReceiverOrigin, the #664 terminator lift
+//  (rtTerminatorCached), the back-face self-shadow, the adaptive disc -- the path that shadows avatars correctly.)
+// MOVER PROBE (RenderVKMoverProbePixel; clean_rt_mover_probe.glsl): the probed texel's walk notes -- its last
+// noted blocker (clean_rt_moving_caster.glsl rtNoteBlocker) and the side it was met on. Instrumentation only:
+// every other texel has g_mpr false.
+#define RT_MOVER_PROBE
+bool  g_mpr = false;
+uint  g_mpr_bid = 0xFFFFFFFFu;
+uint  g_mpr_bside = 0u;       // the confirmed blocker's side: 1 front, 2 behind, 0 unknown (a hardware commit)
+// #874 / #889 READ GUARD: record the first out-of-range read of the frame (+ counts) into the
+// frame slot's host-visible guard buffer (RT set binding 15; clean_rt_common.glsl RTG_*).
+#define RT_GUARD_RECORD
+#include "clean_rt_common.glsl"
+#include "clean_light_eval.glsl"
+#include "clean_projshadow.glsl"
+#include "clean_shadow_rt.glsl"
+
+layout(set = 3, binding = 0) uniform sampler2DArray uDepth;                       // pre-pass depth (NEAREST)
+layout(set = 3, binding = 3, rgba16ui) writeonly uniform uimage2DArray uIdsOut;
+layout(set = 3, binding = 4, r32f) writeonly uniform image2DArray uDepthOut;      // view depth (32-bit)
+layout(set = 3, binding = 21, rgba32f) writeonly uniform image2DArray uGradOut;   // d(vz)/dx, d(vz)/dy, flags
+// Last frame's accumulated mask: only the (optional) ray-skipping hint reads it here.
+layout(set = 3, binding = 5) uniform sampler2DArray uHistSun;
+layout(set = 3, binding = 6) uniform sampler2DArray uHistProj;
+layout(set = 3, binding = 7) uniform usampler2DArray uHistIds;
+layout(set = 3, binding = 8) uniform sampler2DArray uHistDepth;
+layout(set = 3, binding = 9) uniform sampler2DArray uHistMeta;      // (#771: clean_rt_mask_cache.glsl)
+layout(set = 3, binding = 22) uniform sampler2DArray uHistDepthG;   // history depth gradient + flags
+// #771 STATIC CARRY: a carried block copies the history slot's accumulation / meta into
+// this frame's slot (the temporal pass skips it; clean_rt_mask_cache.glsl rcCarried).
+layout(set = 3, binding = 12, rgba16f) writeonly uniform image2DArray uCarryAccSun;
+layout(set = 3, binding = 14, rgba32f) writeonly uniform image2DArray uCarryMeta;
+layout(set = 3, binding = 1, rgba8) uniform image2DArray uCarryFinal;   // (its alpha: the TAA reactive)
+layout(set = 3, binding = 10, rgba8) writeonly uniform image2DArray uRawSun;
+layout(set = 3, binding = 11, rgba8) writeonly uniform image2DArray uRawProj;
+
+#define RT_MASK_REMAP_IDS   // (last frame's ids through LInfo's remap: rtMaskRemapIds, RenderVKShadowFixLightTag bit 1)
+#include "clean_rt_mask_common.glsl"
+// #771 RT SUN SHADOW CACHE: the block lists (push p0.y bits 18 / 19). The REUSE dispatch
+// runs this same pass without the sun's rays: the receiver (depth plane, ids, normal) and the
+// projectors exactly as below, the sun's raw value the exact class (1 / 0) of the reprojected
+// accumulated history (uniform by the classifier's construction; a texel whose tap fails or
+// is not uniform here traces as usual).
+#define RT_CACHE_WORK_QUAL readonly
+#include "clean_rt_mask_cache.glsl"
+
+// MOVING-CASTER FLAG (rtNoteBlocker, rt_block_dyn): clean_rt_moving_caster.glsl.
+#include "clean_rt_moving_caster.glsl"
+
+// ---- MOVER SHADOW ROUTING (RenderVKShadowMoverMask; clean_rt_movers.glsl has the design) ----
+// While the frame info's moverRouteOn(), the stochastic shadow pass left every mover out, and THIS pass
+// traces the movers -- mover-ONLY rays -- for the stochastic path's lights: the sun / moon too on a merged
+// frame (moverSunOnly: the merged pass's sun is static-only), else the sun stays the full trace below. They
+// go through THE RT SHADOW PATH unchanged -- the sun / projector ray cores, the sun / projector slots, the
+// mask's temporal pass (its moving-caster rules: rt_block_dyn) and spatial pass, the mask reader -- and the
+// lighting multiplies the static stochastic result by them (clean_shadow_mask_read.glsl).
+// The mover bounds (set 3 binding 23, the TLAS instance pass's): avatars (skeleton + worn) and moving
+// objects as spheres; the header counts this pass's work for the host's log line (words 4-7).
+layout(std430, set = 3, binding = 23) coherent buffer MoverBuf { uint mv[]; };
+// (THE SHARED MOVER CULL: mvSphere / mvCullBuild / mvSegHitAny / mvLightRadius ... -- one body, clean_rt_movers.glsl,
+//  shared with pass 15's mover-exact selection, RenderVKShadowMoverMask 2)
+#define MV_CULL_BODIES
+#include "clean_rt_movers.glsl"
+// Caster sets of the walks (g_mv_and / g_mv_filter above): every caster (the default), the MOVERS alone (the mover
+// rays: the mover classes + blend movers -- the receiver's own avatar included, exactly as the static RT shadow rays
+// see it) or the STATIC casters alone (the weight rays of a light ratio).
+void mvCastAll()    { g_mv_and = 0xFFu; g_mv_filter = 0u; }
+void mvCastMovers() { g_mv_and = RT_MASK_MOVER | RT_MASK_BLEND; g_mv_filter = 2u; }
+void mvCastStatic() { g_mv_and = RT_MASK_ALL & ~RT_MASK_MOVER; g_mv_filter = 1u; }
+
+// ---- MOVER PROBE writers (RenderVKMoverProbePixel; clean_rt_mover_probe.glsl has the layout) ----
+#include "clean_rt_mover_probe.glsl"
+bool rtpOn() { return uint(rt_guard.length()) >= RTP_END && rt_guard[RTP_BASE] != 0u; }
+ivec2 rtpMaskPx() { const uint p = rt_guard[RTP_BASE + 2u]; return ivec2(int(p & 0xFFFFu), int(p >> 16u)); }
+void rtpPut(uint o, uint v)  { rt_guard[RTP_MASK + o] = v; }
+void rtpPutF(uint o, float v) { rt_guard[RTP_MASK + o] = floatBitsToUint(v); }
+void rtpOr(uint o, uint v)   { rt_guard[RTP_MASK + o] |= v; }
+float rtpLum(vec3 v) { return dot(v, vec3(0.2126, 0.7152, 0.0722)); }
+// The next event's first word (~0 = past the room; the count still grows).
+uint rtpEvent()
+{
+    const uint n = rt_guard[RTP_MASK + RTP_M_EVN];
+    rt_guard[RTP_MASK + RTP_M_EVN] = n + 1u;
+    return n < RTP_EV_CAP ? RTP_MASK + RTP_M_EV + n * RTP_EV_WORDS : 0xFFFFFFFFu;
+}
+uint mvLightInfo(uint li, Light L);   // (below: the light's identity bits, MV_LST word 4's)
+// A LIGHT event: phase 0 the pass-1 scan (bits: 1 a mover sphere on its segment), 1 the mover rays (bits: 1 own
+// slot / top, 2 mover rays traced), 2 the static weight ray, 4 a light the pass-1 gate DROPPED (bits: 1 turned
+// away, 2 no reach -- attenuation / frustum / a black gobo texel; vis = its smooth N.l, 0 without reach). vis: Vm (phase 1) / Vs (phase 2); bt: the nearest blocker of its rays (1e30 none),
+// bid the last one noted; rays: g_mv_ray_n. Word [8]: the light's identity (mvLightInfo: 2 projector, 4 an RT
+// record, 8 inside an avatar's padded bounds; bits 16+ its point-light own-prim radius in mm).
+void rtpLight(uint phase, uint bits, uint li, vec3 w, vec3 vis, float bt, uint rays, float prad)
+{
+    const uint e = rtpEvent();
+    if (e == 0xFFFFFFFFu) return;
+    rt_guard[e] = 1u | (phase << 4u) | (bits << 8u);
+    rt_guard[e + 1u] = li;
+    rt_guard[e + 2u] = floatBitsToUint(rtpLum(w));
+    rt_guard[e + 3u] = floatBitsToUint(rtpLum(vis));
+    rt_guard[e + 4u] = floatBitsToUint(bt);
+    rt_guard[e + 5u] = g_mpr_bid;
+    rt_guard[e + 6u] = rays;
+    rt_guard[e + 7u] = floatBitsToUint(prad);
+    rt_guard[e + 8u] = li < uint(lights.length()) ? mvLightInfo(li, lights[li]) : 0u;
+}
+// A RAY event (a point light's disc ray k): its visibility, nearest blocker t, the blocker (id, its flags -- bit 0
+// rigged, bit 13 the agent's own avatar --, skin, rt_geom.w) and the side it was met on (1 front, 2 behind).
+void rtpRay(uint k, vec3 v, float t)
+{
+    const uint e = rtpEvent();
+    if (e == 0xFFFFFFFFu) return;
+    const uint id = g_mpr_bid;
+    uint info = 0u, sk = 0xFFFFFFFFu, gw = 0u;
+    if (t < 1e29 && id != RT_BAD_ID && rtIdIn(id))
+    {
+        sk = rt_instances[id].skin_id;
+        gw = rt_geom[id].w;
+        info = ((rt_instances[id].flags & 1u) != 0u ? 1u : 0u) | ((rt_instances[id].flags & 0xFFFFFFu) << 8u);
+    }
+    rt_guard[e] = 2u | (min(k, 255u) << 4u) | (g_mv_filter << 12u) | ((t < 1e29 ? g_mpr_bside : 0u) << 24u);
+    rt_guard[e + 1u] = floatBitsToUint(rtpLum(v));
+    rt_guard[e + 2u] = floatBitsToUint(t);
+    rt_guard[e + 3u] = t < 1e29 ? id : RT_BAD_ID;
+    rt_guard[e + 4u] = info;
+    rt_guard[e + 5u] = sk;
+    rt_guard[e + 6u] = gw;
+    rt_guard[e + 7u] = 0u;
+    rt_guard[e + 8u] = 0u;
+}
+// (clean_shadow_rt.glsl shadowDiscRay: every disc ray of the probed texel -- the cores', projectors and point lights)
+void rtpDiscRay(vec3 v, float t) { rtpRay(0u, v, t); }
+bool mvSunHit(vec3 P, vec3 L, float far)
+{
+    if (g_mv_sun_all) return true;
+    for (uint k = 0u; k < g_mv_nsun; ++k)
+    {
+        const uint m = g_mv_sun[k];
+        const vec4 s = mvSphere(m);
+        if (mvRayHit(P, L, far, s.xyz, s.w) && mvBoxSeg(m, P, P + L * far, 0.0)) return true;   // (+ an avatar's box)
+    }
+    return false;
+}
+// ---- THE COST BREAKDOWN (stats frames only: frame info moverStatsFrame; clean_rt_movers.glsl words 10-23, MV_LST) ----
+bool g_mv_stats = false;
+void mvStat(uint li, uint w, uint v)
+{
+    if (!g_mv_stats || v == 0u || li >= MV_LST_N) return;
+    atomicAdd(mv[MV_LST + li * MV_LST_W + w], v);
+}
+// light li's identity bits: 1 (set), 2 projector, 4 a ray-traced projector record, 8 its position lies inside an
+// avatar's PADDED bounds (mvAvHolds: the sphere AND a joint cluster / the attachment box -- a lamp within MV_JOINT_PAD
+// of a joint counts, so this is "near an avatar", not "worn"; the host's log names worn lights from the light list)
+uint mvLightInfo(uint li, Light L)
+{
+    const bool proj = L.proj_origin.w > 0.5;
+    const vec3 X = proj ? L.proj_origin.xyz : L.pos_radius.xyz;
+    uint f = 1u | (proj ? 2u : 0u) | ((L.tex.z != 0u && L.tex.z - 1u < uint(pshadow.length())) ? 4u : 0u);
+    const uint na = mvAvCount();
+    for (uint m = 0u; m < na; ++m)
+        if (mvAvHolds(m, X)) { f |= 8u; break; }
+    if (!proj) f |= min(uint(max(L.proj_axis.x, 0.0) * 1000.0 + 0.5), 0xFFFFu) << 16u;
+    return f;
+}
+// light li's identity for the log (the first texel of the frame to count it writes it): kind, record, range, position,
+// disc, near an avatar, its split id (the host's key to the light's object)
+void mvStatInfo(uint li, Light L)
+{
+    if (!g_mv_stats || li >= MV_LST_N) return;
+    const uint b = MV_LST + li * MV_LST_W;
+    if (mv[b + 4u] != 0u || atomicCompSwap(mv[b + 4u], 0u, 1u) != 0u) return;
+    const uint f = mvLightInfo(li, L) & 0xFFFFu;
+    const vec3 X = L.proj_origin.w > 0.5 ? L.proj_origin.xyz : L.pos_radius.xyz;
+    mv[b + 5u] = floatBitsToUint(L.pos_radius.w);
+    mv[b + 6u] = floatBitsToUint(X.x); mv[b + 7u] = floatBitsToUint(X.y); mv[b + 8u] = floatBitsToUint(X.z);
+    mv[b + 9u] = floatBitsToUint(mvLightRadius(L));
+    mv[b + 13u] = L.tex.w;   // (its split id: the host maps it back to the light's object -- local id, worn by whom)
+    atomicOr(mv[b + 4u], f);
+}
+// (stats frames) one static-weight trace of light li: [11] traces, [12] ... that saw static light (Vs > 0)
+void mvStatVs(uint li, vec3 vs)
+{
+    mvStat(li, 11u, 1u);
+    mvStat(li, 12u, any(greaterThan(vs, vec3(0.0))) ? 1u : 0u);
+}
+// The stochastic path's lights (pass 15's set): the ray-traced projector records always; on a ReSTIR frame
+// also the point lights and the record-less projectors IN PASS 15's LIGHT SET (LightInfo.rs_set = the ReSTIR
+// header's rs_set: clean_deferred_light.comp deferRsStoch's rsInSet). Before, every point light and record-less
+// projector counted: in radiance mode a light pass 15 does not carry (the lit pass shades it on its own) weighed
+// into the radiance mode's pooled ratio -- a mover blocking IT darkened the stochastic radiance of the OTHER lights, and in
+// a region no carried light reaches a faint mover shadow appeared that the ratio mode never shows (2026-11-11, the
+// owner's radiance-only avatar shapes inside a projector's static shadow). (The grid bound -- deferRsStoch's
+// regirCell -- is not tested here: past the grid the lit pass falls back for every light at once.)
+bool mvRsInSet(uint li)
+{
+    return li < 256u && (linfo.rs_set[li >> 7u][(li >> 5u) & 3u] & (1u << (li & 31u))) != 0u;
+}
+bool mvLightEligible(Light L, uint li)
+{
+    if (L.tex.z != 0u && L.tex.z - 1u < uint(pshadow.length()))
+    {
+        const vec4 sp = pshadow[L.tex.z - 1u].params;
+        if (sp.w > 0.5 && sp.z > 1.5) return true;
+        if (sp.w > 0.5) return false;   // (a shadow-mapped record: not the stochastic path's)
+    }
+    return rsFrameOn() && (L.proj_origin.w < 0.5 || L.tex.z == 0u) && mvRsInSet(li);
+}
+// THE MOVER PATH'S LIGHTS AT A TEXEL, LOSSLESS (2026-11-12, the owner: an avatar lost its point-light shadow
+// ENTIRELY once the camera zoomed out past ~5-10 m, and got it back zooming in -- light and avatar unchanged).
+// The light cluster list (clean_lights.comp) holds at most CLUSTER_CAP lights, in the camera's importance order
+// (shadowed projectors first); past it a light is simply not listed (cluster_count bits 16-31 still count it).
+// The lighting never reads that list for these lights -- pass 15 samples its own set (rs_set, the ReGIR grid) and
+// the deferred lighting walks uncapped tile lists -- so a light the cap dropped kept its light and its STATIC
+// shadow (pass 15), while the mover rays here, which walked the capped list, never traced the avatar against it:
+// that light's avatar shadow gone. Zooming out thickens the receiver's depth slice and widens its tile in world
+// terms (more lights touch the cluster) and re-ranks the importance order, so the drop switched on at a camera
+// distance (the lit guard's "light cluster overflow ... max count ~100" in the owner's scene). Now: a cluster
+// that did NOT overflow is walked as before (its list is every light touching it); an OVERFLOWED one walks the
+// whole light table, each light tested against the texel's own point (the cluster build's range sphere, a tighter
+// test than the cluster's box). Either way the walk yields the lights in one fixed order, so the passes below
+// agree on every light's position (their bitsets): the first CLUSTER_CAP lights that reach the texel itself --
+// far more than the cluster ever listed for it (a texel is a point, the cluster a slab of space).
+// elig: only the stochastic path's lights (mvLightEligible); else every light in range (the cull's reach). The two
+// are DIFFERENT orders: the passes' bitsets index only the elig walk's positions (keep the reach walk separate).
+// Past CLUSTER_CAP positions (64 eligible lights reaching ONE point) the passes stop, as the capped list did.
+// Cost: an overflowed cluster's texels walk the light table (<= 256, a range test each) instead of <= 64 entries.
+bool mvClusterOverflow(uint c)
+{
+    return c < uint(cluster_count.length()) && clusterCandidates(cluster_count[c]) > CLUSTER_CAP;
+}
+uint mvNextLight(uint c, bool ovf, uint count, vec3 P, bool elig, inout uint cur)
+{
+    const uint nt = min(count, uint(lights.length()));
+    const uint n = ovf ? nt : (c < uint(cluster_count.length()) ? clusterLen(cluster_count[c]) : 0u);
+    while (cur < n)
+    {
+        uint li = cur++;
+        if (!ovf)
+        {
+            const uint ci = c * CLUSTER_CAP + li;
+            if (!RTG_OK(ci < uint(cluster_index.length()), RTG_LIGHT, ci, uint(cluster_index.length())))
+            { cur = n; break; }
+            li = cluster_index[ci];
+        }
+        if (li >= nt) continue;
+        const vec4 pr = lights[li].pos_radius;
+        if (!(length(pr.xyz - P) < pr.w)) continue;
+        if (elig && !mvLightEligible(lights[li], li)) continue;
+        return li;
+    }
+    return 0xFFFFFFFFu;
+}
+// (the mover probe / the host's log line) light li is in cluster c's capped list
+bool mvInClusterList(uint c, uint li)
+{
+    const uint n = c < uint(cluster_count.length()) ? clusterLen(cluster_count[c]) : 0u;
+    for (uint i = 0u; i < n; ++i)
+    {
+        const uint ci = c * CLUSTER_CAP + i;
+        if (ci >= uint(cluster_index.length())) break;
+        if (cluster_index[ci] == li) return true;
+    }
+    return false;
+}
+// Its unshadowed light at P (the ratio weight: a projector's gobo x attenuation -- the exact path's REST
+// weight --, a point light's colour x attenuation x the facet's N.l), the point its rays aim at (X) and
+// whether the receiver faces away from it beyond normal-map slack (turned: the lighting's facing gate gives
+// it nothing there -- no mover can change that, it stays out of every ratio). False: no light here.
+// THE TERMINATOR (#664; the exact path's per-light rule above, for EVERY light kind -- point lights too): in
+// the light's band the shared probe (rtTerminatorCached: one per texel for all lights) gives the exact facet
+// (png), the SMOOTH shading normal (pns) and the Hanika lift (plift); the smooth normal decides the facing
+// gate and weighs the light, and the caller hands the lift to the ray (rt_term_*: clean_shadow_rt.glsl
+// rtPosOriginSetup) -- the static RT shadow rays' receiver rules exactly (projShadowRayCore's).
+// (+ g_mv_base: the light without the receiver's N.l -- the specular weights' factor; g_mv_nshade: the smooth
+//  shading normal it used; g_mv_l: the direction to the light)
+vec3 g_mv_base = vec3(0.0), g_mv_nshade = vec3(0.0, 0.0, 1.0), g_mv_l = vec3(0.0, 0.0, 1.0);
+float g_mv_nl = 0.0;   // (RenderVKMoverProbePixel) the smooth (or depth-plane) N.l mvLightWeight last weighed
+bool mvLightWeight(Light L, vec3 P, vec3 Ng, vec3 cam, ivec2 rp, out vec3 w, out vec3 X, out bool turned,
+                   out bool pterm, out vec3 plift, out vec3 pns, out vec3 png)
+{
+    w = vec3(0.0); X = P; turned = false;
+    g_mv_nl = 0.0;
+    pterm = false; plift = vec3(0.0); pns = vec3(0.0); png = vec3(0.0);
+    vec3 lv;
+    float dist;
+    const float atten = lightReach(L.pos_radius, L.color_falloff, P, lv, dist);
+    if (atten <= 0.0) return false;
+    vec2 ptc = vec2(0.0);
+    if (L.proj_origin.w > 0.5)
+    {
+        if (!lightProjFrustum(L.proj_mat, P, ptc)) return false;
+        X = L.proj_origin.xyz;
+    }
+    else X = L.pos_radius.xyz;
+    const vec3 l = normalize(X - P);
+    // THE RECEIVER'S TRIANGLE AT EVERY ORIENTATION (2026-11-10): the facing gate and the weight take the SMOOTH
+    // normal whenever the triangle is known, not only in the band. Outside it they took the depth-plane normal Ng
+    // -- one value per flat facet: on a low-poly avatar each facet weighed the lights differently and a light
+    // dropped out of the ratio facet by facet (Ng.l <= -0.5 is "turned" while the next facet, in the band, kept it
+    // by its smooth normal), so wherever any light was mover-blocked the ratio sum w Vs Vm / sum w Vs stepped at
+    // every facet edge: flat, straight-edged light / dark patches over a smooth body. The probe is per texel
+    // (rtTerminatorCached: shared by every light); the LIFT stays the band's (the rays' origin rules unchanged).
+    vec3 tlift, tns, tng;
+    const bool tri = rtTerminatorOn() && rtTerminatorCached(P, cam, Ng, RT_TERM_MASK_COS, rp, tlift, tns, tng);
+    pterm = tri && rtTerminatorBand(dot(Ng, l));
+    if (pterm) { plift = tlift; pns = tns; png = tng; }
+    turned = (tri ? max(dot(tns, l), dot(tng, l)) : dot(Ng, l)) < -0.25;
+    const float nl = tri ? dot(tns, l) : dot(Ng, l);   // (the lit pass shades by the smooth normal)
+    g_mv_nshade = tri ? tns : Ng;
+    g_mv_l = l;
+    // THE WEIGHT IS THE LIGHT'S DIFFUSE TERM IN PASS 15 (2026-11-12, the owner's A/B: a thigh above the other leg's
+    // shadow lit where pass 15 has it dark, and an extra dark lobe where it has none). The REST ratio
+    // sum w Vs Vm / sum w Vs multiplies pass 15's DIFFUSE radiance, whose share per light is
+    // clean_draw_common.glsl projDirectTerms' -- the light x attenuation x N.l, for N.l > 0 only (no term behind the
+    // surface). The weights were not that: a projector took no N.l at all, a point light 0.25 + N.l -- so a light
+    // grazing or behind the surface (no diffuse in pass 15) weighed in: unblocked it diluted a real mover shadow
+    // (lighter), blocked it darkened what pass 15 lights (the lobe). Now w = light x max(N.l, 0) for both kinds (the
+    // smooth normal, as the lit pass shades); N.l <= 0: no weight, no rays.
+    if (L.proj_origin.w > 0.5) g_mv_base = projDiffuse(L, -dot(lv, L.proj_axis.xyz), ptc.xy) * atten;
+    else                       g_mv_base = L.color_falloff.rgb * atten;
+    w = g_mv_base * max(nl, 0.0);
+    g_mv_nl = nl;
+    // THE GATE IS THE LIGHT, NOT ITS WEIGHT (2026-11-13, the owner's halo: a lit, STRIPED band around an avatar's
+    // shadow on a normal-mapped strap, RenderVKShadowMoverMask 0 correct). The gate was w > 0.002 -- the smooth
+    // normal's N.l. Where the smooth normal grazes or just turns from a light (N.l <= 0) while the normal map's
+    // stripes still face it, pass 15 shades that light (projDirectTerms: the MAPPED normal, N.l > 0), but the mask
+    // dropped it: no slot, no ray -- and the lighting reads a light no tap lists as unshadowed (the pixel fold:
+    // factor 1 for it; the REST: weight 0). So the stripes facing a mover-blocked light kept its light in a band
+    // along the shadow wherever that light grazes the receiver. Now the gate is the light's own reach (its base
+    // light x attenuation, the frustum) and the facing gate (turned: beyond the normal-map slack, as the projector
+    // loop's), and w -- possibly 0 -- is only the REST's weight; the pixel fold weighs each listed light by pass
+    // 15's own term at the pixel.
+    return max(max(g_mv_base.r, g_mv_base.g), g_mv_base.b) > 0.002;
+}
+// THE REST RATIO 1 - lost / d per channel (lost = sum w Vs (1 - Vm), d = sum w Vs; the luminance's where d barely has
+// a channel), clamped to [0, 1]. Where d is ~0 -- no static light reaches the texel, pass 15's radiance is ~0 -- the
+// same over the unshadowed weights (lostFb = sum w (1 - Vm), dFb = sum w): one light gives exactly its Vm.
+vec3 mvRestRatio(vec3 lost, vec3 d, vec3 lostFb, vec3 dFb)
+{
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    if (!(dot(d, lw) > 1e-3 * dot(dFb, lw))) { lost = lostFb; d = dFb; }
+    const float dl = dot(d, lw);
+    if (!(dl > 1e-8)) return vec3(1.0);
+    const float rl = clamp(1.0 - dot(lost, lw) / dl, 0.0, 1.0);
+    vec3 r;
+    for (int ch = 0; ch < 3; ++ch) r[ch] = d[ch] > 1e-3 * dl ? clamp(1.0 - lost[ch] / d[ch], 0.0, 1.0) : rl;
+    return r;
+}
+// (pass 3's walled rule) with lost = 0 the ratio mvRestRatio returns is exactly 1 for this denominator d and every
+// larger one: d is past the fallback's 1e-3 of the unshadowed sum, or that sum is ~0 (the ratio's own 1). Mirrors
+// mvRestRatio's two tests exactly.
+bool mvRestSettled(vec3 d, vec3 dFb)
+{
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    return dot(d, lw) > 1e-3 * dot(dFb, lw) || !(dot(dFb, lw) > 1e-8);
+}
+// THE CONTRIBUTION CUT's budget (pass 3): the lights left untraced may hold at most this share of the static light
+// already traced (their Vs taken as 1/2: the denominator off by <= MV_CUT_F / 2 of itself).
+#define MV_CUT_F 0.03125
+// ---- THE EXACT PIXEL FOLD (radiance packing; clean_lights_common.glsl has the slots, clean_deferred_light.comp
+// deferMoverPixelFold the fold) ----
+// The texel's lights as passes 2 / 3 trace them: the CANDIDATES for explicit slots -- C: the lights a mover lies in
+// front of (hitBits: the segHit cull, deterministic geometry -- NOT this frame's Vm, whose outer penumbra flips between
+// exactly 1 and partial frame to frame: a slot present on alternate frames never builds a history, the pixel would read
+// 1 / partial in turn) that some static light reaches (Vs luminance > MV_VS_OUT); Q: the other traced lights in a static
+// shadow (Vs luminance < MV_VS_FULL: a Vs slot alone) -- each list keeping the 4 LOWEST LIGHT INDICES in ascending order
+// (the stable key: the walk's order is the cluster list's, camera-importance, different in a neighbouring cluster; and
+// no blocked-first rank, which would hand a slot to whichever light's penumbra noise came back blocked) -- and the U
+// sums over EVERY traced / cut light (sum w, w Vs, w Vs Vm; mvFoldWrite subtracts the explicit ones). At the hit cull's
+// boundary Vm is exactly 1 (the cull bounds the caster), so a C light's slot starts continuously. w: the light's
+// unshadowed weight floored at MV_FOLD_W_FLOOR of its light (a light grazing the smooth normal still has a share where
+// the normal map faces it). All deterministic: the walk, the cull and this frame's traced values only.
+#define MV_FOLD_W_FLOOR 0.02
+uint g_fc_n = 0u, g_fq_n = 0u, g_fc_tot = 0u, g_fq_tot = 0u;   // kept / seen
+uint g_fc_li[4], g_fq_li[4];
+vec4 g_fc_vm[4], g_fc_vs[4], g_fq_vs[4];   // rgb visibility, a penumbra radius (mask texels)
+vec3 g_fc_w[4], g_fq_w[4], g_fq_vm[4];
+bool g_fc_dyn[4], g_fc_blk[4];
+bool g_fc_blkOver = false;                 // a mover-BLOCKED C light did not fit the 4 kept (the N share needed)
+uint g_fh_n = 0u, g_fh_li[4];              // the 4 lowest-index unblocked hit lights (mvFoldWriteHit)
+vec3 g_fu_w = vec3(0.0), g_fu_ws = vec3(0.0), g_fu_wsm = vec3(0.0);
+float g_fu_sr = 0.0, g_fu_srw = 0.0;      // the static penumbra radius, weighed by w (1 - Vs)
+uint g_fold_plan = 0u;                    // (RenderVKMoverProbePixel) mvFoldPlan's answer
+// (each light once: the walk visits a light at one position; blk: its Vm < 1 this frame)
+void mvFoldKeepC(uint li, vec4 vm, vec4 vs, vec3 w, bool dyn, bool blk)
+{
+    ++g_fc_tot;
+    uint j = g_fc_n;
+    if (j == 4u)
+    {
+        if (li > g_fc_li[3]) { g_fc_blkOver = g_fc_blkOver || blk; return; }
+        g_fc_blkOver = g_fc_blkOver || g_fc_blk[3];
+        j = 3u;
+    }
+    else ++g_fc_n;
+    while (j > 0u && g_fc_li[j - 1u] > li)
+    {
+        g_fc_li[j] = g_fc_li[j - 1u]; g_fc_vm[j] = g_fc_vm[j - 1u]; g_fc_vs[j] = g_fc_vs[j - 1u];
+        g_fc_w[j] = g_fc_w[j - 1u]; g_fc_dyn[j] = g_fc_dyn[j - 1u]; g_fc_blk[j] = g_fc_blk[j - 1u];
+        --j;
+    }
+    g_fc_li[j] = li; g_fc_vm[j] = vm; g_fc_vs[j] = vs; g_fc_w[j] = w; g_fc_dyn[j] = dyn; g_fc_blk[j] = blk;
+}
+void mvFoldKeepQ(uint li, vec4 vs, vec3 w, vec3 vm)
+{
+    ++g_fq_tot;
+    uint j = g_fq_n;
+    if (j == 4u) { if (li > g_fq_li[3]) return; j = 3u; } else ++g_fq_n;
+    while (j > 0u && g_fq_li[j - 1u] > li)
+    {
+        g_fq_li[j] = g_fq_li[j - 1u]; g_fq_vs[j] = g_fq_vs[j - 1u]; g_fq_w[j] = g_fq_w[j - 1u]; g_fq_vm[j] = g_fq_vm[j - 1u];
+        --j;
+    }
+    g_fq_li[j] = li; g_fq_vs[j] = vs; g_fq_w[j] = w; g_fq_vm[j] = vm;
+}
+void mvFoldKeepH(uint li)
+{
+    uint j = g_fh_n;
+    if (j == 4u) { if (li > g_fh_li[3]) return; j = 3u; } else ++g_fh_n;
+    while (j > 0u && g_fh_li[j - 1u] > li) { g_fh_li[j] = g_fh_li[j - 1u]; --j; }
+    g_fh_li[j] = li;
+}
+// a traced light (Vm, Vs known; Vm 1 for one no mover blocks; hit: a mover lies in front of it): the U sums + its list
+void mvFoldTraced(uint li, vec4 vm, vec4 vs, vec3 w, bool dyn, bool hit)
+{
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    g_fu_w += w; g_fu_ws += w * vs.rgb; g_fu_wsm += w * vs.rgb * vm.rgb;
+    const float sl = dot(w * (vec3(1.0) - vs.rgb), lw);
+    if (vs.a >= 0.0 && sl > 0.0) { g_fu_sr += sl * vs.a; g_fu_srw += sl; }
+    const float vl = dot(vs.rgb, lw);
+    if (hit && vl > MV_VS_OUT) mvFoldKeepC(li, vm, vs, w, dyn, any(lessThan(vm.rgb, vec3(1.0))));
+    else if (vl < MV_VS_FULL) mvFoldKeepQ(li, vs, w, vm.rgb);
+}
+// THE U SET still needs its D share: some light left in it is in a static shadow (a channel's sum w Vs below 1 - 1/2
+// of an 8-bit step of its sum w) -- never when nothing is left (rw within 1e-6 of the traced weight: the explicit
+// lights' float cancellation; a D share there costs a slot, never the image -- the pixel's U set is then empty).
+bool mvFoldDNeed(vec3 rw, vec3 rws, vec3 uW)
+{
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    const float rl = dot(rw, lw);
+    if (!(rl > 1e-6 * dot(uW, lw)) || !(rl > 1e-12)) return false;
+    for (int ch = 0; ch < 3; ++ch)
+        if (rw[ch] > 1e-3 * rl && rws[ch] < 0.998 * rw[ch]) return true;
+    return false;
+}
+// THE SLOT PLAN (4 slots): p explicit C lights (lowest index first; each its Vm slot + its Vs slot where cBits says so),
+// then q Q lights (a Vs slot each), then N (a mover-BLOCKED light is left in U: a cBlk bit at or past p, or one past the
+// 4 kept -- blkOver) and D (mvFoldDNeed of what is left). The most C lights that fit, then the most Q lights that still
+// leave D its slot (or make it unneeded). Returns p | q << 4 | N << 8 | D << 9. p = 0 always fits (N + D + 2 Q).
+uint mvFoldPlan(uint nC, uint cBlk, bool blkOver, uint cBits, uint nQ, vec3 uW, vec3 uWs, vec3 cW[4], vec3 cWs[4],
+                vec3 qW[4], vec3 qWs[4])
+{
+    for (int pp = int(nC); pp >= 0; --pp)
+    {
+        const uint p = uint(pp);
+        uint used = 0u;
+        vec3 rw = uW, rws = uWs;
+        for (uint i = 0u; i < p; ++i) { used += 1u + ((cBits >> i) & 1u); rw -= cW[i]; rws -= cWs[i]; }
+        const uint n = ((cBlk >> p) != 0u || blkOver) ? 1u : 0u;
+        if (used + n > 4u) continue;
+        const uint left = 4u - used - n;
+        uint q = 0u;
+        for (;;)
+        {
+            if (!mvFoldDNeed(rw, rws, uW)) return p | (q << 4u) | (n << 8u);
+            if (q < nQ && left >= q + 1u)
+            {
+                const vec3 rw2 = rw - qW[q], rws2 = rws - qWs[q];
+                if (left >= q + 2u || !mvFoldDNeed(rw2, rws2, uW)) { rw = rw2; rws = rws2; ++q; continue; }
+            }
+            if (left >= q + 1u) return p | (q << 4u) | (n << 8u) | 512u;
+            break;
+        }
+    }
+    return ((cBlk != 0u || blkOver) ? 256u : 0u) | 512u;
+}
+// (RenderVKMoverProbePixel) the fold's light lists at the probed texel (clean_rt_mover_probe.glsl RTP_M_FOLDL): which
+// lights were explicit-slot candidates (C), Vs-slot candidates (Q) and unblocked hit lights (H); path 1 mvFoldWrite,
+// 2 mvFoldWriteHit (no blocked light any static light reaches: no Vm < 1 slot at all -- the pixel reads factor 1).
+void mvProbeFoldLists(uint path, uint cBits, uint cBlk)
+{
+    for (uint i = 0u; i < 4u; ++i)
+    {
+        rtpPut(RTP_M_FOLDL + i, i < g_fc_n ? g_fc_li[i] + 1u : 0u);
+        rtpPut(RTP_M_FOLDL + 4u + i, i < g_fq_n ? g_fq_li[i] + 1u : 0u);
+    }
+    rtpPut(RTP_M_FOLDL + 8u, g_fc_n | (g_fq_n << 4u) | (g_fh_n << 8u) | (g_fc_blkOver ? 4096u : 0u) | ((cBits & 15u) << 16u)
+                           | ((cBlk & 15u) << 20u) | (path << 28u));
+    uint h = 0u;
+    for (uint i = 0u; i < g_fh_n; ++i) h |= min(g_fh_li[i] + 1u, 255u) << (8u * i);
+    rtpPut(RTP_M_FOLDL + 9u, h);
+}
+// The plan's slots into the texel's (k = 0 on entry: the radiance packing has no own slot). rpr: the blocked lights'
+// penumbra radius (the N share's), ndyn: a moving caster blocks one of them. Returns the slots written.
+uint mvFoldWrite(inout vec4 slotV[4], inout uvec4 ids, inout uint dyn, float rpr, bool ndyn)
+{
+    const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+    uint cBits = 0u, cBlk = 0u;
+    vec3 cW[4], cWs[4], qW[4], qWs[4];
+    for (uint i = 0u; i < 4u; ++i)
+    {
+        const bool ci = i < g_fc_n, qi = i < g_fq_n;
+        cW[i] = ci ? g_fc_w[i] : vec3(0.0);
+        cWs[i] = ci ? g_fc_w[i] * g_fc_vs[i].rgb : vec3(0.0);
+        qW[i] = qi ? g_fq_w[i] : vec3(0.0);
+        qWs[i] = qi ? g_fq_w[i] * g_fq_vs[i].rgb : vec3(0.0);
+        if (ci && dot(g_fc_vs[i].rgb, lw) < MV_VS_FULL) cBits |= 1u << i;
+        if (ci && g_fc_blk[i]) cBlk |= 1u << i;
+    }
+    const uint plan = mvFoldPlan(g_fc_n, cBlk, g_fc_blkOver, cBits, g_fq_n, g_fu_w, g_fu_ws, cW, cWs, qW, qWs);
+    g_fold_plan = plan;
+    if (g_mpr) mvProbeFoldLists(1u, cBits, cBlk);
+    const uint p = plan & 15u, q = (plan >> 4u) & 15u;
+    uint k = 0u;
+    vec3 rw = g_fu_w, rws = g_fu_ws, rwsm = g_fu_wsm;
+    for (uint i = 0u; i < p; ++i)
+    {
+        slotV[k] = g_fc_vm[i]; ids[k] = g_fc_li[i] + 1u;
+        if (g_fc_dyn[i]) dyn |= 2u << k;
+        ++k;
+        if (((cBits >> i) & 1u) != 0u) { slotV[k] = g_fc_vs[i]; ids[k] = MV_VS_TAG | (g_fc_li[i] + 1u); ++k; }
+        rw -= cW[i]; rws -= cWs[i]; rwsm -= cWs[i] * g_fc_vm[i].rgb;
+    }
+    for (uint i = 0u; i < q; ++i)
+    {
+        slotV[k] = g_fq_vs[i]; ids[k] = MV_VS_TAG | (g_fq_li[i] + 1u); ++k;
+        rw -= qW[i]; rws -= qWs[i]; rwsm -= qWs[i] * g_fq_vm[i];
+    }
+    // (the explicit lights' float cancellation: shares stay in [0, 1], N <= D)
+    rw = max(rw, vec3(0.0)); rws = clamp(rws, vec3(0.0), rw); rwsm = clamp(rwsm, vec3(0.0), rws);
+    if ((plan & 256u) != 0u)
+    {
+        slotV[k] = vec4(mvPixelRatio(rwsm, rw), rpr); ids[k] = MV_FOLD_N_ID;
+        if (ndyn) dyn |= 2u << k;
+        ++k;
+    }
+    if ((plan & 512u) != 0u)
+    {
+        slotV[k] = vec4(mvPixelRatio(rws, rw), g_fu_srw > 0.0 ? g_fu_sr / g_fu_srw : -1.0); ids[k] = MV_FOLD_D_ID;
+        ++k;
+    }
+    return k;
+}
+// Where no mover-blocked light is statically reached (R is exactly 1 -- nothing to fold, no Vs traced): the unblocked
+// hit lights' Vm slots (1, lowest index first) all the same, so a light's slot -- and its history -- does not come and go
+// with the penumbra noise of the frames on which it is blocked (the ratio mode's rule: listed wherever a mover lies in
+// front of it). The statically dark blocked lights are left out (no Vs known: a Vm slot alone would darken the pixel).
+uint mvFoldWriteHit(inout vec4 slotV[4], inout uvec4 ids)
+{
+    if (g_mpr) mvProbeFoldLists(2u, 0u, 0u);
+    for (uint i = 0u; i < g_fh_n; ++i) { slotV[i] = vec4(vec3(1.0), -1.0); ids[i] = g_fh_li[i] + 1u; }
+    return g_fh_n;
+}
+// One light's visibility over the current caster set (mvCast*): THE RT SHADOW MASK'S OWN PROJECTOR CORE
+// (clean_shadow_rt.glsl projShadowRayCore -- the non-stochastic RT shadow ray that shadows avatars correctly: its
+// receiver origin, #664 terminator lift and post, back-face self-shadow, terminator-safe disc floor, adaptive outer
+// pair, near-plane clip), for every light kind. 2026-11-12 (the owner): the routing changes WHICH casters a ray sees,
+// never HOW it is set up -- the mover-only self-shadow rules that stood here (a receiver probe, one-ring / reach skips,
+// own-mesh exits, an outfit shell) are gone. A projector: its record, else a stand-in with the record-less disc
+// radius pass 15 uses (moverProjRadius), clipped 5 cm short of the apex. A POINT LIGHT as the same core's light: its
+// centre the apex, its disc (moverPointRadius, pass 15's) facing the receiver -- the axis from the light to P --, the
+// near plane at its own prim's bounding sphere (pass 15's nearClip), with the own-fixture rule at pass 15's box limit
+// (moverFixtureMax: rt_fix_*, the disc rays' walk -- shadowDiscRay -- re-traces past the fixture). Disc rays: the
+// static RT shadows' quality (sun_rt.y), at least min_n, up to max_n. THE SAMPLING PATTERN AND THE HINT ARE THE
+// PROVEN SLOTS' (2026-11-12, the owner: reuse the RT shadow path, not a copy of it): the disc pattern is the core's
+// own -- the per-pixel IGN walked by the frame's R2 phase (main: rt_noise_shift), integrated by the mask's temporal
+// pass and TAA exactly as the projector slots' -- and the temporal hint is whatever the caller set in rt_vis_hint
+// (main: an own slot's history of the same light, as the projector loop; none for a REST light).
+// g_mv_ray_n: the core's ray count (an upper bound, its adaptive early-outs aside). g_mv_turned: the visible facet
+// faces away from the light (the back-face self-shadow: no ray, 0 -- rtPosOriginSetup, the core's own verdict).
+uint g_mv_ray_n = 0u;
+bool g_mv_turned = false;
+vec3 mvLightVis(Light L, vec3 P, vec3 Ng, vec3 cam, float time, vec2 npx, uint max_n, float lift, float camd, uint min_n)
+{
+    g_mv_ray_n = 0u;
+    g_mv_turned = false;
+    max_n = max(max_n, min_n);
+    ProjShadow ps;
+    Light Lc = L;
+    const bool point = L.proj_origin.w < 0.5;
+    if (!point)
+    {
+        if (L.tex.z != 0u && L.tex.z - 1u < uint(pshadow.length())) ps = pshadow[L.tex.z - 1u];
+        else { ps.vp = mat4(1.0); ps.rect = vec4(0.0); ps.params = vec4(0.0, 0.05, 2.0, 1.0); ps.texel = vec4(moverProjRadius(), 0.0, 1.0, 0.0); }
+        ps.texel.z = max(ps.texel.z, float(min_n));
+    }
+    else
+    {
+        const vec3 C = L.pos_radius.xyz;
+        RtPosOrigin g;
+        if (!rtPosOriginSetup(P, Ng, cam, C, g)) { g_mv_turned = true; return vec3(0.0); }
+        vec3 A = P - C;
+        const float dA = length(A);
+        A = dA > 1e-6 ? A / dA : vec3(0.0, 0.0, -1.0);
+        Lc.proj_origin = vec4(C, 1.0);
+        Lc.proj_axis = vec4(A, 0.0);
+        const float nearClip = min(clamp(L.proj_axis.x, 0.0, 0.5 * L.pos_radius.w), RS_POINT_NEAR_MAX);
+        ps.vp = mat4(1.0);
+        ps.rect = vec4(0.0);
+        ps.params = vec4(0.0, nearClip, 2.0, 1.0);
+        ps.texel = vec4(moverPointRadius(), 0.0, max(float(min_n), max(ssr.sun_rt.y, 1.0)), 0.0);
+        rt_fix_on = true;
+        rt_fix_P = C;
+        rt_fix_max = moverFixtureMax();
+    }
+    g_mv_ray_n = ps.texel.x > 0.0 ? clamp(uint(ps.texel.z + 0.5), 1u, max(max_n, 1u)) : 1u;
+    rt_cl_lift = lift;
+    const vec3 v = projShadowRayCore(Lc, ps, P, Ng, cam, time, npx, max_n);
+    rt_cl_lift = 0.0;
+    rt_fix_on = false;
+    return v;
+}
+// MOVER PROBE (RenderVKMoverProbePixel; the probed texel only -- g_mpr, so no other texel pays anything but the
+// branch): light li's RAY GEOMETRY as the core builds it (clean_shadow_rt.glsl rtPosOriginSetup / rtPosOriginAt: the
+// same rt_term_* the caller set for this light, the same offset and near clip) and TWO DIAGNOSTIC hard rays toward its
+// centre from that SAME origin: the mask's mover caster set (mvCastMovers) and pass 15's MoverMask-0 set (every caster:
+// mvCastAll). Where the back-face self-shadow verdict made the core trace NOTHING (Vm = Vs = 0 without a ray: the facet
+// on the visible side faces away from the light), the diagnostic rays still leave the visible side -- the log then says
+// what a traced ray would have met there. Two events: type 3 (geometry) and type 4 (the rays); vmCore: the Vm the core
+// returned (pass 2), for the side by side. Every walk global the caller reads afterwards is restored.
+void mvProbeRays(Light L, uint li, vec3 P, vec3 Nl, vec3 cam, float lift, float camd, vec3 vmCore)
+{
+    const bool point = L.proj_origin.w < 0.5;
+    const vec3 C = point ? L.pos_radius.xyz : L.proj_origin.xyz;
+    const bool rec = !point && L.tex.z != 0u && L.tex.z - 1u < uint(pshadow.length());
+    const float bias = rec ? pshadow[L.tex.z - 1u].texel.y : 0.0;
+    const float nearD = point ? min(clamp(L.proj_axis.x, 0.0, 0.5 * L.pos_radius.w), RS_POINT_NEAR_MAX)
+                              : (rec ? pshadow[L.tex.z - 1u].params.y : 0.05);
+    const float dC = length(C - P);
+    const vec3 A = point ? (dC > 1e-6 ? (P - C) / dC : vec3(0.0, 0.0, -1.0)) : L.proj_axis.xyz;
+    RtPosOrigin g;
+    const bool front = rtPosOriginSetup(P, Nl, cam, C, g);
+    const vec3 Po = rtPosOriginAt(g, C, camd, bias + lift);
+    vec3 dir = C - Po;
+    const float len = length(dir);
+    dir = len > 1e-6 ? dir / len : vec3(0.0, 0.0, 1.0);
+    const float da = dot(dir, A), dp = dot(Po - C, A);
+    const float tmax = min((da < -1e-6) ? (nearD - dp) / da : len, len) - 0.002;
+    const bool split = rtSplitOn();
+    {
+        const uint e = rtpEvent();
+        if (e != 0xFFFFFFFFu)
+        {
+            const uint bits = (point ? 1u : 0u) | (front ? 2u : 0u) | (g.lifted ? 4u : 0u) | (g.bfs ? 8u : 0u)
+                            | (rt_term_on ? 16u : 0u) | (split ? 32u : 0u)
+                            | (rt_term_on && rt_term_esc >= 1.0 ? 64u : 0u)
+                            | (rt_term_on && rt_term_esc > 0.0 && rt_term_esc < 1.0 ? 128u : 0u);
+            const vec3 o = Po - P;
+            rt_guard[e] = 3u | (bits << 8u);
+            rt_guard[e + 1u] = li;
+            rt_guard[e + 2u] = floatBitsToUint(o.x);
+            rt_guard[e + 3u] = floatBitsToUint(o.y);
+            rt_guard[e + 4u] = floatBitsToUint(o.z);
+            rt_guard[e + 5u] = floatBitsToUint(dot(rtVisibleSide(Nl, P, cam), dir));   // the ray's elevation over the facet
+            rt_guard[e + 6u] = floatBitsToUint(tmax);
+            rt_guard[e + 7u] = floatBitsToUint(dC);
+            rt_guard[e + 8u] = floatBitsToUint(rt_term_on ? length(rt_term_lift) : -1.0);
+        }
+    }
+    // the two diagnostic rays: one walk call site (a loop), the core's walk kind and facing cull
+    const float bt0 = rt_block_t;
+    const bool bd0 = rt_block_dyn;
+    const uint bid0 = g_mpr_bid, bs0 = g_mpr_bside;
+    const uint and0 = g_mv_and, flt0 = g_mv_filter;
+    vec3 dv[2] = vec3[2](vec3(1.0), vec3(1.0));
+    float dt[2] = float[2](1e30, 1e30);
+    uint did[2] = uint[2](RT_BAD_ID, RT_BAD_ID);
+    rtSetShadowFootprint(P, Nl, cam);
+    rtFacingCullSet(ssr.foliage_rt);
+    rt_fix_on = point; rt_fix_P = C; rt_fix_max = moverFixtureMax();
+    for (uint d = 0u; d < 2u; ++d)
+    {
+        if (d == 0u) mvCastMovers(); else mvCastAll();
+        rt_block_t = 1e30; g_mpr_bid = RT_BAD_ID; g_mpr_bside = 0u;
+        if (tmax > 0.0)
+            dv[d] = rtVisTraceK(Po, dir, tmax, split ? (RT_MASK_SHADOW & ~RT_MASK_BLEND) : RT_MASK_SHADOW,
+                                split ? RT_WALK_VIS : (specTransOn() ? RT_WALK_RGB : RT_WALK_GREY), RT_WALK_KS_DISC);
+        dt[d] = rt_block_t;
+        did[d] = rt_block_t < 1e29 ? g_mpr_bid : RT_BAD_ID;
+    }
+    rtFoliageEnd();
+    rt_foot_on = false;
+    rt_fix_on = false;
+    g_mv_and = and0; g_mv_filter = flt0;
+    rt_block_t = bt0; rt_block_dyn = bd0; g_mpr_bid = bid0; g_mpr_bside = bs0;
+    {
+        const uint e = rtpEvent();
+        if (e == 0xFFFFFFFFu) return;
+        // a blocker: its id (24 bits) | 1 << 29 rigged | 1 << 30 worn | 1 << 31 the agent's own avatar
+        uint idw[2];
+        for (uint d = 0u; d < 2u; ++d)
+        {
+            const uint id = did[d];
+            uint w = id == RT_BAD_ID ? 0xFFFFFFFFu : (id & 0xFFFFFFu);
+            if (id != RT_BAD_ID && rtIdIn(id))
+            {
+                const uint f = rt_instances[id].flags;
+                w |= ((f & 1u) != 0u ? (1u << 29u) : 0u) | ((f & 512u) != 0u ? (1u << 30u) : 0u)
+                   | ((f & 8192u) != 0u ? (1u << 31u) : 0u);
+            }
+            idw[d] = w;
+        }
+        rt_guard[e] = 4u | ((tmax > 0.0 ? 1u : 0u) << 8u);
+        rt_guard[e + 1u] = li;
+        rt_guard[e + 2u] = floatBitsToUint(rtpLum(dv[0]));
+        rt_guard[e + 3u] = floatBitsToUint(dt[0]);
+        rt_guard[e + 4u] = idw[0];
+        rt_guard[e + 5u] = floatBitsToUint(rtpLum(dv[1]));
+        rt_guard[e + 6u] = floatBitsToUint(dt[1]);
+        rt_guard[e + 7u] = idw[1];
+        rt_guard[e + 8u] = floatBitsToUint(rtpLum(vmCore));
+    }
+}
+
+
+// HINT lookup (RenderVKRTShadowHint): the receiver reprojected into last frame's mask,
+// nearest texel, when that texel holds the same surface.
+bool rtMaskHistory(vec3 P, ivec2 rp, out ivec2 hp)
+{
+    hp = ivec2(0);
+    if (!rtMaskTemporal()) return false;
+    vec2 prpx; float pw;   // last frame's render px (object motion included), view depth
+    if (!rtMaskPrevPx(P, rp, prpx, pw)) return false;
+    hp = ivec2(floor(prpx * rtMaskScale()));
+    if (any(lessThan(hp, ivec2(0))) || any(greaterThanEqual(hp, ivec2(mp.dims.zw)))) return false;
+    const float hd = texelFetch(uHistDepth, ivec3(hp, RT_MASK_L), 0).r;
+    return hd > 0.0 && abs(hd - pw) < max(pw * 0.03, 0.05);
+}
+
+// History visibility -> ray-core hint: 1 / 0 when the accumulated texel is uniformly
+// lit / blocked, else none. OFF by default: where the reprojected texel belongs to the
+// other side of an edge (motion, soft penumbrae) the first ray agreeing with it locks
+// a stale 0 / 1 in, and its one-ray "estimates" are not the unbiased samples the
+// denoiser's neighbourhood clamp needs.
+float rtMaskHint(vec3 h)
+{
+    if (!rtHintOn() || h.x < 0.0) return -1.0;
+    if (all(greaterThanEqual(h, vec3(254.0 / 255.0)))) return 1.0;
+    if (all(lessThanEqual(h, vec3(1.0 / 255.0)))) return 0.0;
+    return -1.0;
+}
+
+// RECEIVER GEOMETRIC NORMAL. The mask rebuilds the receiver from the pre-pass depth, so
+// its geometric normal (ray origin offset, the N.L terminator gate below, the penumbra's
+// 1 / N.L stretch, the shadow rays' alpha-test footprint, rtSetShadowFootprint's 1 / N.V)
+// has to come from neighbouring depth texels -- which is only right when they lie on the
+// receiver's own surface. The old rule took per axis the neighbour with the SMALLER depth
+// step, which keeps silhouettes out but not a stack of cut-out layers: on SHELL GRASS
+// (horizontal planes a few mm apart, sparse dots) adjacent pixels mostly show DIFFERENT
+// shells once a dot is about a pixel wide, both neighbours cross a shell, and the
+// "tangent" picks up the shell spacing along the view ray: Ng tilts by tens of degrees
+// (a CPU model of 6 mm shells, 1 cm dots, 1080p: > 30 deg on ~78% of the ground pixels
+// at 8-16 m, ~25% at 0-3 m, ~3% past 64 m). Toward the camera -- away from a sun ahead -- Ng.L fell
+// below -0.25 and the pixel was hard-gated to black; elsewhere the 1 / N.L penumbra
+// stretch (up to 6.7x) and a wrong footprint (finer alpha mips: the rays met upper-shell
+// dots the raster had averaged away) darkened it. Near, dots span several pixels (same-
+// shell neighbours); far, the in-plane depth step per pixel outgrows the shell jumps (and
+// the mips average upper dots away) -- so the wrong normals form a BAND at mid distance whose position and
+// shape follow the camera's distance and pitch (grazing worst: the shell jump along the
+// view ray is spacing / sin(elevation)). The lit FS's inline traces were never affected:
+// cross(dFdx(P), dFdy(P)) is the fragment's own triangle (helper lanes extrapolate it).
+//
+// ON-PLANE TEST: reversed-Z depth (near / view z) is AFFINE in screen x, y on any plane,
+// so the second difference d - 2 d1 + d2 along a side is zero there up to the depth's
+// float / raster error (dtol) -- whatever the slope or view angle. Smooth curvature is
+// admitted by a fraction of the first step. Per axis the side whose second-difference
+// test passes; both or neither: the smaller first step (the old rule, so
+// interiors and a probe miss stay as before); false = neither side is on the plane.
+bool maskTangent(ivec2 rp, ivec2 o, vec2 cpx, float d, vec3 P, float dtol, ivec2 mx, out vec3 t)
+{
+    const float dn1 = texelFetch(uDepth, ivec3(clamp(rp - o, ivec2(0), mx), RT_MASK_L), 0).r;
+    const float dp1 = texelFetch(uDepth, ivec3(clamp(rp + o, ivec2(0), mx), RT_MASK_L), 0).r;
+    const float dn2 = texelFetch(uDepth, ivec3(clamp(rp - 2 * o, ivec2(0), mx), RT_MASK_L), 0).r;
+    const float dp2 = texelFetch(uDepth, ivec3(clamp(rp + 2 * o, ivec2(0), mx), RT_MASK_L), 0).r;
+    const float sp = abs(dp1 - d), sn = abs(d - dn1);
+    const float tol = dtol + 0.125 * min(sp, sn);
+    const float ep = abs(d - 2.0 * dp1 + dp2), en = abs(d - 2.0 * dn1 + dn2);
+    const bool okp = ep <= tol, okn = en <= tol;
+    const bool usep = (okp == okn) ? sp < sn : okp;   // neither: the old smaller-step rule
+    const vec2 of = vec2(o);
+    t = usep ? worldAt(cpx + of, dp1) - P : P - worldAt(cpx - of, dn1);
+    return okp || okn;
+}
+
+// PROBE: the triangle under the pixel, by a short camera ray through the receiver
+// (+-w around P: the depth reconstruction's error, a 1 mm floor -- stacked parallel
+// layers within the window share the normal anyway). FORCE-OPAQUE: the raster already
+// alpha-tested this pixel; a ray alpha test at another mip could reject the very dot it
+// kept. No blocker bookkeeping (rt_block_t / rtNoteBlocker): this is not a shadow ray.
+// The TLAS transform makes attachments / spinners / pre-skinned rigged match what was
+// rasterized. A miss (beyond RenderVKRTRadius, not in the TLAS, a BLAS LOD that differs
+// from the raster's) keeps the depth normal -- the previous behaviour.
+bool maskProbeNormal(vec3 P, vec3 cam, out vec3 n)
+{
+    n = vec3(0.0);
+    vec3 V = P - cam;
+    const float camd = length(V);
+    if (camd < 1e-4) return false;
+    V /= camd;
+    const float w = rtRecvProbeW(P, camd);
+    rayQueryEXT rq;
+    rtDiagRay(V);   // (RenderVKRTCandidateDiag)
+    rayQueryInitializeEXT(rq, uTLAS, gl_RayFlagsOpaqueEXT, RT_MASK_SHADOW & 0xFFu, P - V * w, 0.0, V, 2.0 * w);
+    while (rayQueryProceedEXT(rq)) {}
+    if (rayQueryGetIntersectionTypeEXT(rq, true) != gl_RayQueryCommittedIntersectionTriangleEXT) return false;
+    const uint id = rtHitInstance(uint(rayQueryGetIntersectionInstanceCustomIndexEXT(rq, true)),
+                                  uint(rayQueryGetIntersectionGeometryIndexEXT(rq, true)));
+    vec3 p0, p1, p2;
+    rtTriPositions(id, RT_HIT_PRIM(rq, true, id), p0, p1, p2);
+    const mat3 M = mat3(rayQueryGetIntersectionObjectToWorldEXT(rq, true));
+    const vec3 c = cross(M * (p1 - p0), M * (p2 - p0));
+    const float l = length(c);
+    if (!(l > 1e-20)) return false;
+    n = c / l;
+    return true;
+}
+
+// SMOOTH-TERRAIN RECEIVER RE-ANCHOR (#211; frame info terrain_lod.w, clean_frame_info.glsl:
+// RenderVKRTTerrainOriginSnap / its debug view RenderVKRTShadowDebug 12). With smooth terrain
+// the drawn surface and the traced one are meant to coincide (the per-slot BLAS of the drawn
+// level, the morph BLAS while the VS geomorphs it -- llcleanrtvk.cpp "SMOOTH TERRAIN"), but
+// any lapse -- a morph BLAS deferred by the build budget (the static, UNMORPHED level stays:
+// up to the full step), the coarser stand-in while the drawn level's BLAS waits, a CPU plan
+// that misjudged a patch's distance -- leaves the drawn surface a few cm BELOW the traced one
+// on convex ground. A receiver rebuilt from that depth then starts its sun rays inside the
+// traced terrain and a grazing ray skims through its bumps: long dotted streaks along the
+// light, banded by LOD distance and moving with the camera. Here: one short terrain-only ray
+// from P toward the camera; if it LEAVES the traced terrain (the facet it meets faces along
+// the ray: P was under it) the sun origin moves up to that exit point -- the traced surface
+// right above the pixel. Never down (P above / on the traced terrain: an entering hit or a
+// miss changes nothing), so receivers resting on terrain keep their contact shadows and real
+// relief still shadows the ground behind it. Window: up to RT_TERRAIN_GAP_N along the normal
+// (the morph steps / a coarser stand-in on gentle ground are cm), capped along the ray.
+// Skirts (near-vertical facets) are ignored. Returns the exit distance along the camera ray,
+// -1 = P is not under the traced terrain within the window.
+#define RT_TERRAIN_GAP_N   0.10
+#define RT_TERRAIN_GAP_RAY 1.5
+uint  rtTerrainBits()      { return uint(max(ssr.terrain_lod.w, 0.0) + 0.5); }   // 0 off, else 1 + flags
+bool  rtTerrainSnapOn()    { const uint b = rtTerrainBits(); return b != 0u && ((b - 1u) & 1u) != 0u; }
+bool  rtTerrainGapDiag()   { const uint b = rtTerrainBits(); return b != 0u && ((b - 1u) & 2u) != 0u; }
+float maskTerrainExit(vec3 P, vec3 cam, vec3 Ng)
+{
+    vec3 Vt = cam - P;
+    const float camd = length(Vt);
+    if (camd < 1e-3) return -1.0;
+    Vt /= camd;
+    const float cv = max(abs(dot(Ng, Vt)), 0.02);
+    const float tmax = min(min(RT_TERRAIN_GAP_N / cv, RT_TERRAIN_GAP_RAY), 0.5 * camd);
+    rayQueryEXT rq;
+    rtDiagRay(Vt);   // (RenderVKRTCandidateDiag)
+    rayQueryInitializeEXT(rq, uTLAS, gl_RayFlagsOpaqueEXT, RT_MASK_TERRAIN, P, 0.0, Vt, tmax);
+    while (rayQueryProceedEXT(rq)) {}
+    if (rayQueryGetIntersectionTypeEXT(rq, true) != gl_RayQueryCommittedIntersectionTriangleEXT) return -1.0;
+    const uint id = rtHitInstance(uint(rayQueryGetIntersectionInstanceCustomIndexEXT(rq, true)),
+                                  uint(rayQueryGetIntersectionGeometryIndexEXT(rq, true)));
+    vec3 p0, p1, p2;
+    rtTriPositions(id, RT_HIT_PRIM(rq, true, id), p0, p1, p2);
+    const mat3 M = mat3(rayQueryGetIntersectionObjectToWorldEXT(rq, true));
+    vec3 n = cross(M * (p1 - p0), M * (p2 - p0));
+    const float l = length(n);
+    if (!(l > 1e-20)) return -1.0;
+    n /= l;
+    if (n.z < 0.0) n = -n;               // terrain: the upward side
+    if (n.z < 0.2) return -1.0;          // a skirt / cliff wall: not the surface above P
+    if (dot(n, Vt) <= 0.0) return -1.0;  // entering from above: P is not under it
+    return rayQueryGetIntersectionTEXT(rq, true);
+}
+
+// #747 interim CLUSTER LOD RECEIVER LIFT: clean_rt_receiver.glsl rtClusterRigLift (#1048: the one copy).
+#include "clean_rt_receiver.glsl"
+
+// The light cluster of receiver P (render px cpx, view depth vz): the lit pass's cell.
+uint maskCluster(vec3 P, vec2 cpx, float vz)
+{
+    uint cx = min(uint(cpx.x / linfo.grid.x), GX - 1u);
+    uint cy = min(uint(cpx.y / linfo.grid.y), GY - 1u);
+    uint cz = (vz <= linfo.zinfo.x) ? 0u : min(uint(log(vz / linfo.zinfo.x) * linfo.zinfo.z), GZ - 1u);
+    if (kViewCount > 1)
+    {
+        // #1075 STEREO: the cluster grid is the head camera's superset of both eyes -- an eye's
+        // pixel is not its tile: project P into it (clean_draw_common.glsl mainClusterProject)
+        const vec4 hv = linfo.view * vec4(P, 1.0);
+        const float hz = max(-hv.z, 1e-3);
+        const float sx = (hv.x / hz) / max(linfo.grid.z, 1e-4), sy = (hv.y / hz) / max(linfo.grid.w, 1e-4);
+        cx = uint(clamp((sx * 0.5 + 0.5) * float(GX), 0.0, float(GX) - 1.0));
+        cy = uint(clamp((0.5 - sy * 0.5) * float(GY), 0.0, float(GY) - 1.0));
+        cz = (hz <= linfo.zinfo.x) ? 0u : min(uint(log(hz / linfo.zinfo.x) * linfo.zinfo.z), GZ - 1u);
+    }
+    return (cz * GY + cy) * GX + cx;
+}
+
+#ifdef CLEAN_VR_POINT_SHADOWS
+// ---- (#1595) VR POINT LIGHTS + FIXED FOVEATION (-DCLEAN_VR_POINT_SHADOWS: kWorldRtShadowMaskVrSpv, created only in a
+// stereo session -- LLCleanRendererVK::mRtMaskVrPipe; the desktop's kWorldRtShadowMaskSpv has none of this) ----
+// A layered stereo frame lights its views with the uber kernel: the split's pass 15 (ReSTIR DI, the only point-light
+// shadow path on the desktop) does not run, so the point lights were unshadowed in VR. This variant traces them here,
+// per view (z = N), into the projector slots -- the RT shadow path's slots, temporal and spatial passes and reader
+// (clean_shadow_mask_read.glsl rtMaskProjTapsS by light index; clean_draw_common.glsl localLight's point branch in
+// the stereo uber kernel, -DCLEAN_VR_POINT_SHADOWS) -- after the ray-traced projectors:
+//   * the light set: LightInfo.rs_set's point lights (rsLightSet: RenderVKReSTIRLights 1, attachments only with
+//     RenderVKReSTIRAttachedLights), reaching P (mvNextLight: the cluster list, the whole table where it overflowed).
+//     The cluster grid is the HEAD camera's superset of both eyes (maskCluster): ONE light selection for the views;
+//   * own slots in walk order while they fit (and the foveation ring allows), each traced with the mover path's point
+//     ray core (mvLightVis: the RenderVKReSTIRPointRadius disc, the own-fixture clip, the terminator rules);
+//   * the rest STOCHASTIC: 1 (2 at SlipstreamVRPointShadows 3, centre ring) weighted-reservoir picks over the other
+//     lights by their diffuse weight, ONE ray each; the REST ratio sum w V / sum w is estimated by the picks' mean V
+//     (an unbiased estimate of the numerator over the exact denominator), the temporal pass integrates it.
+// FIXED FOVEATION (SlipstreamVRFoveation, push p0.z bits 1-2: 0 off, 1 low, 2 high -- the G-buffer's lens-matched map,
+// llcleanrenderervk.cpp ensureFoveation): the angle of P off THIS eye's axis picks a ring -- inside 40 deg (high: 30)
+// full rate, to 50 deg (high: 40) half, beyond quarter -- and the ring the budget: own point slots 4 / 2 / 1, rays per
+// own slot 4 / 2 / 1, the projectors' adaptive ray cap 16 / 8 / 4. The periphery keeps every light (no light drops
+// out: the reader would read it unshadowed), only with fewer rays; the temporal pass hides the extra noise there, where
+// the Index lens blurs it anyway.
+uint vrFoveaMode() { return (rtFlagBits() >> 1u) & 3u; }
+bool vrPtHigh()    { return (rtModeBits() & 1u) != 0u; }
+uint vrFoveaRing(vec3 P, vec3 eye)
+{
+    const uint m = vrFoveaMode();
+    if (m == 0u) return 0u;
+    const mat4 V = ssr.views[CLEAN_VIEW].cur_view;
+    const vec3 fwd = normalize(-vec3(V[0][2], V[1][2], V[2][2]));   // the eye's -Z axis in world
+    const vec3 d = P - eye;
+    const float a = dot(d, fwd);
+    if (!(a > 1e-6)) return 2u;
+    const float t2 = max(dot(d, d) - a * a, 0.0) / (a * a);         // tan^2 of the angle off the axis
+    const float in2  = m == 2u ? 0.3333 : 0.7041;                   // tan^2(30) / tan^2(40)
+    const float out2 = m == 2u ? 0.7041 : 1.4203;                   // tan^2(40) / tan^2(50)
+    return t2 < in2 ? 0u : (t2 < out2 ? 1u : 2u);
+}
+uint vrPcg(uint v)
+{
+    const uint s = v * 747796405u + 2891336453u;
+    const uint w = ((s >> ((s >> 28u) + 4u)) ^ s) * 277803737u;
+    return (w >> 22u) ^ w;
+}
+float vrRand(inout uint seed) { seed = vrPcg(seed); return float(seed >> 8u) * (1.0 / 16777216.0); }
+#endif
+
+void storeIds(ivec2 mpx, uvec4 ids) { imageStore(uIdsOut, ivec3(mpx, RT_MASK_L), ids); }
+// d = (view depth, d/dx, d/dy, flags): depth stays 32-bit; the gradients clamp inside
+// fp16 range (a grazing receiver's step can exceed 65504 m / px) and the flags are an
+// exact integer < 2048 (fp16 holds those exactly).
+void storeDepth(ivec2 mpx, vec4 d)
+{
+    imageStore(uDepthOut, ivec3(mpx, RT_MASK_L), vec4(d.x));
+    imageStore(uGradOut, ivec3(mpx, RT_MASK_L), vec4(clamp(d.yz, vec2(-60000.0), vec2(60000.0)), d.w, 0.0));
+}
+
+// Radical inverse of i in base b (Halton; #841 footprint jitter, i in 1..16).
+float maskHalton(uint i, uint b)
+{
+    float f = 1.0, r = 0.0;
+    while (i > 0u) { f /= float(b); r += f * float(i % b); i /= b; }
+    return r;
+}
+
+void main()
+{
+    ivec2 mpx = ivec2(gl_GlobalInvocationID.xy);
+    const bool reuse_mode = rcListMode() && rcReuseMode();
+    bool rc_carry = false;
+    if (rcListMode())
+    {
+        // #771: this workgroup's 8x8 block from the trace / reuse list (2D past 32768).
+        const uint li = gl_WorkGroupID.y * 32768u + gl_WorkGroupID.x;
+        if (rc_count[2] != 0u)
+        {
+            // FULL fallback (the finalize: most blocks traced): every block, raster order;
+            // the reuse dispatch is empty.
+            const uint bpr = max(rc_h1.z, 1u);
+            if (reuse_mode || li >= rc_count[0] + rc_count[1]) return;
+            mpx = ivec2(int(li % bpr), int(li / bpr)) * 8 + ivec2(gl_LocalInvocationID.xy);
+        }
+        else
+        {
+            const uint k = reuse_mode ? 1u : 0u;
+            if (li >= min(rc_count[k], rc_h1.w)) return;
+            const uint b = rc_list[k * rc_h1.w + li];
+            rc_carry = reuse_mode && (b & 0x80000000u) != 0u;
+            mpx = ivec2(int(b & 0xFFFFu), int((b >> 16u) & 0x7FFFu)) * 8 + ivec2(gl_LocalInvocationID.xy);
+        }
+    }
+    if (mpx.x >= int(mp.dims.z) || mpx.y >= int(mp.dims.w)) return;
+    // MOVER PROBE (RenderVKMoverProbePixel): this invocation is the probed texel (flags 256 carried, 512 sky)
+    g_mpr = rtpOn() && mpx == rtpMaskPx() && CLEAN_VIEW == 0u;
+    if (g_mpr) rtpPut(RTP_M_PX, uint(mpx.x) | (uint(mpx.y) << 16u));
+    if (g_mpr && rc_carry) rtpOr(RTP_M_FLAGS, 256u);
+    if (rc_carry)
+    {
+        // #771 STATIC CARRY (the camera did not move, no ray-traced projector): last frame's
+        // outputs ARE this frame's -- copied into this frame's history slot; raw = the
+        // class value (the 3x3 of traced neighbours reads it, as in the reuse path).
+        const vec4 ha = texelFetch(uHistSun, ivec3(mpx, RT_MASK_L), 0);
+        imageStore(uCarryAccSun, ivec3(mpx, RT_MASK_L), ha);
+        imageStore(uCarryMeta, ivec3(mpx, RT_MASK_L), texelFetch(uHistMeta, ivec3(mpx, RT_MASK_L), 0));
+        storeIds(mpx, rtMaskRemapIds(texelFetch(uHistIds, ivec3(mpx, RT_MASK_L), 0)));   // (this frame's indices)
+        imageStore(uDepthOut, ivec3(mpx, RT_MASK_L), vec4(texelFetch(uHistDepth, ivec3(mpx, RT_MASK_L), 0).x));
+        imageStore(uGradOut, ivec3(mpx, RT_MASK_L), texelFetch(uHistDepthG, ivec3(mpx, RT_MASK_L), 0));
+        const uint c = rcClass(ha.rgb, rc_f0.x);
+        imageStore(uRawSun, ivec3(mpx, RT_MASK_L), vec4(c == 1u ? vec3(1.0) : (c == 2u ? vec3(0.0) : rtFiniteVis(ha.rgb)),
+                                      rtEncR((isnan(ha.a) || isinf(ha.a)) ? -1.0 : ha.a)));
+        // last frame's final stays; its shading-change (reactive) alpha does not carry over
+        imageStore(uCarryFinal, ivec3(mpx, RT_MASK_L), vec4(imageLoad(uCarryFinal, ivec3(mpx, RT_MASK_L)).rgb, 0.0));
+        return;
+    }
+    // Render pixel this mask texel stands for. Below full resolution the sample point
+    // moves around the texel's footprint with the TAA jitter (rtMaskJitter), so TAA
+    // integrates a different real sample per pixel each frame instead of a static block.
+    const ivec2 rp = rtMaskRenderPx(mpx);
+    const float d = texelFetch(uDepth, ivec3(rp, RT_MASK_L), 0).r;
+    // sky (reversed-Z: far = 0); #1075 stereo: the lens' hidden area (the XR visibility mask holds the
+    // near plane, 1.0, there: nothing visible -- no rays; folded away on one view)
+    if (d <= 0.0 || (kViewCount > 1 && d >= 1.0))
+    {
+        if (g_mpr) rtpOr(RTP_M_FLAGS, 512u);
+        imageStore(uRawSun, ivec3(mpx, RT_MASK_L), vec4(1.0, 1.0, 1.0, 0.0));
+        storeIds(mpx, uvec4(0u));
+        storeDepth(mpx, vec4(-1.0, 0.0, 0.0, 0.0));   // (w: no moving caster)
+        return;
+    }
+    const vec2 cpx = vec2(rp) + 0.5;
+    const vec3 P = worldAt(cpx, d);
+    const vec3 cam = CL_VIEW_EYE(linfo, P, rtMaskEye());
+    const float time = mp.cam_time.w;
+    const vec3 fwd = linfo.cam_fwd.xyz;
+    const float vz = dot(P - linfo.cam_pos.xyz, fwd);
+    // #771 REUSE: the sun's value from the reprojected history (no rays, no sun probes).
+    // The reused raw value is the EXACT class value -- 1 (every ray clear) or 0 (every ray
+    // blocked), what the rays themselves return there -- never the accumulated history: fed
+    // back as raw, the history drifted (the temporal pass's bilinear reprojection is a
+    // small blur each frame; with the history as its own input nothing re-anchored it, and
+    // light from an adjacent lit area crept into a solid shadow as a growing blotch). With
+    // the class value the accumulation converges exactly as with traced rays.
+    ivec2 rc_hn = ivec2(0);
+    uint rc_cls = 0u;
+    if (reuse_mode && ssr.shadow_params.w > 1.5 && vz < ssr.shadow_clip.w && rcHistTap(P, rp, rc_hn))
+        rc_cls = rcClass(texelFetch(uHistSun, ivec3(rc_hn, RT_MASK_L), 0).rgb, rc_f0.x);
+    // (a non-uniform tap: traced as usual; a merged frame's MOVER sun never reuses -- a mover the cache has no
+    //  shadow footprint for left stale blocked tiles behind: LLCleanRendererVK::rtMaskCacheRecord keeps the cache
+    //  off on those frames, this is the shader's side of it)
+    const bool sun_reuse = rc_cls != 0u && !moverSunOnly();
+    // GEOMETRIC NORMAL of the receiver (maskTangent / maskProbeNormal above): per axis the
+    // depth neighbour that lies on the receiver's own plane; where neither does (a stack
+    // of cut-out layers, a sub-pixel feature) the triangle the pixel shows, from a short
+    // camera-ray probe. Only when the normal is used (sun in range or projectors).
+    const ivec2 mx = ivec2(mp.dims.xy) - 1;
+    const float pm = max(max(abs(P.x), abs(P.y)), abs(P.z));
+    const float dtol = rtViewOrtho()
+        ? 8.0 * rtUlp(d) + 2.0 * max(RT_OFS_FRAME_ULPS * rtUlp(pm), RT_OFS_FLOAT_SCALE) / rtOrthoRange()
+        : 8.0 * rtUlp(d) + d * 2.0 * max(RT_OFS_FRAME_ULPS * rtUlp(pm), RT_OFS_FLOAT_SCALE) / max(vz, 1e-3);
+    vec3 dx, dy;
+    const bool okx = maskTangent(rp, ivec2(1, 0), cpx, d, P, dtol, mx, dx);
+    const bool oky = maskTangent(rp, ivec2(0, 1), cpx, d, P, dtol, mx, dy);
+    vec3 Ng = normalize(cross(dy, dx));
+    if (any(isnan(Ng)) || dot(Ng, Ng) < 0.5) Ng = normalize(cam - P);
+    const bool need_ng = (ssr.shadow_params.w > 1.5 && vz < ssr.shadow_clip.w && !sun_reuse) || linfo.cam_pos.w > 0.5;
+    vec3 Np;
+    if (need_ng && !(okx && oky) && maskProbeNormal(P, cam, Np)) Ng = Np;
+    if (dot(Ng, cam - P) < 0.0) Ng = -Ng;   // the visible side
+    // #747 interim: the cluster surface of a switched avatar (clean_rt_receiver.glsl rtClusterRigLift).
+    const float cl_lift = need_ng ? rtClusterRigLift(P, cam) : 0.0;
+    // Receiver DEPTH PLANE for the upsample / history / spatial weights: view depth and
+    // its screen-space gradient (per render px, the same neighbours maskTangent chose), so
+    // sloped receivers (ground at a grazing view) compare against the depth their plane
+    // predicts instead of failing a flat tolerance.
+    vec2 dz = vec2(dot(dx, fwd), dot(dy, fwd));
+    if (any(isnan(dz))) dz = vec2(0.0);
+    uint dyn = 0u;   // moving-caster bits (rtNoteBlocker): sun bit 0, projector slot k bit k + 1
+    // World size of one render pixel at this depth (an iso-depth step: the view-plane
+    // footprint): penumbra widths -> mask texels.
+    const float pxw = max(length(worldAt(cpx + vec2(1, 0), d) - P), 1e-6);
+    // VIEW-SLOPE RECEIVER OFFSET (RenderVKRTShadowSlopeBias; clean_rt_mask_common.glsl
+    // rtSlopeBiasPx): P is rebuilt from the pre-pass depth at the pixel centre, but the
+    // depth the rasterizer stored there comes from a plane fitted through vertices snapped
+    // to the sub-pixel grid (large faces: one plane for a whole box top / road / terrain
+    // patch, its vertices far off screen) -- a sample-POSITION error of a small fraction
+    // of a pixel. Along the receiver that is nothing, but at a grazing VIEW the depth
+    // changes by pxw x tan(view angle) per pixel, so the rebuilt point lies off the true
+    // plane by eps x pxw x sin(view angle) along the normal: centimetres on far ground,
+    // per triangle and per pixel row (the sharp shards / screen-row comb a still camera
+    // accumulated; looking straight down, sin = 0: none). The constant W&B offset
+    // (fractions of a millimetre) can't cover it. So the origin leaves the receiver by
+    // that bound: a fixed fraction of the pixel footprint -- sub-pixel, so no visible
+    // peter-panning at any distance (contact shadows close up: pxw ~ 1 mm at 2 m).
+    vec3 Vc = P - cam;
+    const float vcl = length(Vc);
+    const float recv_ofs = vcl > 1e-4 ? rtSlopeBiasPx() * pxw * length(cross(Ng, Vc / vcl)) : 0.0;
+    const float s = rtMaskScale().x;
+
+    // NOISE: denoiser -> the per-pixel IGN pattern walked by an R2 sequence of the mask's
+    // frame index (never repeats with the 16-phase jitter; temporally stratified), EVERY
+    // frame, with or without TAA / FSR and whether or not this frame has a history (#841:
+    // it used to be gated on rtMaskTemporal -- a frame with no valid history traced the bare
+    // IGN pattern, and wherever that state persisted the disc pattern was identical every
+    // frame: a static stipple. On a reset frame the phase is irrelevant -- no history, the
+    // output is this frame's raw -- so the gate bought nothing).
+    const vec2 npx = cpx;
+    rt_noise_shift = fract(mp.p0.x * vec2(0.7548776662, 0.5698402910));
+
+    // #841 FOOTPRINT JITTER (sun origin; view NOT jittered). Under TAA / FSR the
+    // sample point moves around the texel's footprint with the view jitter (rtMaskJitter) and
+    // the accumulation integrates the footprint. Without them every frame traced the same
+    // point -- and at a small sun disc (Shadow softness 0.01 = 0.05 deg: ~1.7 mm of penumbra
+    // per metre of blocker distance, sub-texel) the disc noise changes nothing, so the raw
+    // was a frame-invariant hard shadow sampled on a fixed grid: the static stipple along
+    // every edge (fine caster detail, cut-out edges, the irregular render-pixel spacing of a
+    // 0.75 mask) that no history converges. Here the sun origin slides over the texel's
+    // footprint along the receiver's own plane (the tangents above, render px steps; +-0.5 /
+    // scale render px, Halton(2, 3) over 16 frames -- not the disc's R2 phase), only where
+    // both tangents are on-plane AND the render pixel under the offset point lies on the same
+    // plane (off silhouettes / relief: this frame keeps P). The declared sample (rp, the depth
+    // plane, ids, the reprojection) is unchanged.
+    vec3 sun_foot = vec3(0.0);
+    if (ssr.taa_params.w < 0.5 && okx && oky)
+    {
+        const uint hk = (uint(max(mp.p0.x, 0.0) + 0.5) & 15u) + 1u;
+        const vec2 o = (vec2(maskHalton(hk, 2u), maskHalton(hk, 3u)) - 0.5) / rtMaskScale();
+        const ivec2 q = clamp(ivec2(floor(cpx + o)), ivec2(0), mx);
+        bool on = true;
+        if (q != rp)
+        {
+            const float dq = texelFetch(uDepth, ivec3(q, RT_MASK_L), 0).r;
+            const vec3 Pq = dq > 0.0 ? worldAt(vec2(q) + 0.5, dq) : P + Ng * 1e30;
+            on = abs(dot(Pq - P, Ng)) <= 0.05 * (length(dx) + length(dy)) + 1e-4 * length(P - cam);
+        }
+        if (on) sun_foot = dx * o.x + dy * o.y;
+    }
+
+    ivec2 hp = ivec2(0);
+    const bool hist = rtHintOn() && rtMaskHistory(P, rp, hp);
+    const uvec4 hids = hist ? rtMaskRemapIds(texelFetch(uHistIds, ivec3(hp, RT_MASK_L), 0)) : uvec4(0u);   // (this frame's indices)
+    const vec3 hsun = hist ? texelFetch(uHistSun, ivec3(hp, RT_MASK_L), 0).rgb : vec3(-1.0);
+
+    // NO-SELF-SHADOW CHARACTERS (clean_rt_common.glsl rtSelfCandidate): the receiver's
+    // character is unknown from depth alone -- resolved by a probe ray only if one of its
+    // shadow rays meets a throttled character's geometry, then kept for every light.
+    rt_self_owner = RT_SELF_UNKNOWN;
+    rt_self_P = P;
+    rt_self_cam = cam;
+
+    // #211 SMOOTH-TERRAIN RECEIVER RE-ANCHOR (maskTerrainExit): the sun origin only -- the
+    // receiver's depth plane, ids, history taps and projectors keep the raster P.
+    const bool terr_diag = rtTerrainGapDiag();
+    const bool sun_traced = !sun_reuse && ssr.shadow_params.w > 1.5 && vz < ssr.shadow_clip.w;
+    float terr_t = -1.0;
+    if (terr_diag || (sun_traced && rtTerrainSnapOn())) terr_t = maskTerrainExit(P, cam, Ng);
+    const vec3 Psun = (terr_t > 0.0 && rtTerrainSnapOn()) ? P + normalize(cam - P) * terr_t + sun_foot
+                                                          : P + sun_foot;
+
+    // ---- MOVER CULL (mover routing: moverRouteOn, a frame-info word -- uniform) ----
+    // The light reach of this texel (the farthest light of its cluster whose range holds it: no mover
+    // farther away can lie between it and a light) and the subgroup's candidate movers (mvCullBuild).
+    const bool mvRoute = moverRouteOn();
+    const bool mvSun = mvRoute && moverSunOnly();   // (merged frame: the sun here is mover-only)
+    const vec3 Lsun = atmosLightDir();
+    const float sunFar = ssr.sun_rt.w > 0.0 ? ssr.sun_rt.w : 512.0;
+    uint mvCl = 0u;
+    bool mvOvf = false;   // its light cluster overflowed CLUSTER_CAP (mvNextLight walks every light)
+    uint mvRecovered = 0u;   // (the host's log line) mover-hit lights the capped list did not hold
+    uint mvRays = 0u;   // this texel's mover / weight rays (the host's log line)
+    // (stats frames: the cost breakdown, clean_rt_movers.glsl words 11-23 -- per texel, summed per subgroup below)
+    uint stTex = 0u, stRange = 0u, stElig = 0u, stCandS = 0u, stCand = 0u, stCut = 0u, stWall = 0u;
+    uint stRayM = 0u, stRayS = 0u, stBlk = 0u, stP3 = 0u, stPix = 0u;
+    g_mv_stats = mvRoute && moverStatsFrame() && uint(mv.length()) > MV_HOLD;
+    // (RenderVKShadowMoverMask 2, frame info moverLocalExact: pass 15 evaluates the local lights near movers itself, with
+    //  all casters -- no local-light reach, so no local candidates: the local mover passes below never run; the sun's
+    //  mover routing is unchanged)
+    const bool mvLocalExact = moverLocalExact();
+    if (mvRoute)
+    {
+        float reach = 0.0;
+        const uint lcount = uint(linfo.cam_pos.w);
+        if (lcount > 0u && !mvLocalExact)
+        {
+            mvCl = maskCluster(P, cpx, vz);
+            // (an overflowed cluster: every light in range of P -- mvNextLight; a light the cap dropped still
+            //  widens the cull, or a texel reached only by it skipped the mover lights entirely)
+            mvOvf = mvClusterOverflow(mvCl);
+            uint cur = 0u;
+            for (uint i = 0u; i < 256u; ++i)
+            {
+                const uint li = mvNextLight(mvCl, mvOvf, lcount, P, false, cur);
+                if (li == 0xFFFFFFFFu) break;
+                const vec4 pr = lights[li].pos_radius;
+                const vec3 X = lights[li].proj_origin.w > 0.5 ? lights[li].proj_origin.xyz : pr.xyz;
+                reach = max(reach, length(X - P) + mvLightRadius(lights[li]));   // (+ its disc: the soft rays)
+            }
+        }
+        mvCullBuild(P, Lsun, mvSun && !sun_reuse && ssr.shadow_params.w > 1.5 && vz < ssr.shadow_clip.w, sunFar,
+                    reach > 0.0, reach);
+    }
+
+    // ---- sun / moon ----
+    vec3 sun = vec3(1.0);
+    float srad = -1.0;   // penumbra radius (mask texels), -1 = no caster met
+    if (sun_reuse)
+    {
+        // #771: the class value (above) and the penumbra radius the history holds (a, -1
+        // none: only the spatial filter's radius, flat over a uniform region).
+        const float ha = texelFetch(uHistSun, ivec3(rc_hn, RT_MASK_L), 0).a;
+        sun = rc_cls == 1u ? vec3(1.0) : vec3(0.0);
+        srad = (isnan(ha) || isinf(ha)) ? -1.0 : ha;
+    }
+    else if (mvSun && !mvSunHit(P, Lsun, sunFar))
+    {
+        // MOVER ROUTING, merged frame: no mover sphere lies along this texel's sun ray -- lit, no ray
+        // (the merged pass traced the static casters)
+    }
+    else if (ssr.shadow_params.w > 1.5 && vz < ssr.shadow_clip.w)
+    {
+        const vec3 L = atmosLightDir();
+        // SHADOW TERMINATOR (clean_shadow_rt.glsl rtTerminatorProbe): within the band
+        // where a smooth-shaded facet can self-shadow (-0.5 < Ng.L < 0.2, Ng the visible
+        // side: a facet facing away while its vertex normals still face the sun; a ray
+        // leaving a convex facet higher than that can't meet its neighbours, and concave
+        // regions get no lift -- so lit ground / walls / shell grass pay no probe),
+        // the triangle under the pixel gives the interpolated vertex normal Ns and the
+        // Hanika origin lift. Ns, not the facet, decides the facing gate and the
+        // penumbra stretch: the lit FS lights by the smooth normal, and gating by the
+        // facet hard-blacked whole triangles there.
+        const float ngl = dot(Ng, L);
+        vec3 tlift = vec3(0.0), tns = vec3(0.0), tng = vec3(0.0);
+        const bool term = rtTerminatorOn() && rtTerminatorBand(ngl) && rtTerminatorCached(P, cam, Ng, RT_TERM_MASK_COS, rp, tlift, tns, tng);
+        // The probe's triangle is the exact facet (the depth normal is a finite
+        // difference across neighbouring texels -- across a crease it bends toward the
+        // next facet): the origin offset and the lift-side test use it.
+        const vec3 Nsun = term ? tng : Ng;
+        const float nsl = term ? max(dot(tns, L), dot(tng, L)) : ngl;
+        // Facing away (beyond normal-map slack): the lit FS's N.L > 0 gate drops it.
+        if (nsl > -0.25)
+        {
+            const float fade = clamp((vz - ssr.shadow_clip.w * 0.8) / max(ssr.shadow_clip.w * 0.2, 1e-3), 0.0, 1.0);
+            const bool opaque_only = ssr.taa_scale.z > 0.0 && length(P - cam) > ssr.taa_scale.z;
+            rt_vis_hint = rtMaskHint(hsun);
+            rt_block_t = 1e30;
+            rt_block_dyn = false;
+            if (g_mpr) g_mpr_bid = RT_BAD_ID;   // (RenderVKMoverProbePixel: the sun's blocker below)
+            rt_term_on = term; rt_term_lift = tlift; rt_term_ns = tns;
+            // (#747: only along the receiver's VISIBLE side -- the core lifts along the
+            // normal it passes, flipped toward the light unless terminator-lifted (then
+            // toward the lift: the visible side); the light-facing side of a receiver
+            // turned away is the inside of the avatar)
+            // (+ the view-slope offset above, on the same side)
+            rt_cl_lift = (dot(Nsun, L) > 0.0 || (term && dot(tlift, tlift) > 0.0)) ? cl_lift + recv_ofs : 0.0;
+            if (mvSun) { mvCastMovers(); mvRays += ssr.sun_rt.x > 0.0 ? uint(clamp(ssr.sun_rt.y + 0.5, 1.0, 16.0)) : 1u; }   // (mover routing: the movers alone; the core's disc rays, an upper bound)
+            sun = mix(sunShadowRayCore(Psun, Nsun, L, CL_VIEW_EYE(linfo, Psun, cam), time, npx, opaque_only, 16u), vec3(1.0), fade);
+            if (g_mpr) rtpLight(3u, mvSun ? 1u : 0u, 0xFFFFFFFFu, vec3(1.0), sun, rt_block_t, 0u, -1.0);   // (the sun)
+            mvCastAll();
+            rt_term_on = false;
+            rt_cl_lift = 0.0;
+            if (rt_block_dyn) dyn |= 1u;
+            // Sun disc of angular radius a: a blocker at distance t spreads its edge over
+            // a radius of t * tan(a) measured ACROSS the light; on the receiver plane that
+            // is stretched by 1 / (Ng.L). A low sun skimming a curved receiver (an
+            // avatar's arm, a shoulder) has a penumbra many times wider than t * tan(a):
+            // sized without the stretch the spatial pass blurred a few texels of a band
+            // tens of texels wide and the 4-ray dither stayed visible -- temporally
+            // stable after accumulation, so TAA could not average it either. The stretch
+            // is capped (1 / 0.15): at the terminator the receiver's own N.L fades the
+            // light anyway. Contact shadows (t ~ 0) stay sharp whatever the stretch.
+            if (rt_block_t < 1e29)
+                srad = rt_block_t * tan(ssr.sun_rt.x) / max(nsl, 0.15) / pxw * s;
+            // SELF-HIT DETECTOR (RenderVKRTShadowDebug 11, shown as the raw view): the
+            // nearest blocker met by this pixel's sun rays -- red within 5 cm of the
+            // origin, blue within 50 cm, else the raw value. Specks on open ground that
+            // turn red are rays hitting the receiver's own surface.
+            if (rtSelfHitDiag() && rt_block_t < 0.5)
+                sun = rt_block_t < 0.05 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0);
+        }
+        // (mover routing: a facet facing away is the merged pass's -- its static channel gives it 0; the mover
+        //  channel stays lit there, so its filters never carry a terminator's 0 onto lit texels beside it)
+        else if (!mvSun) { sun = vec3(0.0); srad = 0.0; }
+    }
+    rt_vis_hint = -1.0;
+    // RenderVKRTShadowDebug 12 (#211): the drawn-under-traced terrain gap along the receiver
+    // normal -- red up to 2 cm, rising to yellow at 10 cm; elsewhere the raw value dimmed.
+    if (terr_diag)
+    {
+        const float gn = terr_t > 0.0 ? terr_t * max(dot(Ng, normalize(cam - P)), 0.0) : 0.0;
+        sun = gn > 1e-3 ? vec3(clamp(gn / 0.02, 0.0, 1.0), clamp((gn - 0.02) / 0.08, 0.0, 1.0), 0.0)
+                        : vec3(0.25 * dot(sun, vec3(1.0 / 3.0)));
+    }
+    imageStore(uRawSun, ivec3(mpx, RT_MASK_L), vec4(sun, rtEncR(srad)));
+
+    // ---- ray-traced projectors (cluster order, lit FS gates) ----
+    // OWN SLOTS + THE REST SLOT (clean_lights_common.glsl PROJ_MASK_REST_ID): the first 4 traced
+    // projectors (cluster order) get their own slot; past them EVERY other one reaching the pixel
+    // is still traced (one disc ray: the history integrates the disc) and folded into the
+    // light-weighted REST ratio, which then takes the last slot (slot 3's own projector joins it).
+    // A reader that finds its projector in no slot takes the REST value. Before, the 5th+
+    // projector at a pixel was never traced and lit UNSHADOWED -- in a club with dozens of
+    // overlapping projectors, the next room's projector painted its crisp gobo through the wall.
+    uvec4 ids = uvec4(0u);
+    uint count = uint(linfo.cam_pos.w);
+    uint k = 0u;
+    // BACK-FACE SELF-SHADOW (clean_shadow_rt.glsl rtBackfaceSelfShadow): the projectors gated off
+    // below as turned away still count -- visibility 0, no ray -- in a slot after every traced one
+    // where all fit, else in the REST ratio. Unlisted, the lit FS reads a projector as UNSHADOWED
+    // (rtMaskProjTaps), so a wall facing away from the next room's projector was lit through
+    // itself wherever its normal map tilted the shading normal toward it.
+    const bool bfsList = rtBackfaceSelfShadow();
+    uvec4 away = uvec4(0u);
+    uint nAway = 0u;
+    vec3 awayW = vec3(0.0);
+    vec4 slotV[4] = vec4[4](vec4(0.0), vec4(0.0), vec4(0.0), vec4(0.0));   // rgb visibility, a penumbra radius
+    vec3 slotW[4] = vec3[4](vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));   // the slot projector's light at P
+    vec3 restN = vec3(0.0), restD = vec3(0.0);   // the REST ratio's shadowed / unshadowed light
+    bool restDyn = false;
+#ifdef CLEAN_VR_POINT_SHADOWS
+    const uint vrRing = vrFoveaRing(P, cam);   // (#1595: this texel's foveation ring, 0 full .. 2 outer)
+#endif
+    if (count > 0u && !rtProjStochastic())   // (#85 phase 2: the deferred sampler shadows them)
+    {
+        const uint c = maskCluster(P, cpx, vz);
+        // Only the list's leading SHADOWED projectors (clean_lights.comp lists them first,
+        // so the cluster cap never drops one while they fit; clusterShadowedLen).
+        // LOSSLESS (2026-11-13, light cap blink): where the shadowed run overflowed CLUSTER_CAP
+        // (clusterShadowedWalkAll) the whole light table instead, as the lit pass's resolve
+        // (clean_deferred_light.comp deferResolveProjectors) walks it -- a projector past the cap was
+        // lit there but never traced here, so it read the REST ratio of the others: lit unshadowed.
+        // The tests below keep the traced projectors that reach P; both walks are in index order.
+        const uint craw = c < uint(cluster_count.length()) ? cluster_count[c] : 0u;
+        const bool sAll = clusterShadowedWalkAll(craw);
+        const uint n = sAll ? min(count, uint(lights.length())) : clusterShadowedLen(craw);
+        for (uint i = 0u; i < n; ++i)
+        {
+            // (#874 guard: the light tables, the shadow record and the gobo's bindless slot)
+            const uint ci = c * CLUSTER_CAP + i;
+            if (!sAll && !RTG_OK(ci < uint(cluster_index.length()), RTG_LIGHT, ci, uint(cluster_index.length()))) break;
+            const uint li = sAll ? i : cluster_index[ci];
+            if (li >= count) continue;   // (never: a list entry past this frame's lights)
+            if (!RTG_OK(li < uint(lights.length()), RTG_LIGHT, li, uint(lights.length()))) continue;
+            Light L = lights[li];
+            if (L.proj_origin.w < 0.5 || L.tex.z == 0u) continue;
+            if (!RTG_OK(L.tex.z - 1u < uint(pshadow.length()), RTG_PSHADOW, L.tex.z - 1u, uint(pshadow.length()))) continue;
+            if (L.tex.y != 0u && !RTG_OK(L.tex.x < rtGuardTexCount(), RTG_LIGHT, L.tex.x | 0x80000000u, rtGuardTexCount())) continue;
+            const ProjShadow ps = pshadow[L.tex.z - 1u];
+            if (ps.params.w < 0.5 || ps.params.z < 1.5) continue;   // not ray traced
+            // THE LIGHT REACH (#1043): the lit pass's range / attenuation / cutoff fade -- no ray for a
+            // projector it fades out here, and the REST ratio weighs the light the lit pass adds
+            vec3 lv;
+            float dist;
+            const float atten = lightReach(L.pos_radius, L.color_falloff, P, lv, dist);
+            if (atten <= 0.0) continue;
+            vec2 ptc;
+            if (!lightProjFrustum(L.proj_mat, P, ptc)) continue;
+            const vec3 l = normalize(L.proj_origin.xyz - P);
+            // SHADOW TERMINATOR (#664; as the sun above): in this projector's band the
+            // shared probe (rtTerminatorCached: at most one per pixel for the sun and
+            // every projector) gives the exact facet, the smooth normal and the Hanika
+            // lift; the smooth normal decides the facing gate, so a facet turned away
+            // while its vertex normals still face the projector is not hard-blacked.
+            const float pngl = dot(Ng, l);
+            vec3 plift = vec3(0.0), pns = vec3(0.0), png = vec3(0.0);
+            const bool pterm = rtTerminatorOn() && rtTerminatorBand(pngl) && rtTerminatorCached(P, cam, Ng, RT_TERM_MASK_COS, rp, plift, pns, png);
+            const vec3 Nproj = pterm ? png : Ng;
+            const bool turned = (pterm ? max(dot(pns, l), dot(png, l)) : pngl) < -0.25;
+            if (turned && !bfsList) continue;
+            const vec3 dlit = projDiffuse(L, -dot(lv, L.proj_axis.xyz), ptc.xy);
+            vec3 w = dlit * atten;   // its unshadowed light here (the REST ratio's weight)
+            // SHADOWED AMBIANCE (projAmbShadowed): the ambiance's soft max-LOD texel reaches past
+            // the direct texel's gobo edge; unlisted there, the lit pass read the projector as
+            // UNSHADOWED and its ambiance shone through the wall. A front face only: the lit
+            // pass gives a turned-away receiver's ambiance visibility 0 itself (no lookup).
+            if (L.proj_params.w > 0.0 && !turned && projAmbShadowed())
+                w += projAmbianceW(L, atten, ptc.xy);
+            if (max(max(w.r, w.g), w.b) <= 0.002) continue;
+            if (turned)
+            {
+                if (nAway < 4u) away[nAway] = li + 1u;
+                ++nAway;
+                awayW += w;
+                continue;
+            }
+            const bool own = k < 4u;   // its own slot, else the REST ratio
+            int hslot = -1;
+            if (own)
+                for (int h = 0; h < 4; ++h)
+                    if (hids[h] == li + 1u) { hslot = h; break; }
+            const vec3 hvis = hslot >= 0 ? texelFetch(uHistProj, ivec3(hp, RT_MASK_PL(hslot)), 0).rgb : vec3(-1.0);
+            rt_vis_hint = rtMaskHint(hvis);
+            rt_block_t = 1e30;
+            rt_block_dyn = false;
+            rt_term_on = pterm; rt_term_lift = plift; rt_term_ns = pns;
+            rt_cl_lift = (dot(Nproj, l) > 0.0 || (pterm && dot(plift, plift) > 0.0)) ? cl_lift + recv_ofs : 0.0;   // (#747 + slope, as the sun)
+#ifdef CLEAN_VR_POINT_SHADOWS
+            const vec3 vis = projShadowRayCore(L, ps, P, Nproj, cam, time, npx, own ? (16u >> vrRing) : 1u);   // (#1595)
+#else
+            const vec3 vis = projShadowRayCore(L, ps, P, Nproj, cam, time, npx, own ? 16u : 1u);
+#endif
+            rt_term_on = false;
+            rt_cl_lift = 0.0;
+            rt_vis_hint = -1.0;
+            if (!own)
+            {
+                restN += w * vis;
+                restD += w;
+                restDyn = restDyn || rt_block_dyn;
+                continue;
+            }
+            if (rt_block_dyn) dyn |= 2u << k;
+            // Disc light of radius R at distance D: a blocker at t from the receiver
+            // spreads the edge over R * t / (D - t).
+            float prad = -1.0;
+            if (rt_block_t < 1e29)
+            {
+                const float D = length(L.proj_origin.xyz - P);
+                prad = ps.texel.x * rt_block_t / max(D - rt_block_t, 0.05) / pxw * s;
+            }
+            slotV[k] = vec4(vis, prad);
+            slotW[k] = w;
+            ids[k] = li + 1u;
+            ++k;
+        }
+#ifdef CLEAN_VR_POINT_SHADOWS
+        // ---- (#1595) VR POINT LIGHTS (vrFoveaRing's header above): own slots after the projectors, the rest by
+        //      weighted-reservoir picks into the REST ratio ----
+        {
+            mvCastAll();
+            const uint ownPts = vrRing == 0u ? 4u : (vrRing == 1u ? 2u : 1u);
+            const uint ptRays = vrRing == 0u ? 4u : (vrRing == 1u ? 2u : 1u);
+            const uint picks = (vrRing == 0u && vrPtHigh()) ? 2u : 1u;
+            const bool ovf = mvClusterOverflow(c);
+            const float camd = length(P - cam);
+            const float lift = cl_lift + recv_ofs;
+            // per texel, frame and view: the eyes pick independently (their texels are different surfaces anyway)
+            uint seed = vrPcg(uint(mpx.x) | (uint(mpx.y) << 16u)) ^ vrPcg(uint(max(mp.p0.x, 0.0)) * 4u + CLEAN_VIEW);
+            uint nOwn = 0u;
+            vec3 wRest = vec3(0.0);
+            float rsum[2] = float[2](0.0, 0.0);
+            uint rpick[2] = uint[2](0xFFFFFFFFu, 0xFFFFFFFFu);
+            uint cur = 0u;
+            for (uint i = 0u; i < CLUSTER_CAP; ++i)
+            {
+                const uint li = mvNextLight(c, ovf, count, P, false, cur);
+                if (li == 0xFFFFFFFFu) break;
+                const Light L = lights[li];
+                if (!(L.proj_origin.w < 0.5) || !mvRsInSet(li)) continue;   // (point lights of the set: the reader's)
+                vec3 w, X, plift, pns, png;
+                bool turned, pterm;
+                if (!mvLightWeight(L, P, Ng, cam, rp, w, X, turned, pterm, plift, pns, png) || turned) continue;
+                if (nOwn < ownPts && k < 4u)
+                {
+                    // ITS OWN SLOT: the projector loop's rules (the terminator lift, the history hint of the same
+                    // light, the penumbra radius R t / (D - t), the moving-caster bit)
+                    const vec3 l = normalize(X - P);
+                    const vec3 Nl = pterm ? png : Ng;
+                    rt_term_on = pterm; rt_term_lift = plift; rt_term_ns = pns;
+                    const float llift = (dot(Nl, l) > 0.0 || (pterm && dot(plift, plift) > 0.0)) ? lift : 0.0;
+                    int hslot = -1;
+                    for (int h = 0; h < 4; ++h)
+                        if (hids[h] == li + 1u) { hslot = h; break; }
+                    rt_vis_hint = rtMaskHint(hslot >= 0 ? texelFetch(uHistProj, ivec3(hp, RT_MASK_PL(hslot)), 0).rgb : vec3(-1.0));
+                    rt_block_t = 1e30;
+                    rt_block_dyn = false;
+                    const vec3 vis = mvLightVis(L, P, Nl, cam, time, npx, ptRays, llift, camd, 1u);
+                    rt_vis_hint = -1.0;
+                    rt_term_on = false;
+                    float prad = -1.0;
+                    if (rt_block_t < 1e29)
+                        prad = mvLightRadius(L) * rt_block_t / max(length(X - P) - rt_block_t, 0.05) / pxw * s;
+                    if (rt_block_dyn) dyn |= 2u << k;
+                    slotV[k] = vec4(vis, prad);
+                    slotW[k] = w;
+                    ids[k] = li + 1u;
+                    ++k;
+                    ++nOwn;
+                    continue;
+                }
+                // THE REST: every other light's weight counts (the ratio's denominator, exact); the picks sample
+                // which of them get a ray, in proportion to their weight
+                wRest += w;
+                const float wl = dot(w, vec3(0.2126, 0.7152, 0.0722));
+                if (!(wl > 0.0)) continue;
+                for (uint m = 0u; m < picks; ++m)
+                {
+                    rsum[m] += wl;
+                    if (vrRand(seed) * rsum[m] < wl) rpick[m] = li;
+                }
+            }
+            if (dot(wRest, wRest) > 0.0)
+            {
+                vec3 vsum = vec3(0.0);
+                uint vn = 0u;
+                for (uint m = 0u; m < picks; ++m)
+                {
+                    const uint li = rpick[m];
+                    if (li == 0xFFFFFFFFu) continue;
+                    const Light L = lights[li];
+                    vec3 w, X, plift, pns, png;
+                    bool turned, pterm;
+                    if (!mvLightWeight(L, P, Ng, cam, rp, w, X, turned, pterm, plift, pns, png)) continue;
+                    const vec3 l = normalize(X - P);
+                    const vec3 Nl = pterm ? png : Ng;
+                    rt_term_on = pterm; rt_term_lift = plift; rt_term_ns = pns;
+                    const float llift = (dot(Nl, l) > 0.0 || (pterm && dot(plift, plift) > 0.0)) ? lift : 0.0;
+                    rt_block_t = 1e30;
+                    rt_block_dyn = false;
+                    vsum += mvLightVis(L, P, Nl, cam, time, npx, 1u, llift, camd, 1u);
+                    rt_term_on = false;
+                    restDyn = restDyn || rt_block_dyn;
+                    ++vn;
+                }
+                // (no pick traced -- weights of ~0 luminance: lit, as the reader's no-slot rule)
+                restN += wRest * (vn > 0u ? vsum / float(vn) : vec3(1.0));
+                restD += wRest;
+            }
+        }
+#endif
+        if (k + nAway <= 4u && !(dot(restD, restD) > 0.0))
+        {
+            // everything fits: the turned-away ones (bfsList) in their own slots -- self-shadowed,
+            // hard (no blocker distance: radius 0)
+            for (uint j = 0u; j < nAway; ++j)
+            {
+                slotV[k] = vec4(0.0);
+                ids[k] = away[j];
+                ++k;
+            }
+        }
+        else
+        {
+            // THE REST SLOT: slot 3's own projector (when all 4 are taken) joins the traced rest;
+            // the turned-away ones add their light at visibility 0
+            if (k == 4u)
+            {
+                k = 3u;
+                restN += slotW[3] * slotV[3].rgb;
+                restD += slotW[3];
+                if ((dyn & (2u << 3u)) != 0u) { restDyn = true; dyn &= ~(2u << 3u); }
+            }
+            restD += awayW;
+            // per channel, the luminance ratio where the rest barely has that channel (no 0 / 0)
+            const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+            const float dl = dot(restD, lw);
+            const float rl = dl > 1e-8 ? clamp(dot(restN, lw) / dl, 0.0, 1.0) : 0.0;
+            vec3 rv;
+            for (int ch = 0; ch < 3; ++ch) rv[ch] = restD[ch] > 1e-3 * dl ? clamp(restN[ch] / restD[ch], 0.0, 1.0) : rl;
+            slotV[k] = vec4(rv, -1.0);
+            if (restDyn) dyn |= 2u << k;
+            ids[k] = PROJ_MASK_REST_ID;
+            ++k;
+        }
+        for (uint j = 0u; j < k; ++j)
+            imageStore(uRawProj, ivec3(mpx, RT_MASK_PL(int(j))), vec4(slotV[j].rgb, rtEncR(slotV[j].a)));
+    }
+    else if (mvRoute && !mvLocalExact && count > 0u && (g_mv_nloc > 0u || g_mv_loc_all))
+    {
+        // ---- MOVER ROUTING: the stochastic path's local lights, MOVER-ONLY (frame info moverRouteOn) ----
+        // THE PROJECTOR LOOP ABOVE, for the stochastic path's lights (2026-11-12, the owner: the mover shadows REUSE the
+        // proven RT shadow path end to end -- "the same denoiser we're using there" -- never a parallel one). Per light
+        // the projector loop's sequence: its gates (mvLightEligible: pass 15's light set; mvLightWeight: reach, frustum,
+        // the shared terminator probe, the facing gate), its terminator lift (rt_term_*) and receiver offset (rt_cl_lift),
+        // the same ray core (mvLightVis -> clean_shadow_rt.glsl projShadowRayCore: the frame's own disc rotation), an own
+        // slot's temporal hint from that light's history, the blocker's penumbra radius R t / (D - t), the moving-caster
+        // bit (rt_block_dyn -> dyn) -- into the same slots (light index + 1, PROJ_MASK_REST_ID), accumulated by the same
+        // temporal pass, blurred by the same spatial pass (clean_rt_mask_spatial.comp atrousProj: no mover branch) and
+        // read by the same reader (clean_shadow_mask_read.glsl rtMaskProjTapsS). The ONLY per-ray difference is the
+        // caster set (mvCastMovers: the movers alone -- pass 15 traced the static casters).
+        //   * RATIO mode: the projector loop's slot policy -- an own slot for every light while all fit, else 3 own
+        //     (lights with a mover on their way, cluster order) + the REST ratio. A light no mover sphere lies in front
+        //     of has Vm = 1 exactly (no ray) and is still listed, as an RT projector is wherever it reaches, so the
+        //     upsample reads that texel as lit instead of stretching a neighbour's shadow over it.
+        //   * RADIANCE mode (moverFoldAll): pass 15 shades ONE radiance for all its lights, so the lighting can only
+        //     scale that sum. THE EXACT PIXEL FOLD at every light count (below; clean_lights_common.glsl): explicit
+        //     Vm / Vs slots for the blocked lights by light index, the U shares for the rest, folded by the LIGHTING
+        //     at the pixel with pass 15's own terms. Every light with a mover on its way is traced at an own slot's
+        //     quality (the adaptive disc), not the ratio REST's one ray.
+        // THE REST RATIO (ratio mode; as the projector loop's REST: one value per texel from the lights' visibilities,
+        // written as ONE slot and filtered as one signal):
+        //   R = sum w Vs Vm / sum w Vs = 1 - sum w Vs (1 - Vm) / sum w Vs        (per channel)
+        // Vm a light's mover visibility, Vs its STATIC visibility (pass 15's casters: mvCastStatic, the adaptive disc),
+        // w its pass-15 diffuse term (mvLightWeight). Vs belongs in the weight: pass 15's light reaches the texel past
+        // the static casters only, so a mover cannot darken it through a light a wall already blocks. Vs is traced only
+        // where it matters: for a light whose Vm < 1 at once, for the others (the denominator) only when one came back
+        // blocked -- with none blocked R = 1 exactly, no static ray. No static light here (sum w Vs ~ 0: pass 15's
+        // radiance ~0): the unweighted sum w Vm / sum w (one light: its Vm), so the slot stays continuous.
+        // Its penumbra radius: the lights' radii weighed by the light each one's mover takes away.
+        // THE LIGHTS: mvNextLight's walk (the cluster list, or every light when the cluster overflowed -- never a light
+        // the cap dropped), eligible and in range of P; position i = the walk's order, the same in every pass.
+        const uint c = mvCl;
+        const bool fold = moverFoldAll();
+        const float camd = length(P - cam);
+        const float lift = cl_lift + recv_ofs;
+        const vec3 lw = vec3(0.2126, 0.7152, 0.0722);
+        // PASS 1: the eligible lights reaching the texel, and which have a candidate mover on their segment (bit i =
+        // walk position i; at most CLUSTER_CAP <= 64 positions)
+        uint nElig = 0u, nHit = 0u, nl = 0u;
+        uvec2 hitBits = uvec2(0u);
+        uvec4 top = uvec4(0u);   // (RenderVKMoverProbePixel: the first 4 lights with a mover, index + 1)
+        uint cur = 0u;
+        for (uint i = 0u; i < CLUSTER_CAP; ++i)
+        {
+            const uint li = mvNextLight(c, mvOvf, count, P, true, cur);
+            if (li == 0xFFFFFFFFu) break;
+            nl = i + 1u;
+            const Light L = lights[li];
+            vec3 w, X, plift, pns, png;
+            bool turned, pterm;
+            const bool reach = mvLightWeight(L, P, Ng, cam, rp, w, X, turned, pterm, plift, pns, png);
+            if (!reach || turned)
+            {   // (RenderVKMoverProbePixel: a light the gate dropped -- phase 4, vis = its smooth N.l, bits 1 turned 2 no reach)
+                if (g_mpr) rtpLight(4u, (turned ? 1u : 0u) | (reach ? 0u : 2u), li, w, vec3(g_mv_nl), 1e30, 0u, -1.0);
+                continue;
+            }
+            ++nElig;
+            const bool segHit = mvSegHitAny(P, X, mvLightRadius(L));
+            if (g_mv_stats)
+            {   // (the cost breakdown: the cull by the sphere alone, counted -- never selecting)
+                g_mv_sphere_only = true;
+                if (segHit || mvSegHitAny(P, X, mvLightRadius(L))) ++stCandS;
+                g_mv_sphere_only = false;
+                if (segHit) { mvStat(li, 3u, 1u); mvStatInfo(li, L); }
+            }
+            if (g_mpr) rtpLight(0u, segHit ? 1u : 0u, li, w, vec3(1.0), 1e30, 0u, mvLightRadius(L));
+            if (!segHit) continue;
+            if (mvOvf && !mvInClusterList(c, li)) ++mvRecovered;   // (was never mover-traced: the cap dropped it)
+            if (nHit < 4u) top[nHit] = li + 1u;
+            ++nHit;
+            hitBits[i >> 5u] |= 1u << (i & 31u);
+        }
+        stTex = 1u; stRange = nl; stElig = nElig; stCand = nHit;
+        // THE SLOT POLICY. RATIO mode: the projector loop's -- all own while they fit, else 3 own (lights with a mover
+        // on their way, walk order) + the REST ratio. RADIANCE mode (fold): THE EXACT PIXEL FOLD (clean_lights_common
+        // .glsl) -- no slot is taken in this walk: every light's Vm / Vs is gathered (mvFoldTraced) and mvFoldPlan picks
+        // the explicit lights BY LIGHT INDEX once all are known; the lighting folds them with pass 15's own terms and
+        // every other light with its own term x the U shares. 2026-11-13 (the owner, the third halo: a HARD SEAM with a
+        // LIT SLIVER between two overlapping avatar shadows, >= 7 lights in reach; RenderVKShadowMoverMask 0 correct):
+        // the pixel fold (9f1ffcaf1d) only took texels with <= 4 ELIGIBLE lights -- any light in reach, blocked or
+        // not -- and every other texel folded ALL its lights into one REST ratio by mvLightWeight's proxy weights (the
+        // smooth normal, no normal map / ambiance, a GGX proxy for the specular), filtered as one signal. (a) Where one
+        // light's shadow overlaps another's, the share the blocked lights take from the free ones was the proxy's, not
+        // pass 15's at the pixel: a lit sliver along the overlap. (b) The <= 4 / 5+ boundary -- a light's reach,
+        // frustum or facing gate crossing the receiver -- switched a texel between the two estimates: a hard seam (at
+        // mask scale 1 the pixel reads one texel, no blend). Now one policy at every light count, explicit slots by a
+        // key every texel ranks alike, no specular proxy (each light's own specular term at the pixel).
+        const bool allOwn = nElig <= 4u;
+        const uint ownHitCap = allOwn ? 4u : 3u;
+        uint kHit = 0u;
+        uvec2 restBits = uvec2(0u), blkBits = uvec2(0u);   // the REST's lights; those whose Vm < 1 (Vs traced)
+        vec3 lost = vec3(0.0), dBlk = vec3(0.0);           // sum w Vs (1 - Vm), sum w Vs over the blocked REST lights
+        vec3 lostW = vec3(0.0), wSum = vec3(0.0);          // the same without Vs (the no-static-light fallback)
+        float pradS = 0.0, pradW = 0.0;                    // the blocked lights' penumbra radius (lost-weighted)
+        bool restSeen = false;
+        bool visBlk = false;   // a blocked REST light some static light reaches (Vs > 0 in a channel): pass 3 needed whole
+        // PASS 2: the mover rays (own slots and the REST), the static weight of each blocked REST light
+        cur = 0u;
+        for (uint i = 0u; i < nl && nElig > 0u; ++i)
+        {
+            const uint li = mvNextLight(c, mvOvf, count, P, true, cur);
+            if (li == 0xFFFFFFFFu) break;
+            const Light L = lights[li];
+            vec3 w, X, plift, pns, png;
+            bool turned, pterm;
+            if (!mvLightWeight(L, P, Ng, cam, rp, w, X, turned, pterm, plift, pns, png) || turned) continue;
+            if (fold) w = max(w, MV_FOLD_W_FLOOR * g_mv_base);
+            const bool hit = ((hitBits[i >> 5u] >> (i & 31u)) & 1u) != 0u;
+            const bool own = !fold && (allOwn || (hit && kHit < ownHitCap));
+            if (own && hit) ++kHit;
+            // the light's terminator rules (the projector loop's: mvLightWeight's probe; the rays' origin --
+            // clean_shadow_rt.glsl rtPosOriginSetup, shared with the projector core)
+            const vec3 l = normalize(X - P);
+            const vec3 Nl = pterm ? png : Ng;
+            rt_term_on = pterm; rt_term_lift = plift; rt_term_ns = pns;
+            const float llift = (dot(Nl, l) > 0.0 || (pterm && dot(plift, plift) > 0.0)) ? lift : 0.0;
+            vec3 vm = vec3(1.0);
+            rt_block_t = 1e30;
+            rt_block_dyn = false;
+            if (hit)
+            {
+                // the projector loop's temporal hint: the history's slot of the same light (an own slot's; the fold's
+                // explicit slots carry the light's id too)
+                int hslot = -1;
+                if (own || fold)
+                    for (int h = 0; h < 4; ++h)
+                        if (hids[h] == li + 1u) { hslot = h; break; }
+                rt_vis_hint = rtMaskHint(hslot >= 0 ? texelFetch(uHistProj, ivec3(hp, RT_MASK_PL(hslot)), 0).rgb : vec3(-1.0));
+                if (g_mpr) g_mpr_bid = RT_BAD_ID;
+                mvCastMovers();
+                vm = mvLightVis(L, P, Nl, cam, time, npx, (own || fold) ? 16u : 1u, llift, camd, 1u);
+                mvCastAll();
+                rt_vis_hint = -1.0;
+                mvRays += g_mv_ray_n;
+                stRayM += g_mv_ray_n; mvStat(li, 0u, g_mv_ray_n);
+                if (any(lessThan(vm, vec3(1.0)))) { ++stBlk; mvStat(li, 2u, 1u); }
+            }
+            const bool mdyn = hit && rt_block_dyn;
+            const float bt = rt_block_t;
+            // PENUMBRA RADIUS (mask texels): the projector loop's R t / (D - t), R the disc pass 15 samples the light with
+            float prad = -1.0;
+            if (bt < 1e29)
+                prad = mvLightRadius(L) * bt / max(length(X - P) - bt, 0.05) / pxw * s;
+            if (g_mpr) rtpLight(1u, (own ? 1u : 0u) | (hit ? 2u : 0u), li, w, vm, bt, hit ? g_mv_ray_n : 0u, prad);
+            if (g_mpr) mvProbeRays(L, li, P, Nl, cam, llift, camd, vm);   // (the probe: geometry + diagnostic rays)
+            if (own)
+            {
+                slotV[k] = vec4(vm, prad);
+                ids[k] = li + 1u;
+                if (mdyn) dyn |= 2u << k;
+                ++k;
+                rt_term_on = false;
+                continue;
+            }
+            restBits[i >> 5u] |= 1u << (i & 31u);
+            restSeen = true;
+            restDyn = restDyn || mdyn;
+            wSum += w;
+            if (any(lessThan(vm, vec3(1.0))))
+            {
+                const vec3 om = vec3(1.0) - vm;
+                lostW += w * om;
+                // its STATIC weight (the adaptive disc over pass 15's casters)
+                mvCastStatic();
+                rt_block_t = 1e30;
+                if (g_mpr) g_mpr_bid = RT_BAD_ID;
+                const vec3 vs = mvLightVis(L, P, Nl, cam, time, npx, 4u, llift, camd, 1u);
+                mvCastAll();
+                if (g_mpr) rtpLight(2u, 0u, li, w, vs, rt_block_t, g_mv_ray_n, rtpLum(vm));
+                mvRays += g_mv_ray_n;
+                stRayS += g_mv_ray_n; mvStat(li, 1u, g_mv_ray_n); mvStatVs(li, vs);
+                visBlk = visBlk || any(greaterThan(vs, vec3(0.0)));
+                lost += w * vs * om; dBlk += w * vs;
+                blkBits[i >> 5u] |= 1u << (i & 31u);
+                const float lr = dot(w * vs * om, lw);
+                if (prad >= 0.0 && lr > 0.0) { pradS += lr * prad; pradW += lr; }
+                if (fold)
+                {
+                    const float sprad = rt_block_t < 1e29
+                                      ? mvLightRadius(L) * rt_block_t / max(length(X - P) - rt_block_t, 0.05) / pxw * s : -1.0;
+                    mvFoldTraced(li, vec4(vm, prad), vec4(vs, sprad), w, mdyn, hit);
+                }
+            }
+            else if (fold && hit) mvFoldKeepH(li);   // (an unblocked hit light: its Vm 1 slot where nothing folds)
+            rt_term_on = false;
+        }
+        // PASS 3 (only where a REST light came back blocked): the static weight of every other REST light -- the
+        // ratio's denominator (the fold: the U set's D share and the Q candidates). TWO DETERMINISTIC CUTS (2026-11-13,
+        // the mover-ray cost: ~6.8 rays per mover texel, most of
+        // them this pass -- a texel near an avatar is in range of every neighbour's light through the walls, and one
+        // blocked light made it trace a static ray to each of them):
+        //   * THE WALLED RULE (exact): no blocked REST light reaches the texel past the static casters (visBlk false:
+        //     every one's Vs is exactly 0 -- the avatar only blocks lights a wall already blocks, its "shadows" of the
+        //     neighbours' lights). Then lost = 0 and the ratio is exactly 1 as soon as the denominator leaves
+        //     mvRestRatio's fallback (mvRestSettled: d past 1e-3 of the unshadowed sum, which only grows with more
+        //     lights) -- the rest of the pass is never traced. A texel no static light
+        //     reaches keeps tracing every light (its fallback ratio needs them all): the same image, always. The fold:
+        //     no slot at all (every blocked light's own term t Vs is 0: num = den, R exactly 1) -- nothing to trace.
+        //   * THE CONTRIBUTION CUT (bounded): where a visible light IS blocked, a light whose unshadowed w is within the
+        //     cut budget -- the skipped lights' total w <= MV_CUT_F x the static light already TRACED, PER CHANNEL (a
+        //     blue light beside red ones is never "small"; trD, so <= MV_CUT_F
+        //     of the final denominator; and only past the fallback test, so the estimate never flips a ratio into or out
+        //     of mvRestRatio's fallback) -- is not traced; its Vs is taken as 1/2. The denominator is then
+        //     off by at most MV_CUT_F / 2 of itself, the shadow depth (1 - R) by at most ~1.6 % of itself (R = 0.5 ->
+        //     +-0.008): under one 8-bit step in an umbra, under the ~2 % luminance JND anywhere, far under the mover
+        //     history's own noise. Deterministic: the walk order and this frame's traced values only -- no random pick,
+        //     no frame index; a light crossing the budget moves R by at most that same bound (no visible pop). THE FOLD:
+        //     a cut light joins the U set with Vs 1/2 (never an explicit slot) -- its w <= MV_CUT_F of the static light
+        //     already traced, so the U set's D share moves by <= MV_CUT_F / 2 of that light, and R at the pixel by about
+        //     the same share of the shadow depth (the pixel weighs U by pass 15's terms, the budget is the mask's w: a
+        //     light the normal map turns toward the pixel can count for more there, never for a slot).
+        const bool anyBlk = (blkBits.x | blkBits.y) != 0u;
+        vec3 dFree = vec3(0.0);
+        if (anyBlk)
+        {
+            stP3 = 1u;
+            vec3 cutW = vec3(0.0);   // the skipped lights' unshadowed w (per channel)
+            vec3 trD = dBlk;         // the static light TRACED so far (the cut's reference)
+            cur = 0u;
+            for (uint i = 0u; i < nl; ++i)
+            {
+                // (the walk advances at every position, so i stays the passes' common position)
+                const uint li = mvNextLight(c, mvOvf, count, P, true, cur);
+                if (li == 0xFFFFFFFFu) break;
+                const uint bit = 1u << (i & 31u);
+                if ((restBits[i >> 5u] & bit) == 0u || (blkBits[i >> 5u] & bit) != 0u) continue;
+                // the walled rule: every blocked light statically dark and the ratio already settled at 1 (the fold:
+                // settled at once)
+                if (!visBlk && (fold || mvRestSettled(dBlk + dFree, wSum)))
+                {
+                    ++stWall; mvStat(li, 10u, 1u);
+                    if (g_mpr) rtpLight(5u, 1u, li, vec3(0.0), vec3(1.0), 1e30, 0u, -1.0);   // (probe: the walled rule)
+                    continue;
+                }
+                const Light L = lights[li];
+                vec3 w, X, plift, pns, png;
+                bool turned, pterm;
+                if (!mvLightWeight(L, P, Ng, cam, rp, w, X, turned, pterm, plift, pns, png) || turned) continue;
+                if (fold) w = max(w, MV_FOLD_W_FLOOR * g_mv_base);
+                const bool hit = ((hitBits[i >> 5u] >> (i & 31u)) & 1u) != 0u;
+                // the contribution cut (a visible light blocked: the ratio is not 1; the budget against the TRACED
+                // static light only -- a lower bound of the final denominator -- and only once that bound is past
+                // mvRestRatio's fallback test: the estimate can never switch the ratio into / out of its fallback).
+                // The fold never cuts a hit light (an explicit slot candidate: its Vs is always known -- the cut is
+                // for the many lights in range through the walls, the hit ones are the few near the avatar).
+                if (visBlk && !(fold && hit) && mvRestSettled(trD, wSum) && all(lessThanEqual(cutW + w, MV_CUT_F * trD)))
+                {
+                    cutW += w;
+                    dFree += 0.5 * w;
+                    if (fold) { g_fu_w += w; g_fu_ws += 0.5 * w; g_fu_wsm += 0.5 * w; }
+                    ++stCut; mvStat(li, 10u, 1u); mvStatInfo(li, L);
+                    if (g_mpr) rtpLight(5u, 2u, li, w, vec3(0.5), 1e30, 0u, -1.0);   // (probe: the contribution cut, Vs 1/2)
+                    continue;
+                }
+                const vec3 l = normalize(X - P);
+                const vec3 Nl = pterm ? png : Ng;
+                rt_term_on = pterm; rt_term_lift = plift; rt_term_ns = pns;
+                const float llift = (dot(Nl, l) > 0.0 || (pterm && dot(plift, plift) > 0.0)) ? lift : 0.0;
+                mvCastStatic();
+                rt_block_t = 1e30;
+                if (g_mpr) g_mpr_bid = RT_BAD_ID;
+                const vec3 vs = mvLightVis(L, P, Nl, cam, time, npx, 4u, llift, camd, 1u);
+                mvCastAll();
+                rt_term_on = false;
+                if (g_mpr) rtpLight(2u, 0u, li, w, vs, rt_block_t, g_mv_ray_n, 1.0);
+                mvRays += g_mv_ray_n;
+                stRayS += g_mv_ray_n; mvStat(li, 1u, g_mv_ray_n); mvStatVs(li, vs); mvStatInfo(li, L);
+                dFree += w * vs;
+                trD += w * vs;
+                if (fold)
+                {
+                    const float sprad = rt_block_t < 1e29
+                                      ? mvLightRadius(L) * rt_block_t / max(length(X - P) - rt_block_t, 0.05) / pxw * s : -1.0;
+                    mvFoldTraced(li, vec4(vec3(1.0), -1.0), vec4(vs, sprad), w, false, hit);
+                }
+            }
+        }
+        const float rpr = pradW > 0.0 ? pradS / pradW : -1.0;
+        if (fold)
+        {
+            // THE EXACT PIXEL FOLD's slots; where no mover-blocked light is statically reached (R is exactly 1) the
+            // unblocked hit lights' Vm 1 slots only (their histories stay continuous through the penumbra noise)
+            if (anyBlk && visBlk)
+            {
+                stPix = 1u;
+                k = mvFoldWrite(slotV, ids, dyn, rpr, restDyn);
+            }
+            else k = mvFoldWriteHit(slotV, ids);
+        }
+        else if (restSeen && k < 4u)
+        {
+            const vec3 rv = anyBlk ? mvRestRatio(lost, dBlk + dFree, lostW, wSum) : vec3(1.0);
+            slotV[k] = vec4(rv, rpr);
+            ids[k] = PROJ_MASK_REST_ID;
+            if (restDyn) dyn |= 2u << k;
+            ++k;
+        }
+        if (g_mpr)
+        {
+            // (RenderVKMoverProbePixel: the REST's inputs and what this texel writes -- N = D - lost, D, W; the fold: the
+            //  U set's sums over every traced light -- w Vs Vm, w Vs, w -- and its plan, RTP_M_FOLD)
+            const vec3 dAll = dBlk + dFree;
+            const bool foldU = fold && (g_fold_plan & 768u) != 0u;
+            rtpOr(RTP_M_FLAGS, 32u | (fold ? 4u : 0u) | ((fold ? foldU : restSeen) ? 8u : 0u) | (anyBlk ? 16u : 0u));
+            rtpPut(RTP_M_NL, nl);
+            rtpPut(RTP_M_NHIT, nHit);
+            for (uint t = 0u; t < 4u; ++t) rtpPut(RTP_M_TOP + t, top[t]);
+            if (fold)
+                rtpPut(RTP_M_FOLD, (anyBlk && visBlk ? g_fold_plan | 0x800u : 0u) | (min(g_fc_tot, 255u) << 12u)
+                                 | (min(g_fq_tot, 255u) << 20u));
+            rtpPutF(RTP_M_REST, rtpLum(fold ? g_fu_wsm : dAll - lost));
+            rtpPutF(RTP_M_REST + 1u, rtpLum(fold ? g_fu_ws : dAll));
+            rtpPutF(RTP_M_REST + 2u, rtpLum(fold ? g_fu_w : wSum));
+            rtpPut(RTP_M_REST + 3u, k);
+            for (uint j = 0u; j < 4u; ++j)
+            {
+                rtpPut(RTP_M_REST + 4u + j, ids[j]);
+                rtpPutF(RTP_M_REST + 8u + j, j < k ? rtpLum(slotV[j].rgb) : -1.0);
+            }
+            rtpPut(RTP_M_REST + 12u, mvRays);
+        }
+        for (uint j = 0u; j < k; ++j)
+            imageStore(uRawProj, ivec3(mpx, RT_MASK_PL(int(j))), vec4(slotV[j].rgb, rtEncR(slotV[j].a)));
+    }
+    if (g_mpr)
+    {
+        // (RenderVKMoverProbePixel: the texel itself)
+        rtpOr(RTP_M_FLAGS, 1u | (mvRoute ? 2u : 0u) | (mvSun ? 64u : 0u) | (g_mv_nloc == 0u && !g_mv_loc_all ? 128u : 0u)
+                         | (mvOvf ? 1024u : 0u) | (count > 0u && !rtProjStochastic() ? 2048u : 0u));
+        rtpPut(RTP_M_RP, uint(rp.x) | (uint(rp.y) << 16u));
+        for (uint c = 0u; c < 3u; ++c) { rtpPutF(RTP_M_P + c, P[c]); rtpPutF(RTP_M_NG + c, Ng[c]); }
+        rtpPut(RTP_M_NLOC, g_mv_nloc | (g_mv_loc_all ? 0x80000000u : 0u));
+    }
+    if (mvRoute)
+    {
+        // (the host's log line: texels that traced a mover / weight ray, and those rays)
+        const uint a = subgroupAdd(mvRays > 0u ? 1u : 0u), b = subgroupAdd(mvRays);
+        if (b > 0u && subgroupElect()) { atomicAdd(mv[6], a); atomicAdd(mv[7], b); }
+        // (words 8 / 9: texels whose light cluster overflowed -- their mover lights walked the whole table -- and
+        //  the mover-blocked lights there the capped list did not hold: each one an avatar shadow that was missing)
+        const uint o = subgroupAdd(mvOvf ? 1u : 0u), r = subgroupAdd(mvRecovered);
+        if (o > 0u && subgroupElect()) { atomicAdd(mv[8], o); atomicAdd(mv[9], r); }
+        if (g_mv_stats)   // (uniform: a frame-info bit) THE COST BREAKDOWN, words 10-23
+        {
+            const uint sT = subgroupAdd(stTex), sR = subgroupAdd(stRange), sE = subgroupAdd(stElig);
+            const uint sCS = subgroupAdd(stCandS), sC = subgroupAdd(stCand), sCut = subgroupAdd(stCut);
+            const uint sW = subgroupAdd(stWall), sM = subgroupAdd(stRayM), sS = subgroupAdd(stRayS);
+            const uint sB = subgroupAdd(stBlk), sP3 = subgroupAdd(stP3), sPx = subgroupAdd(stPix);
+            const uint sO = subgroupAdd(stTex != 0u && mvOvf ? 1u : 0u);
+            if (subgroupElect())
+            {
+                if (mv[10] == 0u) atomicOr(mv[10], 1u);
+                if (sT > 0u)
+                {
+                    atomicAdd(mv[11], sT); atomicAdd(mv[12], sR); atomicAdd(mv[13], sE); atomicAdd(mv[14], sCS);
+                    atomicAdd(mv[15], sC); atomicAdd(mv[16], sCut); atomicAdd(mv[17], sW); atomicAdd(mv[18], sM);
+                    atomicAdd(mv[19], sS); atomicAdd(mv[20], sB); atomicAdd(mv[21], sP3); atomicAdd(mv[22], sPx);
+                    atomicAdd(mv[23], sO);
+                }
+            }
+        }
+    }
+    storeIds(mpx, ids);
+    storeDepth(mpx, vec4(vz, dz, float(dyn)));
+    rtGuardFlush();   // #874: this invocation's first out-of-range read (if any) -> the guard buffer
+}

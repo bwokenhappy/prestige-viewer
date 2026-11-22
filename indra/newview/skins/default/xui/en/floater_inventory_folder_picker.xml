@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater
+ legacy_header_height="18"
+ can_resize="true"
+ height="420"
+ min_height="260"
+ min_width="280"
+ layout="topleft"
+ name="inventory_folder_picker"
+ save_rect="true"
+ single_instance="true"
+ title="CHOOSE A FOLDER"
+ width="340">
+    <floater.string name="none_selected">Select a folder.</floater.string>
+    <floater.string name="cannot_use">This folder can't be used: [REASON].</floater.string>
+    <text
+     follows="left|top|right"
+     height="30"
+     layout="topleft"
+     left="10"
+     name="instructions"
+     top="24"
+     width="320"
+     word_wrap="true">
+        Choose a folder.
+    </text>
+    <filter_editor
+     follows="left|top|right"
+     height="23"
+     label="Filter folders"
+     layout="topleft"
+     left="10"
+     name="folder_filter"
+     top_pad="2"
+     width="320" />
+    <inventory_panel
+     allow_multi_select="false"
+     allow_drag="false"
+     bg_visible="true"
+     bg_alpha_color="PanelDefaultBackgroundColor"
+     border="false"
+     follows="all"
+     height="270"
+     layout="topleft"
+     left="10"
+     name="folder_panel"
+     show_empty_message="false"
+     start_folder.type="root_inv"
+     top_pad="4"
+     width="320" />
+    <text
+     follows="left|bottom|right"
+     height="30"
+     layout="topleft"
+     left="10"
+     name="selection_note"
+     top_pad="4"
+     use_ellipses="true"
+     width="320"
+     word_wrap="true" />
+    <button
+     follows="right|bottom"
+     height="23"
+     label="OK"
+     layout="topleft"
+     left="168"
+     name="ok_btn"
+     top_pad="4"
+     width="80" />
+    <button
+     follows="right|bottom"
+     height="23"
+     label="Cancel"
+     layout="topleft"
+     left_pad="4"
+     name="cancel_btn"
+     top_delta="0"
+     width="80" />
+</floater>

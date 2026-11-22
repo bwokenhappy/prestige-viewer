@@ -1,0 +1,313 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+#extension GL_EXT_ray_query : require
+#extension GL_EXT_nonuniform_qualifier : require
+// vkclean -- RAY-TRACED AMBIENT OCCLUSION (#86 part 2, RenderVKAOMethod 2; the RT tier).
+//
+// The AO kernel stage (clean_ao.comp stage 0) for RT-capable GPUs: one invocation per AO
+// texel (full resolution, or the RenderVKAOHalfRes grid with clean_ao_common.glsl's
+// checkerboard REPRESENTATIVE pixel -- the same receiver, normals and upsample meta as SSAO /
+// GTAO), a few short COSINE-WEIGHTED rays over the receiver's hemisphere against the scene
+// TLAS. It writes the raw one-frame estimate into the SAME AO target in the SAME units as
+// GTAO (visibility / kRtaoTermScale), so everything after it is unchanged: the #843 temporal
+// accumulator (reprojected history, depth-tested disocclusion, neighbourhood clamp --
+// clean_denoise_common.glsl accumulate, our denoiser's integrator), the depth-aware separable
+// blur (wider for RTAO, RenderVKRTAOBlurScale), the half-resolution upsample in the lighting,
+// and the consumers (diffuse ambient / probe irradiance only, never direct light).
+//
+// WHAT IT SEES THAT GTAO CANNOT: occluders off screen, behind the receiver's own silhouette
+// or hidden by nearer geometry (under an arm, inside a car, below a table seen from above).
+//
+// RAYS (per texel, RenderVKRTAORays): cosine-weighted about the SMOOTH vertex normal (the
+// pre-pass / G1 .zw normal: no normal-map tilt, continuous across triangle edges -- GTAO's
+// hemisphere), drawn per texel from interleaved gradient noise on the pixel and on the transposed
+// pixel (direction) and a per-pixel hash (length), each walked by its own R3 component over the
+// AO's own frame counter (rtaoSeqIgn: every 3 x 3 a stratified set for the blur, every frame a
+// new one for the accumulator; nothing relies on TAA / FSR).
+// A direction below the receiver's FACET plane (the depth-derived triangle normal: a smooth
+// normal tilts off its facet near edges) is mirrored back above it, so no ray starts into
+// its own triangle. Origin: the Wachter-Binder offset along the facet normal (clean_rt_common
+// rtReceiverOrigin) + the mask's view-slope term (RenderVKRTAOSlopeBias, depth-reconstruction
+// error at grazing views) + RenderVKRTAOBias.
+// DISTANCE FALLOFF without a closest hit: the ray LENGTH is stratified over the falloff band,
+// tmax = R (1 - f u) with u uniform -- an occluder at distance t counts with probability
+// P(t < tmax) = 1 up to R (1 - f), then linearly down to 0 at R: the expected value is the
+// falloff-weighted obscurance (XeGTAO's linear falloff) while every ray stays a cheap
+// first-hit visibility ray (gl_RayFlagsTerminateOnFirstHitEXT).
+// CASTERS: every class but water and alpha-blend (translucent surfaces do not occlude
+// ambient); ALPHA-MASK casters run the candidate alpha test with the receiver pixel's
+// footprint (the RT shadow rays' rule: foliage cut-outs and fences occlude where the raster
+// shows texels, opacity micromaps where baked); avatars are in (rigged + worn attachments;
+// RenderVKRTAOAvatars 0 drops them), a throttled character never occludes itself with its
+// stale pose (rtSelfCandidate), and a cluster-LOD avatar receiver lifts its origin out of
+// its legacy hull (#747 interim, as the shadow mask).
+// CONTACT BLEND (RenderVKRTAOContact > 0, metres): GTAO already wrote the NEAR field (its
+// kernel at that radius, same units) into the target; the rays start at the contact radius
+// (tmin) and the two visibilities multiply -- GTAO's screen-space detail (creases, normal-map
+// scale, pixel-sized contact) for the near band, RTAO's true occlusion beyond it, with no
+// distance band counted twice.
+// REACTIVE (the epic's "reactive term for animated avatars"): any ray that met a MOVING
+// caster (avatars, attachments, moved / spinning prims: clean_rt_moving_caster.glsl, the
+// shadow denoiser's detector) flags the texel in this frame's history image (b7) before the
+// accumulator overwrites it; the accumulator then caps that texel's history at
+// RenderVKRTAOReactiveFrames, so a walking avatar's contact occlusion follows it instead of
+// trailing for the full history length (its 3 x 3 clamp is weak on a 1-ray binary signal).
+//
+// Sets: 0 the AO set (clean_ao.comp's bindings; the frame info at 9), 1 draw set 1 (the
+// bindless table for the alpha test), 2 the RT consumer set (LLCleanRTVK), 3 draw set 0
+// (binding 23: last frame's instance rows, the moving-caster test). AO_FORMAT as clean_ao.comp.
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+// (#1608) LAYERED STEREO: z = the view (clean_ao_common.glsl AO_L); every AO image a layer per view, each eye's
+// receivers traced from that eye (its unprojection, its eye: aoCamRel / the eye below).
+#define CLEAN_VIEW CLEAN_VIEW_Z
+#include "clean_view.glsl"
+layout(set = 0, binding = 0) uniform sampler2DArray uDepth;   // pre-pass depth (NEAREST)
+// (read in contact mode: GTAO's near-field term at this texel)
+layout(AO_FORMAT, set = 0, binding = 2) uniform image2DArray uDst;
+layout(set = 0, binding = 3) uniform sampler2DArray uNormal;  // pre-pass normals (oct, view) | G1 (oct, world)
+layout(constant_id = 0) const bool kAoGbufNormals = false;
+#include "clean_frame_info.glsl"   // (binding 9)
+layout(rg32f, set = 0, binding = 5) writeonly uniform image2DArray uMeta;   // half-res upsample meta
+layout(r32ui, set = 0, binding = 7) writeonly uniform uimage2DArray uHistCur;   // reactive flag (see above)
+
+layout(set = 1, binding = 0) uniform sampler2D uTextures[];
+#define RT_TRACK_BLOCKER
+#include "clean_rt_common.glsl"
+#define RT_MOVER_SET 3
+#include "clean_rt_moving_caster.glsl"
+
+layout(push_constant) uniform Push {
+    mat4 inv_proj;   // VK clip -> view (current frame, jittered: the depth's own projection)
+    vec4 screen;     // FULL render width, height, 1 / width, 1 / height
+    vec4 params;     // x radius (m), y falloff fraction of it, z rays per texel, w contact radius (m; 0 = off)
+    vec4 trace;      // x noise frame (the AO counter), y time (s: texture animation of the alpha
+                     // test), z receiver bias (m), w view-slope bias (render px)
+    vec4 mode;       // x flags: 1 history on (write the reactive flag), 2 half grid,
+                     //   4 avatars occlude; y the ray sequence (RenderVKRTAONoise: 0 = rtaoSeqIgn,
+                     //   >= 1 = the Hilbert R3 A/B, rtaoSeqHilbert); z-w: -
+} pc;
+
+#include "clean_ao_common.glsl"
+
+// GTAO's working-term scale (clean_ao.comp kGtaoTermScale): the target holds visibility / 1.5
+// up to blur V, which restores it. RTAO writes the same units so the stages after the kernel
+// and a contact-mode GTAO term combine without conversions.
+const float kRtaoTermScale = 1.5;
+
+bool rtaoFlag(uint b) { return (uint(pc.mode.x + 0.5) & b) != 0u; }
+
+// RAY SEQUENCE: (u.x, u.y) the cosine-weighted direction (radius^2, azimuth), u.z the stratified
+// length -- three dimensions that must be spread over the SPATIAL neighbourhood every frame,
+// because the AO's blur (and the 3 x 3 clamp box) average neighbours' rays: that is the only
+// integration a frame gets -- and must each move every frame, for the accumulator.
+//
+// rtaoSeqIgn (RenderVKRTAONoise 0, the default): GTAO's own default noise family (clean_ao.comp
+// gtaoNoise, #843) with a third, independent dimension:
+//   u.x = IGN(p)                  interleaved gradient noise (Jimenez 2014) on the texel,
+//   u.y = IGN(p.yx + (7, 13))     the same on the TRANSPOSED texel (IGN(p + o) would only shift
+//                                 u.x's value -- the old RTAO defect, all three dims one scalar),
+//   u.z = hash(p)                 a per-texel integer hash (white, no lattice at all),
+// each advanced by its own R3 component (Roberts 2018: alpha = (1/phi_3, 1/phi_3^2, 1/phi_3^3),
+// phi_3 = 1.2207440846; 0.32 fixed point: the wrapping multiply is an exact fract at any
+// index) times (frame x n + ray), frame = the AO's own counter (never the TAA's).
+// Why the blur can integrate it: IGN is a linear ramp of the pixel, wrapped, whose 3 x 3
+// neighbourhoods each span [0, 1) -- the pixel and transposed-pixel ramps run along different
+// directions (a non-singular 2 x 2 map), so a 3 x 3 holds a spread 2-D set of directions, not a
+// 1-D spiral; the noise energy sits at the highest spatial frequencies, which the dense blur
+// (clean_ao.comp blurHalf, RTAO dense taps) removes best. No tile: nothing repeats on a 64 or
+// 128-texel grid (the Hilbert construction below is periodic per 64 x 64 tile). Over frames
+// every texel walks R3 from its own start: low-discrepancy in all three dimensions jointly (GTAO's
+// per-frame 5.588-px pixel shift moves both IGN dims by the same amount, a 1-D diagonal walk:
+// toy model 0.064 vs 0.038 rms of the raw 16-frame history). The length dimension is a hash, not
+// a third IGN transform: three linear ramps of a 2-D pixel always satisfy a small integer
+// relation (IGN((x + y, x - y)) is u.x + u.y + a per-row constant: every row on one plane of the
+// sample cube), and the length matters least (only the falloff band).
+// Toy model (flat receiver, a wall at 0.12-0.25 R, 1 ray, half-res dense blur at the default
+// RenderVKRTAOBlurScale): per-frame blurred error 0.007-0.012 rms (Hilbert R3 0.006-0.007,
+// white 0.018), after the 16-frame history 0.0017-0.0037 (Hilbert 0.0029-0.0046) -- the two
+// sequences are close; what the toy cannot show is the Hilbert curve's 64-texel tile and its
+// quadrant structure, which this one does not have.
+//
+// rtaoSeqHilbert (RenderVKRTAONoise 1 / 2, 8d53d20117's sequence, kept for in-world A/B): R3
+// indexed by the texel's 64 x 64 HILBERT index (clean_ao_common.glsl aoHilbert) + a hashed
+// per-tile index offset (a Cranley-Patterson rotation per tile) + 288 x frame (XeGTAO's
+// temporal stride); n rays = n consecutive indices.
+float rtaoIgn(vec2 p) { return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715)))); }
+uint rtaoPixelHash(uvec2 p)
+{
+    // lowbias32 (Wellons 2018) on the packed texel coordinate.
+    uint h = p.x ^ (p.y * 0x9e3779b9u);
+    h ^= h >> 16u; h *= 0x7feb352du;
+    h ^= h >> 15u; h *= 0x846ca68bu;
+    h ^= h >> 16u;
+    return h;
+}
+const uvec3 kRtaoR3 = uvec3(3518319155u, 2882110345u, 2360945575u);   // round(alpha * 2^32)
+vec3 rtaoSeqIgn(uvec2 q, uint idx)
+{
+    const vec2 p = vec2(q);
+    // The texel's start in 0.32 fixed point (24 significant bits: the float's), then the walk.
+    const uvec3 b = uvec3(uvec2(vec2(rtaoIgn(p), rtaoIgn(p.yx + vec2(7.0, 13.0))) * 16777216.0) << 8u,
+                          rtaoPixelHash(q) & 0xffffff00u);
+    const uvec3 r = b + idx * kRtaoR3;
+    return vec3(r >> 8u) * (1.0 / 16777216.0);
+}
+uint rtaoTileHash(uvec2 t)
+{
+    uint h = t.x * 0x8da6b343u ^ t.y * 0xd8163841u;   // (Teschner-style mix, then a wang finish)
+    h = (h ^ 61u) ^ (h >> 16u);
+    h *= 9u;
+    h ^= h >> 4u;
+    h *= 0x27d4eb2du;
+    h ^= h >> 15u;
+    return h;
+}
+vec3 rtaoSeqHilbert(uint i)
+{
+    const uvec3 r = uvec3(0x80000000u) + i * kRtaoR3;
+    return vec3(r >> 8u) * (1.0 / 16777216.0);
+}
+
+// Orthonormal basis about n (Duff et al. 2017, branchless).
+void rtaoBasis(vec3 n, out vec3 t, out vec3 b)
+{
+    const float s = n.z >= 0.0 ? 1.0 : -1.0;
+    const float a = -1.0 / (s + n.z);
+    const float c = n.x * n.y * a;
+    t = vec3(1.0 + s * n.x * n.x * a, s * c, -s * n.x);
+    b = vec3(c, s + n.y * n.y * a, -n.y);
+}
+
+// The receiver pixel's footprint for the alpha test (clean_shadow_rt.glsl rtSetShadowFootprint,
+// the RT shadow rays' rule -- duplicated: that file needs the light set): the raster's own LOD
+// and anisotropy at this pixel, so a cut-out occludes exactly where the screen shows texels.
+void rtaoSetFootprint(vec3 P, vec3 Ng, vec3 cam)
+{
+    rt_foot_on = false;
+    const vec3 toC = cam - P;
+    const float camd = length(toC);
+    const float p11 = length(vec3(ssr.views[CLEAN_VIEW].taa_cur_vp[0][1], ssr.views[CLEAN_VIEW].taa_cur_vp[1][1], ssr.views[CLEAN_VIEW].taa_cur_vp[2][1]));
+    if (camd < 1e-4 || p11 < 1e-6 || ssr.mirror_params.z <= 0.0) return;
+    const vec3 V = toC / camd;
+    vec3 N = Ng;
+    if (dot(N, N) < 0.5) N = V;
+    if (dot(N, V) < 0.0) N = -N;
+    const float nv = max(dot(N, V), 1.0 / 64.0);
+    const float bias = ssr.taa_params.w > 0.5 ? ssr.taa_scale.x : 0.0;
+    const float w = (rtViewOrtho() ? 1.0 : camd) * 2.0 * ssr.mirror_params.z / p11 * exp2(bias);
+    vec3 t1 = cross(N, V);
+    if (dot(t1, t1) < 1e-8) t1 = cross(N, abs(N.z) < 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0));
+    t1 = normalize(t1);
+    const vec3 t2 = cross(t1, N);
+    rt_foot_a = t1 * w;
+    rt_foot_b = t2 * (w / nv);
+    rt_foot_on = true;
+}
+
+// #747 interim CLUSTER LOD RECEIVER LIFT (clean_rt_receiver.glsl rtClusterRigLift, #1048: the one copy):
+// a receiver on an avatar the cluster path draws, while that avatar still casts from its legacy rigged
+// hull, sits up to the cut's error inside the hull; every AO ray would hit the hull at once (dark
+// patches moving with the pose). The lift (m) moves the AO rays' origins out of it.
+#include "clean_rt_receiver.glsl"
+
+void main()
+{
+    const ivec2 q = ivec2(gl_GlobalInvocationID.xy);
+    const bool halfGrid = rtaoFlag(2u);
+    const ivec2 grid = halfGrid ? halfSize() : ivec2(pc.screen.xy);
+    if (any(greaterThanEqual(q, grid))) return;
+    const bool contact = pc.params.w > 0.0;
+    const bool hist = rtaoFlag(1u) && all(equal(imageSize(uHistCur).xy, grid));
+
+    // The receiver: the texel's pixel (half grid: its representative) and its exact depth.
+    float d;
+    ivec2 fp;
+    if (halfGrid) fp = repPixel(q, d);
+    else { fp = q; d = texelFetch(uDepth, ivec3(q, AO_L), 0).r; }
+    const vec2 tc = (vec2(fp) + 0.5) * pc.screen.zw;
+    // Half grid: the upsample meta (GTAO wrote it already in contact mode).
+    if (halfGrid && !contact && all(equal(imageSize(uMeta).xy, grid))) imageStore(uMeta, ivec3(q, AO_L), aoMeta(tc, d));
+    if (d <= 0.0)   // sky (reversed-Z): unoccluded (contact: GTAO's sky term stays)
+    {
+        if (!contact) imageStore(uDst, ivec3(q, AO_L), vec4(1.0 / kRtaoTermScale, 0.0, 0.0, 1.0));
+        if (hist) imageStore(uHistCur, ivec3(q, AO_L), uvec4(0u));
+        return;
+    }
+
+    // View -> camera-relative world (the view is a rotation about the eye) -> absolute
+    // agent space, the TLAS's (ssr.cam_origin: this recording's eye).
+    const mat3 v2w = transpose(mat3(ssr.views[CLEAN_VIEW].cur_view));
+    const vec3 vpos = viewPos(tc, d);
+    const vec3 rel = v2w * vpos;   // (eye-relative: the view is a rotation about ITS eye)
+    // (#1608: a stereo view's eye is cam_origin + its eye_rel; one view: cam_origin, as before)
+    const vec3 eye = kViewCount > 1 ? ssr.cam_origin.xyz + ssr.eye_rel[CLEAN_VIEW].xyz : ssr.cam_origin.xyz;
+    const vec3 P = eye + rel;
+    const bool ortho = rtViewOrtho();
+    const vec3 cam = ortho ? eye + v2w * vec3(vpos.xy, 0.0) : eye;
+    const float camd = ortho ? -vpos.z : length(rel);
+    const vec3 V = ortho ? v2w * vec3(0.0, 0.0, 1.0)
+                        : (camd > 1e-6 ? -rel / camd : vec3(0.0, 0.0, 1.0));
+    const vec3 nv = vertexNormal(tc);
+    vec3 Ng = normalize(v2w * geomNormal(tc, vpos, nv));   // facet (faces the camera)
+    if (any(isnan(Ng))) Ng = V;
+    if (ortho && dot(Ng, V) < 0.0) Ng = -Ng;
+    vec3 N = normalize(v2w * nv);
+    if (any(isnan(N))) N = Ng;
+    if (dot(N, V) < 0.0) N = -N;   // the visible side (two-sided / back-facing smooth normals)
+
+    // Origin offsets: the depth reconstruction error at a grazing view (a fraction of the
+    // pixel footprint along the facet normal: the RT mask's view-slope term), the user bias,
+    // and the cluster-LOD lift.
+    const float pxw = max(length(viewPos(tc + vec2(pc.screen.z, 0.0), d) - vpos), 1e-6);
+    const float slope_ofs = max(pc.trace.w, 0.0) * pxw * length(cross(Ng, V));
+    const float lift = rtClusterRigLift(P, cam);
+    const vec3 O = rtReceiverOrigin(P, Ng, camd, max(pc.trace.z, 0.0) + slope_ofs + lift);
+
+    rt_anim_time = pc.trace.y;
+    rtaoSetFootprint(P, Ng, cam);
+    rt_self_owner = RT_SELF_UNKNOWN;   // (no-self-shadow characters: resolved lazily)
+    rt_self_P = P;
+    rt_self_cam = cam;
+    rt_block_dyn = false;
+
+    uint mask = RT_MASK_SHADOW & ~RT_MASK_BLEND;   // no water, no alpha-blend
+    if (!rtaoFlag(4u)) mask &= ~(RT_MASK_RIGGED | RT_MASK_ATTACH);
+
+    vec3 T, B;
+    rtaoBasis(N, T, B);
+    const float R = max(pc.params.x, 0.01);
+    const float fo = clamp(pc.params.y, 0.0, 1.0);
+    const float tmin = contact ? min(pc.params.w, R) : 0.0;
+    const uint n = uint(clamp(pc.params.z, 1.0, 16.0) + 0.5);
+    const uint frame = uint(max(pc.trace.x, 0.0) + 0.5);
+    // The ray sequence (see rtaoSeqIgn; RenderVKRTAONoise >= 1: the Hilbert A/B, whose run is
+    // the texel's Hilbert index, the tile's rotation and the frame's shift).
+    const bool hilbert = pc.mode.y > 0.5;
+    const uint run = hilbert ? (aoHilbert(uvec2(q)) + rtaoTileHash(uvec2(q) >> 6u) + 288u * frame) * n
+                             : frame * n;
+    float vis = 0.0;
+    for (uint k = 0u; k < n; ++k)
+    {
+        const vec3 u = hilbert ? rtaoSeqHilbert(run + k) : rtaoSeqIgn(uvec2(q), run + k);
+        const float r = sqrt(u.x), phi = 6.28318530718 * u.y;
+        vec3 dir = T * (r * cos(phi)) + B * (r * sin(phi)) + N * sqrt(max(1.0 - u.x, 0.0));
+        // Below the facet plane: mirror back above it (never into the receiver's own triangle).
+        const float dn = dot(dir, Ng);
+        if (dn < 1e-3) dir = normalize(dir - (dn - 1e-3) * 2.0 * Ng);
+        const float tmax = R * (1.0 - fo * u.z);
+        if (tmax <= tmin) { vis += 1.0; continue; }
+        vis += traceShadowWalk(O, dir, tmin, tmax, mask, RT_WALK_VIS).x;
+    }
+    vis /= float(n);
+    float term = vis / kRtaoTermScale;
+    // GTAO's near-field VISIBILITY x the RT far field. The target holds GTAO's working term
+    // (visibility / kRtaoTermScale): it is scaled back first -- multiplying the two terms
+    // as stored put a second 1 / 1.5 on every contact-mode texel (blur V restores only one),
+    // i.e. a flat 2/3 on all RTAO visibility, open ground included. (Unsaturated: one GTAO
+    // estimate may exceed 1, its average over the noise does not -- clean_ao.comp kGtaoTermScale.)
+    if (contact) term *= imageLoad(uDst, ivec3(q, AO_L)).r * kRtaoTermScale;
+    imageStore(uDst, ivec3(q, AO_L), vec4(clamp(term, 0.0, 1.0), 0.0, 0.0, 1.0));
+    if (hist) imageStore(uHistCur, ivec3(q, AO_L), uvec4(rt_block_dyn ? 1u : 0u));
+}

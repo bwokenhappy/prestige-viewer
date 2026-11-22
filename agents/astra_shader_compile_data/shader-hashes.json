@@ -1,0 +1,9 @@
+{
+  "all_four_match": true,
+  "baseline_and_fixed": {
+    "vk_fsr3_shaders_spv.h": "c883ca1bf140c08f458cb9cf5d7b02a6b8e823242b8d7aa45cfedcfba5ae8343",
+    "vk_fx_shaders_spv.h": "01012ed43b279ab2049b069dbe6c99f5c4e7892896d0323cb7ee100b67f1ff3d",
+    "vk_ui_shaders_spv.h": "352146575ed22b902f0e8ed69144dea027c994d0ebee8410579c36eb460a0e2b",
+    "vk_world_shaders_spv.h": "563506281a47c8afd70f1ba27d7fb7f34a47170c41de17f13b4bcb30b54c3cab"
+  }
+}

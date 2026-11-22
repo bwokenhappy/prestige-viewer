@@ -1,0 +1,135 @@
+// The production recordFrameGenOverlay body is inserted unchanged by the check.
+// Vulkan calls record and validate the protocol; no driver/device/viewer exists.
+#include <vulkan/vulkan.h>
+#include <array>
+#include <map>
+#include <vector>
+#include <cassert>
+#include <cstdio>
+#include <cstdint>
+struct GpuImage { VkImage image; VkImageView view; VkExtent2D extent; };
+namespace fake {
+template<class T> T handle(uintptr_t n) { return reinterpret_cast<T>(n); }
+std::map<VkImage,VkImageLayout> layout;
+std::map<VkImageView,VkImage> views;
+std::map<VkImage,VkExtent2D> extents;
+std::vector<unsigned> passes;
+bool inside=false, sourceWar=false;
+unsigned draws=0, boundSlot=0;
+VkPipelineLayout expectedLayout;
+std::array<VkDescriptorSet,2> expectedSets;
+VkImage immutableDepth,immutableMotion,world,displayDepth;
+VkImage guideDepth,guideMotion;
+}
+class LLRenderVK {
+public:
+    struct FrameGenOverlay {
+        const GpuImage* depth;
+        const GpuImage* motion;
+        VkImageView color;
+    };
+    VkBuffer mFrameVbo=fake::handle<VkBuffer>(400);
+    VkPipelineLayout mFgGuideLayout=fake::handle<VkPipelineLayout>(401);
+    std::array<std::array<VkDescriptorSet,2>,4> mFgGuideSets{};
+    size_t mOverlayBegin=2,mOverlayEnd=5;
+    bool mOverlayRecorded=false;
+    void recordDraws(VkCommandBuffer,uint32_t w,uint32_t h,VkBuffer vbo,size_t begin,size_t end,
+                     VkDescriptorSet,const void*,const void*,const void*,const void*,const FrameGenOverlay* fg,bool guide) {
+        assert(fake::inside && vbo==mFrameVbo && begin==2 && end==5);
+        assert(w==(guide?320u:960u) && h==(guide?180u:540u));
+        assert(fg && fake::passes.back()==(guide?2u:1u));
+        if(guide) assert(fake::boundSlot==1);
+        ++fake::draws;
+    }
+    void recordFrameGenOverlay(VkCommandBuffer,uint32_t,const FrameGenOverlay&,VkImageView,uint32_t,uint32_t);
+};
+extern "C" {
+VKAPI_ATTR void VKAPI_CALL vkCmdPipelineBarrier2(VkCommandBuffer,const VkDependencyInfo* dep) {
+    assert(!fake::inside);
+    for(uint32_t i=0;i<dep->memoryBarrierCount;++i) {
+        const auto& m=dep->pMemoryBarriers[i];
+        if(m.srcStageMask==VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT &&
+           (m.srcAccessMask&VK_ACCESS_2_SHADER_SAMPLED_READ_BIT) &&
+           (m.dstAccessMask&VK_ACCESS_2_MEMORY_WRITE_BIT)) fake::sourceWar=true;
+    }
+    for(uint32_t i=0;i<dep->imageMemoryBarrierCount;++i) {
+        const auto& b=dep->pImageMemoryBarriers[i];
+        assert(b.image!=fake::immutableDepth && b.image!=fake::immutableMotion);
+        assert(fake::layout.at(b.image)==b.oldLayout);
+        assert(b.srcQueueFamilyIndex==VK_QUEUE_FAMILY_IGNORED && b.dstQueueFamilyIndex==VK_QUEUE_FAMILY_IGNORED);
+        assert(b.subresourceRange.aspectMask==VK_IMAGE_ASPECT_COLOR_BIT && b.subresourceRange.levelCount==1 && b.subresourceRange.layerCount==1);
+        fake::layout[b.image]=b.newLayout;
+        if(b.newLayout==VK_IMAGE_LAYOUT_GENERAL) {
+            assert(b.srcStageMask&VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT);
+            assert(b.srcAccessMask&VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT);
+            assert(b.dstAccessMask&VK_ACCESS_2_MEMORY_READ_BIT);
+        }
+    }
+}
+VKAPI_ATTR void VKAPI_CALL vkCmdBeginRendering(VkCommandBuffer,const VkRenderingInfo* rendering) {
+    assert(!fake::inside); fake::inside=true;
+    fake::passes.push_back(rendering->colorAttachmentCount);
+    assert(rendering->layerCount==1);
+    for(uint32_t i=0;i<rendering->colorAttachmentCount;++i) {
+        const auto& a=rendering->pColorAttachments[i];
+        auto image=fake::views.at(a.imageView);
+        assert(fake::layout.at(image)==a.imageLayout);
+        assert(rendering->renderArea.extent.width<=fake::extents.at(image).width &&
+               rendering->renderArea.extent.height<=fake::extents.at(image).height);
+        assert(a.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD && a.storeOp==VK_ATTACHMENT_STORE_OP_STORE);
+        if(rendering->colorAttachmentCount==1) assert(image==fake::world);
+        else assert(image==(i==0?fake::guideDepth:fake::guideMotion));
+    }
+    if(rendering->colorAttachmentCount==1) {
+        assert(rendering->renderArea.extent.width==960 && rendering->renderArea.extent.height==540);
+        const auto& d=*rendering->pDepthAttachment;
+        assert(fake::views.at(d.imageView)==fake::displayDepth);
+        assert(fake::layout.at(fake::displayDepth)==d.imageLayout);
+        assert(d.loadOp==VK_ATTACHMENT_LOAD_OP_LOAD && d.storeOp==VK_ATTACHMENT_STORE_OP_NONE);
+    } else {
+        assert(rendering->colorAttachmentCount==2 && !rendering->pDepthAttachment);
+        assert(rendering->renderArea.extent.width==320 && rendering->renderArea.extent.height==180);
+    }
+}
+VKAPI_ATTR void VKAPI_CALL vkCmdEndRendering(VkCommandBuffer) {
+    assert(fake::inside); fake::inside=false;
+}
+VKAPI_ATTR void VKAPI_CALL vkCmdBindDescriptorSets(VkCommandBuffer,VkPipelineBindPoint point,VkPipelineLayout layout,
+                                                   uint32_t first,uint32_t count,const VkDescriptorSet* sets,
+                                                   uint32_t dynamicCount,const uint32_t*) {
+    assert(fake::inside && point==VK_PIPELINE_BIND_POINT_GRAPHICS && layout==fake::expectedLayout);
+    assert(first==1 && count==2 && dynamicCount==0);
+    assert(sets[0]==fake::expectedSets[0] && sets[1]==fake::expectedSets[1]);
+    fake::boundSlot=1;
+}
+}
+// @PRODUCTION_RECORD_METHOD@
+int main() {
+    LLRenderVK renderer;
+    for(unsigned frame=0;frame<12;++frame) {
+        fake::layout.clear(); fake::views.clear(); fake::passes.clear();
+        fake::sourceWar=false; fake::draws=fake::boundSlot=0;
+        const unsigned slot=frame%4;
+        auto image=[&](uintptr_t n,VkImageLayout layout) {
+            GpuImage g{fake::handle<VkImage>(n),fake::handle<VkImageView>(n+100),{320,180}};
+            fake::layout[g.image]=layout; fake::views[g.view]=g.image; fake::extents[g.image]=g.extent; return g;
+        };
+        auto d=image(10+slot,VK_IMAGE_LAYOUT_GENERAL),m=image(20+slot,VK_IMAGE_LAYOUT_GENERAL);
+        auto sourceD=image(30,VK_IMAGE_LAYOUT_GENERAL),sourceM=image(31,VK_IMAGE_LAYOUT_GENERAL);
+        auto w=image(40,VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL),z=image(41,VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+        w.extent=z.extent=VkExtent2D{960,540}; fake::extents[w.image]=w.extent; fake::extents[z.image]=z.extent;
+        fake::guideDepth=d.image; fake::guideMotion=m.image;
+        fake::immutableDepth=sourceD.image; fake::immutableMotion=sourceM.image;
+        fake::world=w.image; fake::displayDepth=z.image;
+        renderer.mFgGuideSets[slot]={fake::handle<VkDescriptorSet>(200+slot*2),fake::handle<VkDescriptorSet>(201+slot*2)};
+        fake::expectedSets=renderer.mFgGuideSets[slot]; fake::expectedLayout=renderer.mFgGuideLayout;
+        renderer.mOverlayRecorded=false;
+        renderer.recordFrameGenOverlay(fake::handle<VkCommandBuffer>(500),slot,{&d,&m,w.view},z.view,960,540);
+        assert(renderer.mOverlayRecorded && !fake::inside && fake::draws==2 && fake::sourceWar);
+        assert((fake::passes==std::vector<unsigned>{1,2}));
+        assert(fake::layout.at(d.image)==VK_IMAGE_LAYOUT_GENERAL && fake::layout.at(m.image)==VK_IMAGE_LAYOUT_GENERAL);
+        assert(fake::layout.at(sourceD.image)==VK_IMAGE_LAYOUT_GENERAL && fake::layout.at(sourceM.image)==VK_IMAGE_LAYOUT_GENERAL);
+        assert(fake::layout.at(z.image)==VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+    }
+    std::puts("Production overlay recording: 12 frames / 4 main slots PASS");
+}

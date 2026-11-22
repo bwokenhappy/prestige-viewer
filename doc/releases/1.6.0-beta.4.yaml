@@ -1,0 +1,77 @@
+name: Slipstream 1.6.0 Beta 4
+tag_name: v1.6.0-beta.4
+prerelease: true
+body: 'Changes since 1.6.0 Beta 3.
+
+
+  ## Fixes and performance
+
+  - Keep nearby reduced-tier avatars casting shadows and apply avatar-distance ranking per avatar.
+
+  - Reclaim lost-device allocations explicitly and preserve same-GPU DLSS discovery through recovery.
+
+  - Avoid redundant depth-prepass work and empty realtime-probe passes.
+
+  - Preserve usable shader-cache snapshots when a new save is too large or fails; compile only needed
+  pipeline families.
+
+  - Correct water refraction rejection, upscaled water detail and steep-surface contact foam.
+
+  - Skip invisible glowing texture texels while preserving transparent-prim glow halos.
+
+  - Improve volumetric-fog sampling and reconstruction.
+
+  - Improve rough RT reflection sampling and history handling; residual noise remains under investigation.
+
+  - Correct Conversations clipping and dragging when the optional native windows are enabled.
+
+  - Clarify media-plugin crash messages and improve settings backup/restore safeguards.
+
+
+  ## Features and behaviour
+
+  - New graphics options get card/quality-appropriate defaults once, without resetting existing choices.
+
+  - Complete additional per-eye VR effects, including bloom, glow, depth of field, sharpening and transparency.
+
+  - Add sun/moon-driven underwater caustics with a Water option; High and above presets enable it.
+
+  - Add water intensity, whitecap, ripple and splash controls.
+
+  - Refresh the camera-mode controls, review cards, capture destinations and help.
+
+  - Add settings backup/export/import controls, per-tab inventory search and optional received-item logging.
+
+  - Preserve personal environment settings across logins by default; a preference restores the previous
+  behaviour.
+
+  - Run enabled motion blur after the upscaler at display resolution.
+
+
+  ## Experimental features
+
+  - Native Conversations/People/Inventory windows remain off by default and require the unsaved development
+  switch.
+
+  - Glow-subset WBOIT, additive OIT glow, interior exposure, camera-only AO reprojection and ASTRA rendering
+  prototypes remain opt-in.
+
+  - Raw frame timings are available on request; recording is disabled by default.
+
+
+  ## Known issues and testing
+
+  - Stochastic shadows and rough RT reflections can remain noisy. This is not a claim of complete resolution.
+
+  - WBOIT''s weighted-mean hit-lighting behaviour is unchanged in this candidate. The separate blend-layer-cost
+  experiment is not included.
+
+  - The unaccepted object alpha self-depth experiment is removed, including its vertex cost while disabled.
+
+  - Lower quality tiers cap transparent local lights; caustics and water/reflection corrections intentionally
+  change affected pixels.
+
+
+  Contributions: TheSlowly, Sky Line, Claude and Codex collaborators.
+
+  '

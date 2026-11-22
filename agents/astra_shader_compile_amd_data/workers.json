@@ -1,0 +1,994 @@
+[
+  {
+    "run": "amd_base_cold",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 248147,
+        "wall_ms": 93385,
+        "hits": 16,
+        "misses": 37,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [],
+    "viewer_reuse": [
+      {
+        "matched": 53,
+        "different": 0,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": []
+  },
+  {
+    "run": "amd_base_warm1",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 85855,
+        "wall_ms": 33872,
+        "hits": 47,
+        "misses": 6,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_base_warm2",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 79,
+        "wall_ms": 257,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_base_warm3",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 79,
+        "wall_ms": 255,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_fixed_cold",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 40,
+        "wall_ms": 19,
+        "hits": 16,
+        "misses": 37,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [],
+    "viewer_reuse": [
+      {
+        "matched": 53,
+        "different": 0,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": []
+  },
+  {
+    "run": "amd_fixed_crossbuild",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 354,
+        "wall_ms": 316,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_fixed_warm1",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 46,
+        "wall_ms": 20,
+        "hits": 47,
+        "misses": 6,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_fixed_warm2",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 73,
+        "wall_ms": 255,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_fixed_warm3",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 73,
+        "wall_ms": 255,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  },
+  {
+    "run": "amd_base_driver_warm_cold",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 42,
+        "wall_ms": 20,
+        "hits": 16,
+        "misses": 37,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [],
+    "viewer_reuse": [
+      {
+        "matched": 53,
+        "different": 0,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": []
+  },
+  {
+    "run": "amd_base_warm4",
+    "batches": [
+      {
+        "items": 53,
+        "compiled": 37,
+        "dedup": 16,
+        "sum_ms": 49,
+        "wall_ms": 20,
+        "hits": 47,
+        "misses": 6,
+        "no_feedback": 0
+      }
+    ],
+    "respin": [
+      {
+        "replaced": 21,
+        "total": 23,
+        "changed": 2,
+        "kept": 2
+      }
+    ],
+    "viewer_reuse": [
+      {
+        "matched": 41,
+        "different": 12,
+        "not_compared": 0,
+        "items": 53,
+        "hits": 53,
+        "misses": 0,
+        "no_feedback": 0,
+        "same_identity_misses": 0
+      }
+    ],
+    "viewer_wire_values": [
+      1
+    ],
+    "identity_differences": [
+      {
+        "index": 0,
+        "pipeline": "LIT_ALPHA (Vert/FragBlend)",
+        "viewer_hash": "3b3124479bf6811d",
+        "worker_hash": "f84cfdf1ffa93e15"
+      },
+      {
+        "index": 1,
+        "pipeline": "LIT_RIG_ALPHA (RiggedVert/FragBlend)",
+        "viewer_hash": "678b8b6c9a52df42",
+        "worker_hash": "729ad25a68e41292"
+      },
+      {
+        "index": 2,
+        "pipeline": "LIT_PROBE_DRAW (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 3,
+        "pipeline": "LIT_PROBE_MASK (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 4,
+        "pipeline": "LIT_PROBE_DRAW_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 5,
+        "pipeline": "LIT_PROBE_MASK_DS (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 6,
+        "pipeline": "LIT_PROBE_MASK_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 7,
+        "pipeline": "LIT_PROBE_MASK_DS_EQ (Vert/Frag)",
+        "viewer_hash": "01033bd05c547c7c",
+        "worker_hash": "8f0a0cf77ff8b25b"
+      },
+      {
+        "index": 25,
+        "pipeline": "mMirrorAlphaPipe (Vert/Frag)",
+        "viewer_hash": "6099003cc73b61ea",
+        "worker_hash": "b2ce42103598db69"
+      },
+      {
+        "index": 26,
+        "pipeline": "mMirrorRigPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 27,
+        "pipeline": "mMirrorRigDsPipe (RiggedVert/Frag)",
+        "viewer_hash": "68cf9e149a6d8ea7",
+        "worker_hash": "b655b9029b00b24c"
+      },
+      {
+        "index": 28,
+        "pipeline": "mMirrorRigAlphaPipe (RiggedVert/Frag)",
+        "viewer_hash": "33eda0977bbc1b59",
+        "worker_hash": "4c9996e8828e80fe"
+      }
+    ]
+  }
+]

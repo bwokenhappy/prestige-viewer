@@ -1,0 +1,236 @@
+{
+  "source_checks": 108,
+  "source_check_log_sha256": "1d3fd1a0650086f8afcfbbbe75b4bcd22475cc60b83d458414220e789c04e8e2",
+  "files": {
+    "indra/newview/vkgfx/llwatercausticsbounds.h": "7fafab5fe77447b99c3272abe2e064d6e6cb8d1caf437c550c98f58570fced37",
+    "indra/newview/vkgfx/llcleanrenderervk.h": "05a55903565882e6eec4f9694986cdd6cc0123e4f1f14776761335f43dbc76a9",
+    "indra/newview/vkgfx/llcleanrenderervk.cpp": "f178c81912496fb992801055fb31aa6fec0e77002d3d7f3974d86778d251317e",
+    "indra/vkclean/shaders/clean_water_caustics.glsl": "01cb5916651caa2dea81acf46c47611f2e0c34dbed2a6a5d0995866628e601a8",
+    "scripts/check/test_water_caustics_bounds.cpp": "168560ae29518a78b70a1ec2938c8fb9b4a140e74ee3111e93922977f0a8c001",
+    "scripts/check/checks/water_caustics.py": "ae5acace2745bdc2981954f62e286fd4bcdfb5efc38423ebe4d0bc4c4d6195d0",
+    "scripts/check/checks/water_caustics_bounds.py": "13b9b2903a192b51806f8444b165184a4543d61bf36e9365e4c8b3f9627b8c1e"
+  },
+  "shader_variants": [
+    {
+      "name": "SeaFS",
+      "flags": [],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "a70a011c1e72f9ef9060cb2bf9e92994a258feae42f5bd7bb667fe7326c2eec2",
+          "canonical_sha256": "db551d2bdaf548e2491c69d63d717556377f65841a7a54ba5830a851cae0258b",
+          "seconds": 0.011267217341810465,
+          "bytes": 25880
+        },
+        "caustics": {
+          "sha256": "a70a011c1e72f9ef9060cb2bf9e92994a258feae42f5bd7bb667fe7326c2eec2",
+          "canonical_sha256": "db551d2bdaf548e2491c69d63d717556377f65841a7a54ba5830a851cae0258b",
+          "seconds": 0.13756923703476787,
+          "bytes": 25880
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "SeaVS",
+      "flags": [
+        "-DSEA_PROBE_VS"
+      ],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "ff7937431603bd707d54a5f61629513ebddfab68b80ed1dc8619b481187d7b2f",
+          "canonical_sha256": "dc7741721abf77abbb25068260245a35027471bd8b38490132c9b5a17794992c",
+          "seconds": 0.016903959214687347,
+          "bytes": 67096
+        },
+        "caustics": {
+          "sha256": "ff7937431603bd707d54a5f61629513ebddfab68b80ed1dc8619b481187d7b2f",
+          "canonical_sha256": "dc7741721abf77abbb25068260245a35027471bd8b38490132c9b5a17794992c",
+          "seconds": 0.18737368239089847,
+          "bytes": 67096
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "WaterWaves",
+      "flags": [],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "5583b38a3b49e64bb33ce781a6bef3e861cc639f89befd5fd0a13b9079e49178",
+          "canonical_sha256": "bfd404aba3ca12192c3916d9a36a8b5dd5fbe07856492a08648cd3dd949906f2",
+          "seconds": 0.02806591335684061,
+          "bytes": 73516
+        },
+        "caustics": {
+          "sha256": "5583b38a3b49e64bb33ce781a6bef3e861cc639f89befd5fd0a13b9079e49178",
+          "canonical_sha256": "bfd404aba3ca12192c3916d9a36a8b5dd5fbe07856492a08648cd3dd949906f2",
+          "seconds": 0.1958175553008914,
+          "bytes": 73516
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "WaterFrag",
+      "flags": [],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "b5e5a6df892d9178520b29adc7869e9f675073c8d7315a496eb37341a4e2fa00",
+          "canonical_sha256": "14da14ade48e42adf9688ba404223af71fc4541e1e2540244f7edad3ef767933",
+          "seconds": 1.1331318570300937,
+          "bytes": 1722612
+        },
+        "caustics": {
+          "sha256": "b5e5a6df892d9178520b29adc7869e9f675073c8d7315a496eb37341a4e2fa00",
+          "canonical_sha256": "14da14ade48e42adf9688ba404223af71fc4541e1e2540244f7edad3ef767933",
+          "seconds": 12.21968590002507,
+          "bytes": 1722612
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "Forward",
+      "flags": [],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "35a039d9ed124a68274b321e5b5746d84442baeaf1f1c1e4a1680b979374ce84",
+          "canonical_sha256": "aff8bd7cce949a2fe16f7a2382a055574818fd5cae0b02780b33f27ea04b60fd",
+          "seconds": 1.9499596138484776,
+          "bytes": 2807976
+        },
+        "caustics": {
+          "sha256": "35a039d9ed124a68274b321e5b5746d84442baeaf1f1c1e4a1680b979374ce84",
+          "canonical_sha256": "aff8bd7cce949a2fe16f7a2382a055574818fd5cae0b02780b33f27ea04b60fd",
+          "seconds": 32.83018528483808,
+          "bytes": 2807976
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "Local",
+      "flags": [
+        "-DCLEAN_DEFER_PASS=8"
+      ],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "ca02f38539abecd05126648b5bd78217d93e693052155d66c0bb2103204c89f8",
+          "canonical_sha256": "06c398900a22e0304ebdf40352c0933e966bf8749ccd31907ad31aad82df5360",
+          "seconds": 0.14107901975512505,
+          "bytes": 239304
+        },
+        "caustics": {
+          "sha256": "ca02f38539abecd05126648b5bd78217d93e693052155d66c0bb2103204c89f8",
+          "canonical_sha256": "06c398900a22e0304ebdf40352c0933e966bf8749ccd31907ad31aad82df5360",
+          "seconds": 0.7760501522570848,
+          "bytes": 239304
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "RtFwd",
+      "flags": [
+        "-DCLEAN_DEFER_PASS=14",
+        "-DCLEAN_PROJ_SHADOW_RAYQUERY",
+        "-DRT_SET=4"
+      ],
+      "same_required": true,
+      "results": {
+        "original": {
+          "sha256": "26a9b06e17c79257992a9a743818f9690b2a835d92a11577d2e09a61a24fbd62",
+          "canonical_sha256": "c864f13172c6eecb7767f07d5e8489255fd27a9646293f9d75a16eb6f5ff036f",
+          "seconds": 1.450623417738825,
+          "bytes": 1795088
+        },
+        "caustics": {
+          "sha256": "26a9b06e17c79257992a9a743818f9690b2a835d92a11577d2e09a61a24fbd62",
+          "canonical_sha256": "c864f13172c6eecb7767f07d5e8489255fd27a9646293f9d75a16eb6f5ff036f",
+          "seconds": 21.871182976290584,
+          "bytes": 1795088
+        }
+      },
+      "canonical_equal": true,
+      "raw_equal": true
+    },
+    {
+      "name": "Base",
+      "flags": [
+        "-DCLEAN_DEFER_PASS=7"
+      ],
+      "same_required": false,
+      "results": {
+        "caustics": {
+          "sha256": "4bb914ddd774ef72446cb66afd5f78f706a816c37ce466ce4889d8f99870f65b",
+          "canonical_sha256": "f6995f5afb0a53f05fb18185f67b9ddbfeb34c4f4541983421c747600dae0089",
+          "seconds": 10.77732522925362,
+          "bytes": 762336
+        }
+      }
+    },
+    {
+      "name": "Combine",
+      "flags": [
+        "-DCLEAN_DEFER_PASS=3"
+      ],
+      "same_required": false,
+      "results": {
+        "caustics": {
+          "sha256": "c8dffe1566d118e50a6eb79df16ef94aa634ec9f39ad172dd8a2d9a1856e5afe",
+          "canonical_sha256": "cf5bcaaa142ffa069963a1854174ef66717d0799af2b861f7a369c809d6ce176",
+          "seconds": 16.801164830103517,
+          "bytes": 1162512
+        }
+      }
+    },
+    {
+      "name": "Uber",
+      "flags": [],
+      "same_required": false,
+      "results": {
+        "caustics": {
+          "sha256": "2e20c967b6915473b75e7a6e637adb268447d63d50c2fed8a4c24a0e89c7afa1",
+          "canonical_sha256": "361ea4d909054475c6febeab6390d8cf50e90fb8c038c3a1b5e8e48919e79f46",
+          "seconds": 25.139185301028192,
+          "bytes": 1247588
+        }
+      }
+    },
+    {
+      "name": "CombineVr",
+      "flags": [
+        "-DCLEAN_DEFER_PASS=3",
+        "-DCLEAN_VR_POINT_SHADOWS"
+      ],
+      "same_required": false,
+      "results": {
+        "caustics": {
+          "sha256": "3bdfd2b1d8106a5ffe331ceec90c8643d086d39a05fd0d7a691dfee1161f37f1",
+          "canonical_sha256": "fc17fa60e47a44bbd29cd72409770c7434cdf935f2e0598bd8f23629eac0c210",
+          "seconds": 15.674864207860082,
+          "bytes": 1102540
+        }
+      }
+    }
+  ],
+  "nonconsumer_raw_identical": 7,
+  "mono_and_frozen_two_eye_spirv_val": true,
+  "old_gpu_evidence_source": "e420c4eb55196a738a5f1437abf8babcc74244a0",
+  "new_gpu_evidence": false,
+  "reserved_lane": "sea[6].w/scalar27; main/options1636 audited zero/unread before this repair",
+  "renderer_cpp_layout_changed": true,
+  "reuse_old_abi_objects_allowed": false
+}

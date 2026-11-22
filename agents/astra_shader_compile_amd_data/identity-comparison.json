@@ -1,0 +1,79 @@
+[
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_cold",
+    "matched": 494,
+    "reference_only": 14,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_warm1",
+    "matched": 494,
+    "reference_only": 14,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_warm2",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_warm3",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_fixed_cold",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_fixed_crossbuild",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_fixed_warm1",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_fixed_warm2",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_fixed_warm3",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_driver_warm_cold",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  },
+  {
+    "reference": "amd_base_warm3",
+    "run": "amd_base_warm4",
+    "matched": 508,
+    "reference_only": 0,
+    "run_only": 0
+  }
+]

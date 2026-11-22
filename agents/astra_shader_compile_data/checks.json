@@ -1,0 +1,8 @@
+{
+  "source_checks_passed": 107,
+  "linux_package_checks_passed": 4,
+  "windows_build_tested": false,
+  "regression_fails_original_and_passes_fix": true,
+  "all_corrected_runs_settled_focused_no_compile_failures": true,
+  "generated_shader_headers_committed": false
+}

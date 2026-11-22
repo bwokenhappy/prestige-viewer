@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- #1593 VR settings wall menu: the VR features' switches with big buttons, used with the laser
+     on the UI wall (llfloatervrsettings.cpp builds the rows of each tab from its table; the
+     texts are the strings below). Sized for the wall's VR UI scale (#1591: 720 points tall). -->
+<floater
+    name="vr_settings"
+    title="VR SETTINGS"
+    single_instance="true"
+    can_minimize="false"
+    can_resize="false"
+    can_tear_off="false"
+    can_dock="false"
+    save_rect="false"
+    layout="topleft"
+    height="690"
+    width="980">
+  <string name="on">On</string>
+  <string name="off">Off</string>
+  <string name="not_in_build">(not in this build)</string>
+  <!-- Body -->
+  <string name="body_source">Body tracking from</string>
+  <string name="source_auto">Auto</string>
+  <string name="source_openxr">Trackers</string>
+  <string name="source_slimevr">SlimeVR</string>
+  <string name="source_headset">Headset</string>
+  <string name="source_estimate">Estimate</string>
+  <string name="body_estimate">Estimate my body (no trackers)</string>
+  <string name="show_body">Show my body</string>
+  <string name="body_share">Share my VR body with others</string>
+  <string name="flycam_freeze">Freeze my pose in fly cam</string>
+  <string name="turn_limit">Turn limit (body follows head)</string>
+  <string name="calibrate">Body trackers</string>
+  <string name="calibrate_button">Calibrate (T-pose)</string>
+  <string name="bone_mapping">Bone mapping</string>
+  <string name="bone_mapping_button">Open bone mapping...</string>
+  <!-- Hands -->
+  <string name="arms">Arms follow the controllers</string>
+  <string name="fingers">Fingers follow my fingers</string>
+  <string name="grab">Grab objects with the grip</string>
+  <string name="arm_strength">Arm tracking strength</string>
+  <!-- View and comfort -->
+  <string name="safety_governor">Protect against low frame rate</string>
+  <string name="smooth_turn">Smooth turning</string>
+  <string name="snap_turn">Snap turn angle</string>
+  <string name="smooth_turn_speed">Smooth turn speed</string>
+  <string name="vignette">Comfort vignette</string>
+  <string name="teleport_move">Teleport with the left stick</string>
+  <string name="world_text">Name tag and hover text size</string>
+  <!-- Graphics -->
+  <string name="stereo_note">Point-light shadows, VR GI and space warp need layered stereo, which is off (it is set when VR starts).</string>
+  <string name="vr_gi">Faster GI in VR (shared world cache)</string>
+  <string name="point_shadows">Point-light shadows</string>
+  <string name="foveation">Foveated rendering</string>
+  <string name="space_warp">Space warp</string>
+  <string name="level_off">Off</string>
+  <string name="level_on">On</string>
+  <string name="level_low">Low</string>
+  <string name="level_high">High</string>
+  <string name="level_full">Full (as on the desktop)</string>
+  <string name="level_fast">Fast</string>
+  <string name="level_fast_high">Fast, more rays</string>
+  <string name="warp_auto">Auto</string>
+  <string name="warp_off">Off</string>
+  <string name="warp_always">Always</string>
+  <!-- Interaction -->
+  <string name="wall_size">UI wall size</string>
+  <string name="wall_text">Text size on the wall</string>
+  <string name="wall_distance">UI wall distance</string>
+  <string name="wall_freezes">Sticks don't move me while the wall is up</string>
+  <string name="wrist_size">Wrist panel size</string>
+  <tab_container
+      name="tabs"
+      follows="all"
+      layout="topleft"
+      left="8"
+      top="4"
+      width="964"
+      height="600"
+      tab_position="top"
+      tab_height="44"
+      tab_min_width="176"
+      font="SansSerifLarge"
+      halign="center">
+    <panel
+        name="body"
+        label="Body"
+        layout="topleft"
+        follows="all"
+        width="964"
+        height="556" />
+    <panel
+        name="hands"
+        label="Hands"
+        layout="topleft"
+        follows="all"
+        width="964"
+        height="556" />
+    <panel
+        name="view"
+        label="View &amp; comfort"
+        layout="topleft"
+        follows="all"
+        width="964"
+        height="556" />
+    <panel
+        name="graphics"
+        label="Graphics"
+        layout="topleft"
+        follows="all"
+        width="964"
+        height="556" />
+    <panel
+        name="interaction"
+        label="Interaction"
+        layout="topleft"
+        follows="all"
+        width="964"
+        height="556" />
+  </tab_container>
+  <!-- A big Close (the title bar's X is ~1.3 degrees on the wall). -->
+  <button
+      name="close_btn"
+      label="Close"
+      font="SansSerifLarge"
+      follows="right|bottom"
+      layout="topleft"
+      left="740"
+      top_pad="8"
+      width="220"
+      height="44" />
+</floater>

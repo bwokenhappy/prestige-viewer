@@ -1,0 +1,44 @@
+#version 460
+#extension GL_GOOGLE_include_directive : require
+// vkclean -- WBOIT TILE LIST (#1410, RenderVKAlphaOIT; llcleanalphaoitvk.cpp recordTiles).
+//
+// Between a round's accumulation and its resolve: one workgroup per 8 x 8 tile reads the tile's
+// revealage (2 B / px) and appends the tile when any pixel was touched (revealage != 1: the
+// SELF-CLEARING TARGETS rule, clean_oit_resolve.frag). The resolve then draws one quad per listed
+// tile (clean_oit_tile.vert, an indirect draw whose instance count this pass writes) instead of a
+// fullscreen triangle: the heavy resolve FS (mode 2 lights the surface) no longer launches over
+// the untouched screen. With an empty OIT list (the draw counter, words 7) every workgroup leaves
+// before reading anything.
+layout(local_size_x = 8, local_size_y = 8) in;
+
+// (#1608 LAYERED STEREO: the revealage a layer per view; a tile is listed when ANY view touched it -- the resolve,
+//  multiview, draws the union in every view. kViewCount 1: the one layer, as before)
+#include "clean_view.glsl"
+layout(set = 0, binding = 4, r16f) uniform readonly image2DArray uOitReveal;
+// [0..3] the resolve's VkDrawIndirectCommand (vertexCount 6, instanceCount = tiles), then the tiles
+layout(std430, set = 0, binding = 6) buffer OitTiles { uint cmd[4]; uint tiles[]; };
+layout(std430, set = 0, binding = 7) readonly buffer DrawCounters { uint counters[]; };
+
+layout(push_constant) uniform Push {
+    uint counter;   // this round's OIT list counter index; ~0u = no counter test (force mode: two lists)
+} pc;
+
+shared uint s_touched;
+
+void main()
+{
+    if (pc.counter != 0xFFFFFFFFu && counters[pc.counter] == 0u) return;   // (uniform: no OIT draw)
+    if (gl_LocalInvocationIndex == 0u) s_touched = 0u;
+    barrier();
+    const ivec2 size = imageSize(uOitReveal).xy;
+    const ivec2 px = ivec2(gl_GlobalInvocationID.xy);
+    if (all(lessThan(px, size)))
+        for (int v = 0; v < kViewCount; ++v)
+            if (imageLoad(uOitReveal, ivec3(px, v)).r != 1.0) { atomicOr(s_touched, 1u); break; }
+    barrier();
+    if (gl_LocalInvocationIndex == 0u && s_touched != 0u)
+    {
+        const uint i = atomicAdd(cmd[1], 1u);
+        tiles[i] = gl_WorkGroupID.x | (gl_WorkGroupID.y << 16u);
+    }
+}

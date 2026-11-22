@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- One open IM conversation in the top bar (slimchiclet.cpp; #1489, SLShowIMChiclets). Only the icon for
+     its kind shows: a person's picture (also a conference's other participant, tinted), a group's insignia,
+     or the conference icon. The chiclet widens for the speaking indicator and the unread count beside the
+     icon, so the icons keep their place on the left. -->
+<chiclet_im
+ height="23"
+ name="im_chiclet"
+ width="25">
+ <chiclet_im.chiclet_button
+  height="25"
+  image_selected="PushButton_On"
+  image_unselected="PushButton_Off"
+  name="chiclet_button"
+  follows="left|bottom"
+  tab_stop="false"
+  width="25"/>
+ <chiclet_im.avatar_icon
+  bottom="3"
+  follows="left|bottom"
+  height="18"
+  left="2"
+  mouse_opaque="false"
+  name="avatar_icon"
+  width="21"/>
+ <chiclet_im.group_icon
+  bottom="3"
+  default_icon_name="Generic_Group"
+  draw_tooltip="false"
+  follows="left|bottom"
+  height="18"
+  left="2"
+  mouse_opaque="false"
+  name="group_icon"
+  width="21"/>
+ <chiclet_im.conference_icon
+  bottom="3"
+  follows="left|bottom"
+  height="18"
+  image_name="Command_People_Icon"
+  left="2"
+  mouse_opaque="false"
+  name="conference_icon"
+  width="21"/>
+ <chiclet_im.new_message_icon
+  bottom="11"
+  follows="left|bottom"
+  height="14"
+  image_name="Unread_Chiclet"
+  left="12"
+  name="new_message_icon"
+  visible="false"
+  width="14"/>
+ <chiclet_im.speaker
+  auto_update="true"
+  bottom="4"
+  draw_border="false"
+  follows="left|bottom"
+  height="16"
+  left="25"
+  name="speaker"
+  visible="false"
+  width="20"/>
+</chiclet_im>

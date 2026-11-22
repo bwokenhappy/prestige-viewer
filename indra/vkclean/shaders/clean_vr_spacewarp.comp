@@ -1,0 +1,177 @@
+#version 460
+// vkclean -- #1594 VR SPACE WARP: one shown frame synthesised from the newest real frame, per eye
+// (z = eye), into an RGBA8 storage image written in the eye swapchain's byte order. Host side,
+// cost and the reasons for each rule: llvrspacewarpvk.h.
+//
+// BACKWARD GATHER BY FIXED-POINT ITERATION (Bowles et al. 2012, "Iterative image warping"). For a
+// target pixel t, find the source pixel s whose scene point lands on t:
+//     s <- unproject(inverse map of the class of s, at (t - object motion of s, the target depth of s))
+// The forward map of a source point (ndc.xy, depth) is a per-eye 4x4 from the source clip to the
+// target clip (positional: translation, roll, both off-axis frusta), or -- for a point on a
+// controller -- that controller's own rigid pose change; a moving object adds its motion vector
+// minus the camera's part (the source depth through the camera-only reprojection), extrapolated by
+// P.misc.x real-frame intervals. Two chains: seeded at the local depth and at the far plane. Both
+// consistent (lands within a pixel of t): the nearer surface is the visible one. Neither: a
+// disocclusion -- the farther candidate (the background side of the edge) fills it.
+//
+// Conventions: Vulkan clip (y down: uv = ndc * 0.5 + 0.5), reversed Z (depth 1 = near plane, 0 =
+// far). The lens' hidden area holds depth 1 (clean_vr_vismask.vert): no scene there, never a
+// source when another candidate exists. Colours are the eye target's sRGB-encoded bytes, written
+// back unchanged.
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+struct WarpEye
+{
+    mat4 fwd;            // source clip -> target clip (the static world)
+    mat4 inv;            // target clip -> source clip
+    mat4 handFwd[2];     // ... for a point on controller h (its own pose change)
+    mat4 handInv[2];
+    mat4 toRel;          // source clip -> metres from the source eye (agent axes)
+    mat4 camPrev;        // source clip -> the previous real frame's clip (camera-only motion)
+    vec4 handSphere[2];  // xyz centre (toRel space), w radius (0: no controller)
+    vec4 beamA[2];       // xyz start, w radius (0: no beam)
+    vec4 beamB[2];       // xyz end
+};
+layout(std140, set = 0, binding = 0) uniform WarpParams
+{
+    WarpEye eye[2];
+    vec4 dstSize;        // output w, h, 1 / w, 1 / h
+    vec4 mvSize;         // motion target w, h, 1 / w, 1 / h
+    vec4 misc;           // x extrapolation (real-frame intervals), y motion valid, z swap R / B, w debug
+} P;
+layout(set = 0, binding = 1) uniform sampler2DArray uColor;    // bilinear
+layout(set = 0, binding = 2) uniform sampler2DArray uDepth;    // nearest
+layout(set = 0, binding = 3) uniform sampler2DArray uMotion;   // nearest
+layout(set = 0, binding = 4, rgba8) uniform writeonly image2DArray uOut;
+
+const int   kIters = 3;
+const float kHidden = 0.99999;   // the visibility mask's near-plane fill
+const float kConvergePx = 1.0;   // a chain is consistent when its point lands this close to t
+
+struct Cand
+{
+    vec2 ndc;
+    float d;
+    bool ok;       // consistent: its scene point lands on the target pixel
+    bool hidden;   // the lens' hidden area (no scene)
+};
+
+// 0: the static world; h + 1: a point on controller h.
+uint classify(uint v, vec2 ndc, float d)
+{
+    if (d <= 0.0 || d >= kHidden) return 0u;
+    const vec4 r = P.eye[v].toRel * vec4(ndc, d, 1.0);
+    if (abs(r.w) < 1e-12) return 0u;
+    const vec3 p = r.xyz / r.w;
+    uint best = 0u;
+    float bestD = 1e30;
+    for (uint h = 0u; h < 2u; ++h)
+    {
+        const vec4 s = P.eye[v].handSphere[h];
+        if (s.w > 0.0)
+        {
+            const float dd = length(p - s.xyz);
+            if (dd < s.w && dd < bestD) { best = h + 1u; bestD = dd; }
+        }
+        const vec4 a = P.eye[v].beamA[h];
+        if (a.w > 0.0)
+        {
+            const vec3 ab = P.eye[v].beamB[h].xyz - a.xyz;
+            const float u = clamp(dot(p - a.xyz, ab) / max(dot(ab, ab), 1e-8), 0.0, 1.0);
+            const float dd = length(p - (a.xyz + ab * u));
+            if (dd < a.w && dd < bestD) { best = h + 1u; bestD = dd; }
+        }
+    }
+    return best;
+}
+
+// The object's own motion at a source point, extrapolated, in target NDC (0: static / unknown).
+vec2 objectMotionNdc(uint v, vec2 ndcS, vec2 uvS, float d)
+{
+    if (P.misc.y < 0.5 || d <= 0.0 || d >= kHidden) return vec2(0.0);
+    const vec4 m = textureLod(uMotion, vec3(uvS, float(v)), 0.0);
+    if (!(m.z > 0.0)) return vec2(0.0);                 // no previous projection (new, behind last eye)
+    const vec4 pc = P.eye[v].camPrev * vec4(ndcS, d, 1.0);
+    if (pc.w <= 1e-6) return vec2(0.0);
+    const vec2 uvPrevCam = pc.xy / pc.w * 0.5 + 0.5;
+    vec2 obj = m.xy - (uvS - uvPrevCam);                // UV per real-frame interval the camera does not explain
+    const float px = length(obj * P.mvSize.xy);
+    if (px < 0.75) return vec2(0.0);                    // the camera split's noise: static
+    if (px > 96.0) obj *= 96.0 / px;                    // a wild vector never tears the frame
+    return obj * (2.0 * P.misc.x);
+}
+
+void mapsOf(uint v, uint h, out mat4 F, out mat4 I)
+{
+    if (h == 0u) { F = P.eye[v].fwd; I = P.eye[v].inv; }
+    else         { F = P.eye[v].handFwd[h - 1u]; I = P.eye[v].handInv[h - 1u]; }
+}
+
+Cand solve(uint v, vec2 ndcT, float zSeed)
+{
+    const vec4 p0 = P.eye[v].inv * vec4(ndcT, zSeed, 1.0);
+    vec2 s = abs(p0.w) > 1e-12 ? p0.xy / p0.w : ndcT;
+    for (int i = 0; i < kIters; ++i)
+    {
+        s = clamp(s, vec2(-1.0), vec2(1.0));
+        const vec2 uv = s * 0.5 + 0.5;
+        const float d = textureLod(uDepth, vec3(uv, float(v)), 0.0).r;
+        const uint h = classify(v, s, d);
+        mat4 F, I;
+        mapsOf(v, h, F, I);
+        const vec4 q = F * vec4(s, d, 1.0);
+        const float zt = q.w > 1e-9 ? q.z / q.w : 0.0;
+        const vec2 obj = h == 0u ? objectMotionNdc(v, s, uv, d) : vec2(0.0);
+        const vec4 p = I * vec4(ndcT - obj, zt, 1.0);
+        if (abs(p.w) > 1e-12) s = p.xy / p.w;
+    }
+    // Where the final guess really lands.
+    Cand c;
+    const bool inside = all(lessThanEqual(abs(s), vec2(1.0)));
+    s = clamp(s, vec2(-1.0), vec2(1.0));
+    const vec2 uv = s * 0.5 + 0.5;
+    const float d = textureLod(uDepth, vec3(uv, float(v)), 0.0).r;
+    const uint h = classify(v, s, d);
+    mat4 F, I;
+    mapsOf(v, h, F, I);
+    const vec4 q = F * vec4(s, d, 1.0);
+    const vec2 obj = h == 0u ? objectMotionNdc(v, s, uv, d) : vec2(0.0);
+    const vec2 t = q.w > 1e-9 ? q.xy / q.w + obj : vec2(1e9);
+    const float errPx = length((t - ndcT) * 0.5 * P.dstSize.xy);
+    c.ndc = s;
+    c.d = d;
+    c.hidden = d >= kHidden;
+    c.ok = inside && q.w > 1e-9 && errPx < kConvergePx && !c.hidden;
+    return c;
+}
+
+void main()
+{
+    const uvec3 id = gl_GlobalInvocationID;
+    if (id.x >= uint(P.dstSize.x) || id.y >= uint(P.dstSize.y)) return;
+    const uint v = min(id.z, 1u);
+    const vec2 uvT = (vec2(id.xy) + 0.5) * P.dstSize.zw;
+    const vec2 ndcT = uvT * 2.0 - 1.0;
+    float dSeed = textureLod(uDepth, vec3(uvT, float(v)), 0.0).r;
+    if (dSeed >= kHidden) dSeed = 0.0;
+    const Cand a = solve(v, ndcT, dSeed);
+    const Cand b = solve(v, ndcT, 0.0);
+    Cand c;
+    bool filled = false;
+    if (a.ok && b.ok) c = a.d >= b.d ? a : b;   // both seen from the source: the nearer one occludes
+    else if (a.ok) c = a;
+    else if (b.ok) c = b;
+    else
+    {
+        // A disocclusion (or off the source image): the background side, never the hidden area.
+        filled = true;
+        c = a.hidden ? b : b.hidden ? a : (a.d <= b.d ? a : b);
+    }
+    vec4 col = textureLod(uColor, vec3(c.ndc * 0.5 + 0.5, float(v)), 0.0);
+    if (P.misc.w > 0.5 && filled) col.rgb = mix(col.rgb, vec3(1.0, 0.0, 1.0), 0.6);   // RenderVKVRSpaceWarpDebug 1
+    if (P.misc.w > 1.5) col.rgb = mix(col.rgb, vec3(0.0, 1.0, 0.0), 0.12);             // 2: a warp-only frame
+    col.a = 1.0;
+    if (P.misc.z > 0.5) col = col.bgra;   // the B8G8R8A8 eyes: their byte order
+    imageStore(uOut, ivec3(id.xy, int(v)), col);
+}

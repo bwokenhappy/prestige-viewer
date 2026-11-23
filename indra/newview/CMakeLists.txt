@@ -2229,22 +2229,47 @@ list(APPEND viewer_SOURCE_FILES llvkprobe.cpp)
 list(APPEND viewer_HEADER_FILES llvkprobe.h)
 if (PRESTIGE_VULKAN)
   set(prestige_vkgfx_SOURCE_FILES
-      vkgfx/vk_compat.cpp
+      vkgfx/vk_compat.cpp               # phase 1: device-free requirements check
       vkgfx/vk_requirements.cpp
-      vkgfx/vk_result_string.cpp
+      vkgfx/vk_device.cpp               # phase 3: Slipstream's device context (instance, device,
+      vkgfx/vk_vma.cpp                  #   queues, VMA texture pools, pipeline cache)
+      vkgfx/vk_swapchain.cpp
+      vkgfx/vk_pipeline.cpp
+      vkgfx/vk_pipecache.cpp
+      vkgfx/vk_pipeworker.cpp
+      vkgfx/vk_descpool.cpp
+      vkgfx/llcleanreplayvk.cpp         #   (the device's video-encode queue hooks)
+      vkgfx/compat/llmemorygovernor.cpp # Slipstream llcommon pieces Firestorm lacks
+      vkgfx/compat/ll_thread_name.cpp
       )
   set(prestige_vkgfx_HEADER_FILES
       vkgfx/vk_common.h
       vkgfx/vk_compat.h
       vkgfx/vk_enumerate.h
       vkgfx/vk_requirements.h
+      vkgfx/vk_device.h
+      vkgfx/vk_vma.h
+      vkgfx/vk_swapchain.h
+      vkgfx/vk_pipeline.h
+      vkgfx/vk_pipecache.h
+      vkgfx/vk_pipeworker.h
+      vkgfx/vk_descpool.h
+      vkgfx/llcleanreplayvk.h
+      vkgfx/compat/llmemorygovernor.h
+      vkgfx/compat/slenv.h
+      vkgfx/compat/vk_msvc_compat.h
       )
   # Slipstream's sources don't use the viewer's precompiled header, and are written
   # against clang/GCC warning sets: don't let MSVC /W3 nits fail the build (/WX).
   set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
   if (WINDOWS)
-    set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} PROPERTIES COMPILE_OPTIONS "/WX-")
+    # /FI: GCC/Clang builtins for cl.exe (Slipstream builds Windows with clang-cl).
+    set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} PROPERTIES COMPILE_OPTIONS
+        "/WX-;/FI${CMAKE_CURRENT_SOURCE_DIR}/vkgfx/compat/vk_msvc_compat.h")
   endif ()
+  # Slipstream's sources include each other by bare name and its llcommon additions from compat/.
+  set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} llvkprobe.cpp PROPERTIES INCLUDE_DIRECTORIES
+      "${CMAKE_CURRENT_SOURCE_DIR}/vkgfx;${CMAKE_CURRENT_SOURCE_DIR}/vkgfx/compat")
   source_group("Prestige Vulkan" FILES ${prestige_vkgfx_SOURCE_FILES} ${prestige_vkgfx_HEADER_FILES})
   list(APPEND viewer_SOURCE_FILES ${prestige_vkgfx_SOURCE_FILES})
   list(APPEND viewer_HEADER_FILES ${prestige_vkgfx_HEADER_FILES})

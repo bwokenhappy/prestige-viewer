@@ -60,7 +60,7 @@ There is also code outside the renderer:
 | 0 | Firestorm import, Prestige rebrand, separate build action | rebranded Firestorm builds in CI | done |
 | 1 | Vulkan toolchain + device pre-flight | `PRESTIGE_VULKAN` option, vendored Khronos headers + VMA, `ll::vulkan`; Slipstream's `vk_requirements` / `vk_compat` run at startup, GPU report in the log and in Help > About | done |
 | 2 | Render backend seam | `LLRenderBackend` in Firestorm's `llrender`: every `gGL` immediate-mode, matrix, blend, colour-mask, line-width and texture-unit call forwards to an installed backend, OpenGL otherwise (`LLTextureData` moves with phase 4) | **done** |
-| 3 | Vulkan window + swapchain | `llnativewindow` / Win32 surface beside the GL context; `vk_device`, `vk_swapchain`, `vk_vma`; clear-screen frame behind `RenderUseVulkan` | |
+| 3 | Vulkan device, window + swapchain | **3a done:** Slipstream's whole device context (`vk_device`, `vk_vma`, `vk_swapchain`, `vk_pipeline`, `vk_pipecache`, `vk_pipeworker`, `vk_descpool`) compiles into Firestorm and is brought up and shut down at startup as a self-test. **3b next:** a Win32 surface + swapchain on the viewer window and a cleared frame behind `RenderUseVulkan` | in progress |
 | 4 | UI on Vulkan | `LLRenderVK` (`vkgfx/llrendervk`) as the backend; Firestorm's UI, fonts and floaters draw through it | |
 | 5 | World on Vulkan | `llcleanrenderervk` + the 332 world shaders; feed it from Firestorm's `LLVOVolume` / `LLFace` / avatar data instead of draw pools and the spatial partition | |
 | 6 | Firestorm's own render features | snapshots, 360 capture, previews, beacons, highlights, selection outlines, area search markers, mini-map, Firestorm graphics prefs, mapped onto the Vulkan renderer | |
@@ -68,6 +68,33 @@ There is also code outside the renderer:
 
 Phases 3 to 6 are the bulk of the work. Each one lands as several small commits, and the
 **opengl** build stays green throughout.
+
+## Phase 3a: what was ported
+
+From `prestige` @ `cd94540c`, `indra/newview/vkgfx/`, unchanged:
+- `vk_device`, `vk_vma`, `vk_swapchain`, `vk_pipeline`, `vk_pipecache`, `vk_pipeworker`,
+  `vk_descpool`
+- `llcleanreplayvk` (the device's video-encode queue hooks)
+- the headers they need
+
+About 43,000 lines, including Vulkan Memory Allocator. Every symbol they need resolves
+against Firestorm's own `llcommon` plus these additions:
+- `vkgfx/compat/llmemorygovernor.{h,cpp}`, `vkgfx/compat/slenv.h`: Slipstream `llcommon`
+  pieces that Firestorm lacks, copied unchanged.
+- `vkgfx/compat/ll_thread_name.cpp`: `ll_set_current_thread_name()` from Slipstream's `llthread.cpp`.
+- `vkgfx/compat/vk_msvc_compat.h`: Slipstream builds Windows with clang-cl and Firestorm
+  uses MSVC. CMake force-includes this header (`/FI`) into the ported sources on MSVC to
+  supply the `__builtin_*` functions they use.
+- `llcommon/llfile.h`: `LLFile::replace()`, which forwards to Firestorm's `rename()`. That
+  already overwrites.
+
+`LLVkProbe` now also brings the device up and back down at startup on the GPU the
+pre-flight chose. The `PrestigeVulkanDeviceTest` setting turns this off (default on, Vulkan
+builds only). The result goes to the log and the About box ("…, device test passed").
+
+Verified locally against Mesa lavapipe:
+
+> `Vulkan device test: passed in 31 ms`
 
 ## Phase 2: what was ported
 
@@ -92,8 +119,7 @@ Phases 3 to 6 are the bulk of the work. Each one lands as several small commits,
 From `prestige` @ `cd94540c`, `indra/newview/vkgfx/`:
 - `vk_common.h`, `vk_enumerate.h`, `vk_compat.{h,cpp}`, `vk_requirements.{h,cpp}`: unchanged copies
 - `third_party/vulkan` (Khronos headers, header version 363) and `third_party/vma`: unchanged copies
-- `vk_result_string.cpp`: `vkResultString()` split out of `vk_device.cpp`, so these files link
-  before the 8,700-line device context is ported
+- (`vk_result_string.cpp` split `vkResultString()` out of `vk_device.cpp` until phase 3 brought the whole file in; it has since been removed)
 
 New Prestige glue:
 - `indra/cmake/PrestigeVulkan.cmake`: the option and the `ll::vulkan` target

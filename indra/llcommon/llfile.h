@@ -394,6 +394,13 @@ public:
         std::filesystem::path new_path  = fsyspath(newname);
         return rename(file_path, new_path, suppress_warning);
     }
+    // <Prestige> Slipstream's name for a rename that replaces an existing newname, used by the
+    // ported Vulkan code (vkgfx). Firestorm's rename() already overwrites, so it forwards.
+    inline static int replace(const std::string& filename, const std::string& newname, int suppress_warning = 0)
+    {
+        return rename(filename, newname, suppress_warning);
+    }
+    // </Prestige>
     static int rename(const std::filesystem::path& file_path, const std::filesystem::path& new_path, int suppress_warning = 0);
     ///< it will silently overwrite newname if it exists without returning an error
     ///  Posix guarantees that if newname already exists, then there will be no moment

@@ -2,6 +2,17 @@
 <llsd xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:noNamespaceSchemaLocation="llsd.xsd">
 <map>
+  <key>PrestigeVulkanDeviceTest</key>
+  <map>
+    <key>Comment</key>
+    <string>Prestige Vulkan port: at startup, bring the Vulkan device up on the chosen GPU and shut it down again, and log the result (Vulkan builds only; nothing is drawn with Vulkan yet).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
   <key>FSLandmarkCreatedNotification</key>
   <map>
     <key>Comment</key>

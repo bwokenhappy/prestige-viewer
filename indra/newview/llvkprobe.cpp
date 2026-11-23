@@ -14,8 +14,13 @@
 
 #if PRESTIGE_VULKAN
 
-#include "vkgfx/vk_requirements.h"
+#include "vk_device.h"
+#include "vk_requirements.h"
 
+#include "llviewercontrol.h"
+
+#include <chrono>
+#include <memory>
 #include <mutex>
 
 namespace
@@ -85,13 +90,47 @@ namespace
                             api_version_text(g.apiVersion).c_str(), g.useApi12 ? ", 1.2 path" : "");
         LL_INFOS("Vulkan") << "Vulkan pre-flight: renderer would use " << g.name << " (" << report.bestWhy << ")" << LL_ENDL;
     }
+
+    // Phase 3: bring Slipstream's full device context (instance, logical device, queues,
+    // VMA texture pools, pipeline cache) up on the chosen GPU, then shut it down. Nothing
+    // is drawn; this proves the ported device code works on the user's driver.
+    void do_device_test()
+    {
+        if (!sReady || !gSavedSettings.getBOOL("PrestigeVulkanDeviceTest"))
+        {
+            return;
+        }
+        const auto t0 = std::chrono::steady_clock::now();
+        bool ok = false;
+        try
+        {
+            auto ctx = std::make_unique<VkDeviceContext>();   // large object: keep it off the stack
+            ok = ctx->init(false);
+            if (ok)
+            {
+                ctx->shutdown();
+            }
+            else
+            {
+                LL_WARNS("Vulkan") << "Vulkan device test: init failed: " << ctx->requirementsReport().failure << LL_ENDL;
+            }
+        }
+        catch (const std::exception& e)
+        {
+            LL_WARNS("Vulkan") << "Vulkan device test threw: " << e.what() << LL_ENDL;
+            ok = false;
+        }
+        const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+        LL_INFOS("Vulkan") << "Vulkan device test: " << (ok ? "passed" : "FAILED") << " in " << llformat("%.0f", ms) << " ms" << LL_ENDL;
+        sSummary += ok ? ", device test passed" : ", device test FAILED (see log)";
+    }
 }
 
 namespace LLVkProbe
 {
     void run()
     {
-        std::call_once(sOnce, do_check);
+        std::call_once(sOnce, []() { do_check(); do_device_test(); });
     }
 
     bool deviceReady()

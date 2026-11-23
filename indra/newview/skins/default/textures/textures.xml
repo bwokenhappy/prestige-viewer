@@ -232,6 +232,25 @@ with the same filename but different name
   <texture name="Command_MiniMap_Icon"      file_name="toolbar_icons/mini_map.png"     preload="true" vector_file="phosphor/map-pin-area.svg" vector_color="IconColor" />
   <texture name="Command_Move_Icon"         file_name="toolbar_icons/move.png"         preload="true" vector_file="phosphor/arrows-out-cardinal.svg" vector_color="IconColor" vector_box="0.167,0.000,0.778,0.944" />
   <texture name="Command_AO_Icon"           file_name="toolbar_icons/ao.png"           preload="true" vector_file="phosphor/person-simple-walk.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_PoseStand_Icon" file_name="toolbar_icons/posestand.png" preload="true" vector_file="phosphor/person-arms-spread.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_ClassicPoser_Icon" file_name="toolbar_icons/poser.png" preload="true" vector_file="phosphor/hand-grabbing.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_PoseCreator_Icon" file_name="toolbar_icons/poser.png" preload="true" vector_file="phosphor/film-strip.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Contacts_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/users.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_NearbyChat_Icon" file_name="toolbar_icons/chat.png" preload="true" vector_file="phosphor/chat-circle.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_ConversationLog_Icon" file_name="toolbar_icons/chat.png" preload="true" vector_file="phosphor/scroll.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Blocked_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/prohibit.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Notifications_Icon" file_name="toolbar_icons/howto.png" preload="true" vector_file="phosphor/bell.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_RegionInfo_Icon" file_name="toolbar_icons/land.png" preload="true" vector_file="phosphor/mountains.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Beacons_Icon" file_name="toolbar_icons/highlighting.png" preload="true" vector_file="phosphor/lightbulb.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_HoverHeight_Icon" file_name="toolbar_icons/move.png" preload="true" vector_file="phosphor/arrows-out-line-vertical.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_GestureSets_Icon" file_name="toolbar_icons/gestures.png" preload="true" vector_file="phosphor/hand-waving.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_SoundExplorer_Icon" file_name="toolbar_icons/nearbyvoice.png" preload="true" vector_file="phosphor/speaker-high.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_AnimExplorer_Icon" file_name="toolbar_icons/avatars.png" preload="true" vector_file="phosphor/person-simple-run.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_CameraPresets_Icon" file_name="toolbar_icons/view.png" preload="true" vector_file="phosphor/camera-rotate.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Graphics_Icon" file_name="toolbar_icons/preferences.png" preload="true" vector_file="phosphor/sliders.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Experiences_Icon" file_name="toolbar_icons/picks.png" preload="true" vector_file="phosphor/star.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_AvatarRender_Icon" file_name="toolbar_icons/avatars.png" preload="true" vector_file="phosphor/eye.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_VoiceSetup_Icon" file_name="toolbar_icons/speak.png" preload="true" vector_file="phosphor/microphone.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_Environments_Icon" file_name="toolbar_icons/environments.png" preload="true" vector_file="phosphor/sun-horizon.svg" vector_color="#B1B1B1" />
   <texture name="Command_People_Icon"       file_name="toolbar_icons/people.png"       preload="true" vector_file="phosphor/users.svg" vector_color="IconColor" vector_box="0.000,0.056,0.944,1.000" />
   <texture name="Command_Performance_Icon"  file_name="toolbar_icons/performance.png"  preload="true" vector_file="phosphor/gauge.svg" vector_color="IconColor@CC" vector_box="0.000,0.111,1.000,0.944" />

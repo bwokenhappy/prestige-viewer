@@ -1,5 +1,18 @@
 <llsd>
     <map>
+    <key>PrestigeToolbarLayout</key>
+        <map>
+        <key>Comment</key>
+        <string>Prestige: version of the default toolbar layout this account last received. When the viewer ships a newer layout, saved toolbars are replaced once.</string>
+        <key>Persist</key>
+        <integer>1</integer>
+        <key>HideFromEditor</key>
+        <integer>1</integer>
+        <key>Type</key>
+        <string>U32</string>
+        <key>Value</key>
+        <integer>0</integer>
+        </map>
     <key>RLVaLoginLastLocation</key>
         <map>
         <key>Comment</key>

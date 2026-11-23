@@ -230,6 +230,19 @@ bool LLToolBarView::loadToolbars(bool force_default)
         LL_WARNS() << "User toolbars def not found -> use default" << LL_ENDL;
         toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "toolbars.xml");
     }
+    else
+    {
+        // Prestige: when a newer default layout ships (new buttons such as Places on the
+        // bottom bar), give each account the new layout once; later changes are kept.
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 2;
+        if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout")
+            && gSavedPerAccountSettings.getU32("PrestigeToolbarLayout") < PRESTIGE_TOOLBAR_LAYOUT)
+        {
+            LL_INFOS() << "Prestige toolbar layout updated -> using the new default toolbars" << LL_ENDL;
+            toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "toolbars.xml");
+            gSavedPerAccountSettings.setU32("PrestigeToolbarLayout", PRESTIGE_TOOLBAR_LAYOUT);
+        }
+    }
 
     LLXMLNodePtr root;
     if(!LLXMLNode::parseFile(toolbar_file, root, NULL))

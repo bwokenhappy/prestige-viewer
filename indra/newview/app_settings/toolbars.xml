@@ -10,6 +10,7 @@
     <command name="people"/>
     <command name="appearance"/>
     <command name="search"/>
+    <command name="places"/>
     <command name="map"/>
     <command name="minimap"/>
     <command name="snapshot"/>
@@ -23,11 +24,15 @@
     button_display_mode="icons_only_small">
     <command name="avatar"/>
     <command name="profile"/>
-    <command name="places"/>
+    <command name="contacts"/>
     <command name="destinations"/>
     <command name="myenvironments"/>
     <command name="stats"/>
     <command name="performance"/>
+    <command name="pose_stand"/>
+    <command name="hover_height"/>
+    <command name="camera_presets"/>
+    <command name="graphics"/>
     <command name="lightbox"/>
   </left_toolbar>
   <right_toolbar

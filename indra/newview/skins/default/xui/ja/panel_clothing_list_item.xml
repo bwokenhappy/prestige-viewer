@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="wearable_item">
+	<button tool_tip="アウトフィットから削除します。" name="btn_delete"/>
+	<text name="item_name" value="…"/>
+	<panel tool_tip="これを編集する権限がありません。" name="btn_lock"/>
+	<panel name="btn_edit_panel">
+		<button tool_tip="この着用物を編集します。" name="btn_edit"/>
+	</panel>
+</panel>

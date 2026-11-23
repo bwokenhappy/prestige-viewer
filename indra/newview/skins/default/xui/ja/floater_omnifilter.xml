@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="包括フィルタのルールエディタ" name="omnifilter">
+	<floater.string name="OmnifilterNewNeedle">
+		新しいルール
+	</floater.string>
+	<floater.string name="OmnifilterNewRuleSet">
+		新しいルールセット
+	</floater.string>
+	<floater.string name="OmnifilterCloneRuleSet">
+		ルールセットを複製
+	</floater.string>
+	<panel name="needle_rule_set_controls">
+		<text name="lbl_ruleset" value="ルールセット："/>
+		<layout_stack name="rule_set_buttons_stack">
+			<layout_panel name="rule_set_group_1">
+				<combo_box tool_tip="使用したい包括フィルタのルールセットを選択してください。" name="cmb_rule_sets"/>
+			</layout_panel>
+			<layout_panel name="rule_set_group_2">
+				<button label="新しいルールセット" tool_tip="新しい空の包括フィルタのルールセットを作成します。" name="btn_rule_set_new"/>
+			</layout_panel>
+			<layout_panel name="rule_set_group_3">
+				<button label="ルールセットを複製" tool_tip="現在の包括フィルタのルールセットを作成したり複製します。" name="btn_rule_set_clone"/>
+			</layout_panel>
+			<layout_panel name="rule_set_group_4">
+				<button label="ルールセットを削除" tool_tip="現在の包括フィルタのルールセットを削除します。" name="btn_rule_set_remove"/>
+			</layout_panel>
+		</layout_stack>
+	</panel>
+	<layout_stack name="needle_list_stack">
+		<layout_panel name="needle_list_layout">
+			<check_box label="包括フィルタを有効化" name="enable_omnifilter"/>
+			<check_box label="トップバーにコントロールを表示" tool_tip="有効にすると、ショートカットコントロールがメインＵＩの上部バーに表示されます。" name="show_omnifilter_controls"/>
+			<fs_scroll_list name="needle_list">
+				<fs_scroll_list.columns label="有効" name="enabled"/>
+				<fs_scroll_list.columns label="ルール" name="needle_name"/>
+				<!-- example entries for UI editing -->
+				<row>
+					<column name="needle_name">ルールの例１</column>
+				</row>
+				<row>
+					<column name="needle_name">ルールの例２</column>
+				</row>
+			</fs_scroll_list>
+			<button label="追加" name="add_needle"/>
+			<button label="削除" name="remove_needle"/>
+			<button label="上へ" tool_tip="選択したルールを一つ上に移動します。" name="up_needle"/>
+			<button label="下へ" tool_tip="選択したルールを一つ下に移動します。" name="down_needle"/>
+		</layout_panel>
+		<layout_panel name="filter_log_layout">
+			<fs_scroll_list name="filter_log">
+				<fs_scroll_list.columns label="時刻（ＳＬＴ）" name="timestamp"/>
+				<fs_scroll_list.columns label="ルール" name="log_entry"/>
+				<!-- example entries for UI editing -->
+				<row>
+					<column tool_tip="2015年11月24日　00：01：02" name="timestamp">00:01:02</column>
+					<column name="log_entry">ルールの例１</column>
+				</row>
+				<row>
+					<column tool_tip="2015年11月24日　00：01：02" name="timestamp">01:02:03</column>
+					<column name="log_entry">ルールの例２</column>
+				</row>
+			</fs_scroll_list>
+		</layout_panel>
+		<layout_panel name="inport_export_layout">
+			<button label="エクスポート" tool_tip="ノートカードへルールセットをエクスポートします。" name="btn_rule_set_export"/>
+			<button label="インポート" tool_tip="ノートカードからルールセットをインポートします。" name="btn_rule_set_import"/>
+		</layout_panel>
+	</layout_stack>
+	<panel name="panel_details">
+		<text name="needle_name_label" value="ルール名："/>
+		<text name="sender_name_label" value="送信者名："/>
+		<line_editor tool_tip="メッセージの発信元となるアバターまたはオブジェクト名を入力します。" name="sender_name"/>
+		<check_box tool_tip="大文字・小文字の区別" name="sender_case" />
+		<combo_box tool_tip="一致モード" name="sender_match_type">
+			<combo_item name="sender_exact">
+				<column label="全文一致" name="longtext"/>
+			</combo_item>
+			<combo_item name="sender_substring">
+				<column label="部分一致" name="longtext"/>
+			</combo_item>
+			<combo_item name="sender_regex">
+				<column label="正規表現" name="longtext"/>
+			</combo_item>
+		</combo_box>
+		<text name="content_label" value="内容："/>
+		<text_editor tool_tip="メッセージの実際のテキスト" name="content" />
+		<button label="一致ダイアログのボタンのラベル" tool_tip="ダイアログウィンドウのボタンラベルを一致させることができます。ボタンへの自動応答に使用できます。" name="btn_match_dlg_btn_lbl"/>
+		<check_box tool_tip="大文字・小文字の区別" name="content_case" />
+		<combo_box tool_tip="一致モード" name="content_match_type">
+			<combo_item name="content_exact">
+				<column label="全文一致" name="longtext"/>
+			</combo_item>
+			<combo_item name="content_substring">
+				<column label="部分一致" name="longtext"/>
+			</combo_item>
+			<combo_item name="content_regex">
+				<column label="正規表現" name="longtext"/>
+			</combo_item>
+		</combo_box>
+		<text name="region_name_label" value="リージョン名："/>
+		<line_editor tool_tip="ソースのリージョン名を入力します。インベントリのオファーでのみ使用できます。" name="region_name"/>
+		<text name="owner_label" value="所有者のキー："/>
+		<line_editor tool_tip="グループ招待の場合：グループのＵＵＩＤを入力します。オブジェクトによるチャット、オブジェクト所有者の発言、デバッグチャット、またはダイレクトチャットの場合：オブジェクトのＵＵＩＤを入力します。オブジェクトＩＭの場合：オブジェクト所有者のＵＵＩＤを入力します。その他：送信者アバターのＵＵＩＤを入力します。" name="owner_uuid"/>
+		<text name="match_source_label" value="一致するソース："/>
+		<layout_stack name="buttons_stack">
+			<layout_panel name="buttons_group_1">
+				<button label="近くのチャット" tool_tip="近くのアバターの日常的な公開チャットです。" name="type_nearby"/>
+				<button label="ＩＭ" tool_tip="ユーザからのインスタントメッセージです。" name="type_im"/>
+				<button label="グループチャット" tool_tip="ユーザからのグループチャットです。" name="type_group_im"/>
+			</layout_panel>
+			<layout_panel name="buttons_group_2">
+				<button label="通知" tool_tip="グループからの通知です。" name="type_group_notice"/>
+				<button label="招待" tool_tip="グループへからの招待です。" name="type_invite"/>
+				<button label="オブジェクトチャット" tool_tip="オブジェクトからの近くのチャットです。" name="type_object_chat"/>
+			</layout_panel>
+			<layout_panel name="buttons_group_3">
+				<button label="オブジェクトＩＭ" tool_tip="オブジェクトからのインスタントメッセージです。" name="type_object_im"/>
+				<button label="エラー" tool_tip="スクリプトからのデバッグチャットです。" name="type_script_error"/>
+				<button label="ダイアログ" tool_tip="スクリプトのダイアログ内のフィールドを一致させます。" name="type_dialog"/>
+			</layout_panel>
+			<layout_panel name="buttons_group_4">
+				<button label="オファー" tool_tip="インベントリオファー内のフィールドと一致します。" name="type_inventory_offer"/>
+				<button label="フレンドシップ" tool_tip="ユーザからのフレンドのリクエストです。" name="type_friendship"/>
+				<button label="ＴＰルアー" tool_tip="他のユーザからのテレポートのオファーです。" name="type_lure"/>
+			</layout_panel>
+			<layout_panel name="buttons_group_5">
+				<button label="ＴＰリクエスト" tool_tip="テレポートのオファーを送信するよう求めるユーザーからのリクエストです。" name="type_tp_request"/>
+				<button label="ＵＲＬ読み込み" tool_tip="Webサイトにアクセスするためのスクリプト化されたリクエストです。" name="type_load_url"/>
+			</layout_panel>
+		</layout_stack>
+		<text name="chat_replace_label" value="チャットの置き換え："/>
+		<line_editor tool_tip="メッセージの表示方法を変更するために使用できる置換テキスト。" name="chat_replace"/>
+		<text name="button_reply_label" value="返信ボタン："/>
+		<line_editor tool_tip="スクリプトダイアログで「クリック」するボタンのラベル（「無視」を含む）。" name="button_reply"/>
+		<text name="text_box_reply_label" value="返信テキストボックス："/>
+		<text_editor tool_tip="スクリプト化されたダイアログのテキストボックスに手動で入力されたかのような返信テキスト。" name="text_box_reply"/>
+		<text name="reply_delay_label" value="返信までの遅延時間："/>
+		<spinner tool_tip="トリガーされたイベントに対する応答を送信するまでの秒数。デフォルト値は0.0で、遅延はありません。" name="reply_delay_slider"/>
+		<text name="reply_delay_seconds_label" value="秒"/>
+	</panel>
+</floater>

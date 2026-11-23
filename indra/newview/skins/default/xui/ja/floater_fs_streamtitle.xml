@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="再生中：" name="stream_info">
+	<floater.string name="NoStream">
+		何もストリームは再生されていません。
+	</floater.string>
+	<button label="履歴" name="btn_history"/>
+</floater>

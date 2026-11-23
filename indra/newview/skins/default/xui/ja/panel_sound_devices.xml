@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="デバイス設定" name="device_settings_panel">
+	<panel.string name="default_text">
+		デフォルト
+	</panel.string>
+	<string name="name_no_device">
+		デバイスが設定されていません。
+	</string>
+	<string name="name_no_device">デバイスが設定されていません。</string>
+	<string name="device_not_loaded">
+		デバイスが読み込まれていません。
+	</string>
+	<string name="name_default_system_device">
+		デフォルトのシステムデバイス
+	</string>
+	<text name="Input">
+		入力
+	</text>
+	<text name="Output">
+		出力
+	</text>
+	<text name="My volume label">
+		マイク音量：
+	</text>
+	<slider_bar tool_tip="スライダーを使ってマイクレベルを調節します。" name="mic_volume_slider"/>
+	<text name="wait_text">
+		しばらくお待ちください。
+	</text>
+	<text name="disabled_text">
+		無効
+	</text>
+	<button label="ミュート解除" name="unmute_btn"/>
+</panel>

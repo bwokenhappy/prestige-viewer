@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel title="アイテムのプロフィール" name="item properties">
+	<panel.string name="loading_experience">
+		（読み込んでいます…）
+	</panel.string>
+	<panel.string name="unknown">
+		（不明）
+	</panel.string>
+	<panel.string name="unknown_multiple">
+		（不明／複数）
+	</panel.string>
+	<panel.string name="public">
+		（公開）
+	</panel.string>
+	<panel.string name="you_can">
+		あなたができること：
+	</panel.string>
+	<panel.string name="owner_can">
+		所有者ができること：
+	</panel.string>
+	<panel.string name="acquiredDateAMPM">
+		[year,datetime,slt]年[mth,datetime,slt]月[day,datetime,slt]日（[wkday,datetime,slt]）[ampm,datetime,slt][hour12,datetime,slt]：[min,datetime,slt]：[second,datetime,slt]
+	</panel.string>
+	<panel.string name="acquiredDate">
+		[year,datetime,local]年[mth,datetime,local]月[day,datetime,local]日（[wkday,datetime,local]）　[hour,datetime,local]：[min,datetime,local]：[second,datetime,local]
+	</panel.string>
+	<panel.string name="origin_inventory">
+		（インベントリ）
+	</panel.string>
+	<panel.string name="origin_inworld">
+		（インワールド）
+	</panel.string>
+	<layout_stack name="main_stack">
+		<layout_panel name="layout_item_name">
+			<line_editor tool_tip="使用できる名前の文字数は最大６３文字までです。長いプリム名は短縮されます。名前に使用できる文字は ASCII-7（非拡張）に含まれる印字可能な文字のみです（縦線「|」は例外）。" name="LabelItemName"/>
+		</layout_panel>
+		<layout_panel name="layout_item_details">
+			<text name="LabelOwnerTitle">
+				所有者：
+			</text>
+			<text name="LabelOwnerName">
+				テスト文字列　無視して下さい
+			</text>
+			<text name="LabelCreatorTitle">
+				制作者：
+			</text>
+			<text name="LabelCreatorName">
+				テスト文字列　無視して下さい
+			</text>
+			<text name="LabelAcquiredTitle">
+				入手日：
+			</text>
+			<text name="LabelAcquiredDate">
+				00年00月00日（月）　12：00：00
+			</text>
+			<button label="画像…" name="change_thumbnail_btn"/>
+		</layout_panel>
+		<layout_panel name="layout_item_description">
+			<text name="LabelItemDescTitle">
+				説明：
+			</text>
+			<line_editor tool_tip="ビューアの設定で「すべてのオブジェクト上でヒントを表示」が選択されている場合、オブジェクトにマウスのポインタをかざすと、そのオブジェクトの説明がポップアップ表示されます。プリムの説明は最大１２７バイトまでに制限されているため、それよりも長い文字列は切り捨てられます。" name="LabelItemDescSingleLine"/>
+			<text_editor tool_tip="ビューアの設定で「すべてのオブジェクト上でヒントを表示」が選択されている場合、オブジェクトにマウスのポインタをかざすと、そのオブジェクトの説明がポップアップ表示されます。プリムの説明は最大１２７バイトまでに制限されているため、それよりも長い文字列は切り捨てられます。" name="LabelItemDescMultiLine"/>
+			<text name="LabelItemExperienceTitle">
+				体験：
+			</text>
+		</layout_panel>
+		<layout_panel name="layout_item_permissions_sale">
+			<text name="perm_modify">
+				権限
+			</text>
+			<text name="you_perm_modify">
+				あなたができること：
+			</text>
+			<check_box label="修正" name="CheckOwnerModify"/>
+			<check_box label="複製" name="CheckOwnerCopy"/>
+			<check_box label="再販・譲渡" name="CheckOwnerTransfer"/>
+			<text name="AnyoneLabel">
+				全員：
+			</text>
+			<check_box label="複製" tool_tip="オブジェクトの複製は誰でも受け取ることができます。オブジェクトとそのオブジェクトの中身はすべて、複製または譲渡できるように設定する必要があります。" name="CheckEveryoneCopy"/>
+			<text name="GroupLabel">
+				グループ：
+			</text>
+			<check_box label="共有" tool_tip="設定したグループのメンバー全員にこのオブジェクトの修正権限を与えます。譲渡しない限り、役割制限を有効にはできません。" name="CheckShareWithGroup"/>
+			<text name="NextOwnerLabel">
+				次の所有者：
+			</text>
+			<check_box label="編集" tool_tip="次の所有者は、アイテム名などのプロパティを編集したり、サイズ変更ができるようになります。" name="CheckNextOwnerModify"/>
+			<check_box label="複製" tool_tip="次の所有者は、このオブジェクトを無制限に複製できるようになります。複製には制作者の情報が含まれ、複製元のアイテムと違って許可などに関して制約があります。" name="CheckNextOwnerCopy"/>
+			<check_box label="再販・譲渡" tool_tip="次の所有者は、このオブジェクトを他の人に譲渡したり、再販することができるようになります。" name="CheckNextOwnerTransfer"/>
+			<check_box label="販売対象とする" tool_tip="このオブジェクトやオブジェクトの中身を購入できるようにするか、指定価格でインワールドに複製できるようになります。" name="CheckPurchase"/>
+			<combo_box tool_tip="購入者が複製、複製の中身、またはアイテム自体を受け取るのか選択してください。" name="ComboBoxSaleType">
+				<combo_box.item label="複製" name="Copy"/>
+				<combo_box.item label="中身" name="Contents"/>
+				<combo_box.item label="オリジナル" name="Original"/>
+			</combo_box>
+			<spinner label="価格：L$" tool_tip="オブジェクトの価格を指定します。" name="Edit Cost"/>
+		</layout_panel>
+		<layout_panel name="layout_debug_permissions">
+			<text name="BaseMaskDebug">
+				Ｂ：
+			</text>
+			<text name="OwnerMaskDebug">
+				Ｏ：
+			</text>
+			<text name="GroupMaskDebug">
+				Ｇ：
+			</text>
+			<text name="EveryoneMaskDebug">
+				Ｅ：
+			</text>
+			<text name="NextMaskDebug">
+				Ｎ：
+			</text>
+		</layout_panel>
+	</layout_stack>
+</panel>

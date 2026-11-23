@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="場所" name="floater_places">
+	<panel label="場所" name="main_panel"/>
+</floater>

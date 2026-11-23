@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="SLAPPテスト" name="slapp_test">
+	<text name="trusted_txt">
+        信頼されたソース
+	</text>
+</floater>

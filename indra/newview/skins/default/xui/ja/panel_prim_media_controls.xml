@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="MediaControls">
+	<layout_stack name="progress_indicator_area">
+		<layout_panel name="media_progress_indicator">
+			<progress_bar tool_tip="読み込んでいます…" name="media_progress_bar"/>
+		</layout_panel>
+	</layout_stack>
+	<layout_stack name="media_controls">
+		<layout_panel name="back">
+			<button tool_tip="前へ" name="back_btn"/>
+		</layout_panel>
+		<layout_panel name="fwd">
+			<button tool_tip="次へ" name="fwd_btn"/>
+		</layout_panel>
+		<layout_panel name="home">
+			<button tool_tip="ホームページ" name="home_btn"/>
+		</layout_panel>
+		<layout_panel name="media_stop">
+			<button tool_tip="メディアを停止" name="media_stop_btn"/>
+		</layout_panel>
+		<layout_panel name="reload">
+			<button tool_tip="リロード" name="reload_btn"/>
+		</layout_panel>
+		<layout_panel name="stop">
+			<button tool_tip="読み込み停止" name="stop_btn"/>
+		</layout_panel>
+		<layout_panel name="play">
+			<button tool_tip="メディアを再生" name="play_btn"/>
+		</layout_panel>
+		<layout_panel name="pause">
+			<button tool_tip="メディアを一時停止" name="pause_btn"/>
+		</layout_panel>
+		<!-- media URL entry  -->
+		<layout_panel name="media_address">
+			<line_editor tool_tip="メディアのＵＲＬ" name="media_address_url"/>
+			<icon tool_tip="セキュアブラウジング" name="media_secure_lock_flag"/>
+			<layout_stack name="media_address_url_icons">
+				<layout_panel name="media_address_url_icons_wl">
+					<icon tool_tip="ホワイトリスト有効" name="media_whitelist_flag"/>
+				</layout_panel>
+			</layout_stack>
+		</layout_panel>
+		<layout_panel name="media_play_position">
+			<slider_bar tool_tip="ムービーの再生進捗" name="media_play_slider"/>
+		</layout_panel>
+		<layout_panel name="skip_back">
+			<button tool_tip="前のステップ" name="skip_back_btn"/>
+		</layout_panel>
+		<layout_panel name="skip_forward">
+			<button tool_tip="次のステップ" name="skip_forward_btn"/>
+		</layout_panel>
+		<layout_panel name="media_volume">
+			<button tool_tip="ミュート" name="media_mute_button"/>
+			<slider tool_tip="メディアの音量" name="volume_slider"/>
+		</layout_panel>
+		<layout_panel name="zoom_frame">
+			<button tool_tip="メディアにズームイン" name="zoom_frame_btn"/>
+		</layout_panel>
+		<layout_panel name="close">
+			<button tool_tip="ズームバック" name="close_btn"/>
+		</layout_panel>
+		<layout_panel name="new_window">
+			<button tool_tip="ブラウザでＵＲＬを開く" name="new_window_btn"/>
+		</layout_panel>
+	</layout_stack>
+</panel>

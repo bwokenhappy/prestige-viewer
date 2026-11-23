@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<toggleable_menu name="Teleport History Gear Context Menu">
+	<menu_item_call label="すべてのフォルダを拡げる" name="Expand all folders"/>
+	<menu_item_call label="すべてのフォルダを折りたたむ" name="Collapse all folders"/>
+	<!-- FS:Beq [timezone support for teleport history] -->
+	<menu label="タイムゾーンを選択…" name="TPHistoryTimeZone">
+		<menu_item_check label="ＵＴＣ" name="teleport_history_tz_utc"/>
+		<menu_item_check label="ＳＬＴ" name="teleport_history_tz_slt"/>
+		<menu_item_check label="ローカル" name="teleport_history_tz_local"/>
+	</menu>
+	<!-- /FS:Beq [timezone support for teleport history] -->
+	<menu label="表示…" name="Show Menu">
+		<menu_item_check label="位置" name="Show Position"/>
+		<menu_item_check label="日付" name="Show Date"/>
+	</menu>
+	<menu_item_call label="テレポート履歴をクリア" name="Clear Teleport History"/>
+</toggleable_menu>

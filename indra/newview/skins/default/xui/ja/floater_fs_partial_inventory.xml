@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<floater title="インベントリ" name="fs_partial_inventory">
+	<floater.string name="title">
+		インベントリ：[FOLDERNAME]
+	</floater.string>
+	<filter_editor label="インベントリのフォルダでフィルタ" name="flt_search"/>
+</floater>

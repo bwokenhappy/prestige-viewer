@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="edit_jacket_panel">
+	<panel name="avatar_jacket_color_panel">
+		<!-- 字数制限のためUpperを上部と翻訳 -->
+		<texture_picker label="上部の生地" tool_tip="クリックで画像を選択します。" name="Upper Fabric"/>
+		<texture_picker label="下部の生地" tool_tip="クリックで画像を選択します。" name="Lower Fabric"/>
+		<color_swatch label="色／色彩" tool_tip="クリックでカラーピッカーを開きます。" name="Color/Tint"/>
+	</panel>
+	<panel name="accordion_panel">
+		<accordion name="wearable_accordion">
+			<accordion_tab title="ジャケット" name="jacket_main_tab"/>
+		</accordion>
+	</panel>
+</panel>

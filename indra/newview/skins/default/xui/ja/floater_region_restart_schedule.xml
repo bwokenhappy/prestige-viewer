@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater title="リージョン再起動のスケジュール" name="floater_region_restart_schedule">
+	<!-- This block shows Advanced Settings -->
+	<floater.string name="am_string">
+		午前
+	</floater.string>
+	<floater.string name="pm_string">
+		午後
+	</floater.string>
+	<text name="days_general" type="string">
+		下記曜日にリージョンをリスタートする：
+	</text>
+	<check_box tool_tip="日曜日" name="s_chk"/>
+	<check_box tool_tip="月曜日" name="m_chk"/>
+	<check_box tool_tip="火曜日" name="t_chk"/>
+	<check_box tool_tip="水曜日" name="w_chk"/>
+	<check_box tool_tip="木曜日" name="r_chk"/>
+	<check_box tool_tip="金曜日" name="f_chk"/>
+	<check_box tool_tip="土曜日" name="a_chk"/>
+	<text name="su_label">
+		日
+	</text>
+	<text name="mo_label">
+		月
+	</text>
+	<text name="tu_label">
+		火
+	</text>
+	<text name="we_label">
+		水
+	</text>
+	<text name="th_label">
+		木
+	</text>
+	<text name="fr_label">
+		金
+	</text>
+	<text name="sa_label">
+		土
+	</text>
+	<text name="at_label">時刻</text>
+	<text name="separator_label">
+		：
+	</text>
+	<button label="午前" name="am_pm_btn"/>
+	<button label="保存" name="save_btn"/>
+	<button label="キャンセル" name="cancel_btn"/>
+</floater>

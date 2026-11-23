@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater
+ positioning="centered"
+ can_minimize="true"
+ can_close="true"
+ can_resize="true"
+ min_height="540"
+ min_width="530"
+ height="875"
+ layout="topleft"
+ name="Destinations"
+ single_instance="true"
+ help_topic="destinations"
+ save_rect="true"
+ save_visibility="true"
+ title="Destinations"
+ width="1080">
+    <web_browser
+      top="0"
+      height="875"
+      width="1080"
+      follows="all"
+      name="destination_guide_contents"
+      trusted_content="true"/>
+</floater>

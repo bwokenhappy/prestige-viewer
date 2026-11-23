@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel label="水面" name="panel_fs_settings_water">
+	<panel label="フォグ" name="P_Wave_Fog">
+		<text tool_tip="水のフォグの色－水のボリュームの色合いを変更し、基本的に水自体の色を定義します。水にフォグがない場合、水は透明で無色に見えます。" name="water_fog_label">
+			水のフォグの色
+		</text>
+		<text tool_tip="法線（ノーマル）マップ－反射と屈折を決定するために使用される画像。この設定には任意のテクスチャを使用できますが、真の法線マップが最適です。蛇皮、タイル、またはその他の法線マップを試して、奇抜な効果を出しましょう。" name="normal_map_label">
+			法線マップ
+		</text>
+	</panel>
+	<panel label="フォグ" name="P_Wave_Fog_2">
+		<text name="density_exponent_label">
+			密度指数：
+		</text>
+		<text name="underwater_modifier_label">
+			水中のモディファイア：
+		</text>
+		<text name="FresnelScaleText">
+			フレネル係数：
+		</text>
+		<text name="FresnelOffsetText">
+			フレネルオフセット：
+		</text>
+	</panel>
+	<panel label="波" name="P_Water_Wave">
+		<text name="large_wave_speed_label">
+			大波の速度
+		</text>
+		<text name="small_wave_speed_label">
+			小波の速度
+		</text>
+		<text name="reflection_wavelet_scale_label">
+			反射波形スケール
+		</text>
+		<slider label="Ｘ：" name="water_normal_scale_x"/>
+		<slider label="Ｙ：" name="water_normal_scale_y"/>
+		<slider label="Ｚ：" name="water_normal_scale_z"/>
+	</panel>
+	<panel label="反射" name="P_Water_Reflection">
+		<text name="refraction_scale_above_label">
+			屈折スケール（上）：
+		</text>
+		<text name="refraction_scale_below_label">
+			屈折スケール（下）：
+		</text>
+		<text name="blur_multiplier_label">
+			ブラー乗数：
+		</text>
+	</panel>
+</panel>

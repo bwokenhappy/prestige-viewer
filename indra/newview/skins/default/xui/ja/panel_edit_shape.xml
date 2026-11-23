@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="edit_shape_panel">
+	<string name="meters">
+		メートル
+	</string>
+	<string name="feet">
+		フィート
+	</string>
+	<string name="height">
+		高さ：
+	</string>
+	<panel label="シャツ" name="accordion_panel">
+		<accordion name="wearable_accordion">
+			<accordion_tab title="身体" name="shape_body_tab"/>
+			<accordion_tab title="頭" name="shape_head_tab"/>
+			<accordion_tab title="目" name="shape_eyes_tab"/>
+			<accordion_tab title="耳" name="shape_ears_tab"/>
+			<accordion_tab title="鼻" name="shape_nose_tab"/>
+			<accordion_tab title="口" name="shape_mouth_tab"/>
+			<accordion_tab title="顎" name="shape_chin_tab"/>
+			<accordion_tab title="胴体" name="shape_torso_tab"/>
+			<accordion_tab title="脚" name="shape_legs_tab"/>
+		</accordion>
+	</panel>
+</panel>

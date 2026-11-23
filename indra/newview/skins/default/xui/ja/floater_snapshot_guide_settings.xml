@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="フレームガイド設定" name="snapshot_guide_settings">
+	<text name="color_and_appearance_label">
+		ガイドの色と外観
+	</text>
+	<spinner label="厚さ (px)" name="guide_thickness"/>
+	<slider label="不透明度" name="guide_opacity"/>
+	<text name="style_label">
+		ガイドスタイル
+	</text>
+	<combo_box tool_tip="フレームガイドを選択してください。" name="guide_style_combo">
+		<combo_box.item label="三分割法" name="rule_of_thirds"/>
+		<combo_box.item label="黄金比（左上）" name="golden_ratio_top_left"/>
+		<combo_box.item label="黄金比（右上）" name="golden_ratio_top_right"/>
+		<combo_box.item label="黄金比（左下）" name="golden_ratio_bottom_left"/>
+		<combo_box.item label="黄金比（右下）" name="golden_ratio_bottom_right"/>
+		<combo_box.item label="対角線" name="diagonal"/>
+	</combo_box>
+</floater>

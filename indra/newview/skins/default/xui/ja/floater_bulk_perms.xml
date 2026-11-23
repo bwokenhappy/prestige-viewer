@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="コンテンツ権限を調整" name="floaterbulkperms">
+	<floater.string name="nothing_to_modify_text">
+		選択したものに編集できないものが含まれています。
+	</floater.string>
+	<floater.string name="status_text">
+		[NAME]に権限を設定中です。
+	</floater.string>
+	<floater.string name="start_text">
+		権限変更リクエストをしています。
+	</floater.string>
+	<floater.string name="done_text">
+		権限変更リクエストが完了しました。
+	</floater.string>
+	<icon tool_tip="アニメーション" name="icon_animation"/>
+	<icon tool_tip="身体部位" name="icon_bodypart"/>
+	<icon tool_tip="衣装" name="icon_clothing"/>
+	<icon tool_tip="ジェスチャー" name="icon_gesture"/>
+	<icon tool_tip="ノートカード" name="icon_notecard"/>
+	<icon tool_tip="オブジェクト" name="icon_object"/>
+	<icon tool_tip="スクリプト" name="icon_script"/>
+	<icon tool_tip="サウンド" name="icon_sound"/>
+	<icon tool_tip="テクスチャ" name="icon_texture"/>
+	<icon tool_tip="自然環境の設定" name="icon_setting"/>
+	<icon tool_tip="マテリアル" name="icon_materials"/>
+	<button label="すべてに✔" name="check_all"/>
+	<button label="クリア" label_selected="なし" name="check_none"/>
+	<text name="newperms">
+		コンテンツ権限を以下に調整
+	</text>
+	<text name="GroupLabel">
+		グループ：
+	</text>
+	<check_box label="共有" tool_tip="設定したグループのメンバー全員にこのオブジェクトの修正権限を与えます。譲渡しない限り、役割制限を有効にはできません。" name="share_with_group"/>
+	<text name="AnyoneLabel">
+		全員：
+	</text>
+	<check_box label="複製" tool_tip="オブジェクトの複製は誰でも受け取ることができます。オブジェクトとそのオブジェクトの中身はすべて、複製または譲渡できるように設定する必要があります" name="everyone_copy"/>
+	<text name="NextOwnerLabel">
+		次の所有者：
+	</text>
+	<check_box label="修正" tool_tip="次の所有者は、アイテム名などのプロパティ内容を編集したり、このオブジェクトのサイズを変更することができます。" name="next_owner_modify"/>
+	<check_box label="複製" tool_tip="次の所有者は、このオブジェクトを無制限に複製できます。複製には制作者の情報が含まれ、複製元のアイテムと違って許可などに関し制限があります。" name="next_owner_copy"/>
+	<check_box label="再販・譲渡" tool_tip="次の所有者はこのオブジェクトを他人にあげたり再販できます。" name="next_owner_transfer"/>
+	<button label="ＯＫ" name="ok"/>
+	<button label="適用" name="apply"/>
+	<button label="キャンセル" name="close"/>
+</floater>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="[OBJECT_NAME]" name="gltf asset editor">
+	<floater.string name="floater_title" value="ＧＬＴＦシーンエディタ"/>
+	<floater.string name="scene_title" value="シーン"/>
+	<floater.string name="node_title" value="ノード"/>
+	<floater.string name="mesh_title" value="メッシュ"/>
+	<floater.string name="skin_title" value="スキン"/>
+	<layout_stack name="main_layout">
+		<layout_panel name="transforms_panel">
+			<menu_button tool_tip="ペースト時のオプション" name="clipboard_pos_btn"/>
+			<text tool_tip="位置（メートル）" name="label position">
+				位置（ｍ）
+			</text>
+			<spinner label="Ｘ" name="Pos X"/>
+			<spinner label="Ｙ" name="Pos Y"/>
+			<spinner label="Ｚ" name="Pos Z"/>
+			<menu_button tool_tip="ペースト時のオプション" name="clipboard_size_btn"/>
+			<text tool_tip="サイズ（メートル）" name="label size">
+				サイズ（ｍ）
+			</text>
+			<spinner label="Ｘ" name="Scale X"/>
+			<spinner label="Ｙ" name="Scale Y"/>
+			<spinner label="Ｚ" name="Scale Z"/>
+			<menu_button tool_tip="ペースト時のオプション" name="clipboard_rot_btn"/>
+			<text tool_tip="回転（度）" name="label rotation">
+				回転（°）
+			</text>
+			<spinner label="Ｘ" name="Rot X"/>
+			<spinner label="Ｙ" name="Rot Y"/>
+			<spinner label="Ｚ" name="Rot Z"/>
+		</layout_panel>
+	</layout_stack>
+</floater>

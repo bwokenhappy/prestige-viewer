@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="edit_tattoo_panel">
+	<scroll_container name="avatar_tattoo_scroll">
+		<panel name="avatar_tattoo_color_panel">
+			<texture_picker label="頭部のタトゥ" tool_tip="クリックで画像を選択します。" name="Head Tattoo"/>
+			<texture_picker label="上半身のタトゥ" tool_tip="クリックで画像を選択します。" name="Upper Tattoo"/>
+			<texture_picker label="下半身のタトゥ" tool_tip="クリックで画像を選択します。" name="Lower Tattoo"/>
+			<color_swatch label="色／色彩" tool_tip="クリックでカラーピッカーを開きます。" name="Color/Tint"/>
+		</panel>
+	</scroll_container>
+</panel>

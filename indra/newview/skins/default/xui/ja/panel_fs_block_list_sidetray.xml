@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="block_list_panel">
+	<string name="no_blocked" value="ブロックされた住民やオブジェクトはありません。"/>
+	<string name="no_filtered_blocked" value="検索条件に一致するブロックされた住民やオブジェクトはありません。"/>
+	<string name="loading_blocked" value="ブロックされた住民とオブジェクトを読み込んでいます…"/>
+	<string name="failed_blocked" value="ブロックリストは現在使用できません。"/>
+	<panel label="ボトムパネル" name="blocked_buttons_panel">
+		<filter_editor label="フィルタ" name="blocked_filter_input"/>
+		<menu_button tool_tip="選択した人またはオブジェクトに対する処理です。" name="blocked_gear_btn"/>
+		<menu_button tool_tip="並べ替えのオプションを指定します。" name="view_btn"/>
+		<menu_button tool_tip="ブロックする住人またはオブジェクトを選択します。" name="plus_btn"/>
+		<button tool_tip="住人やオブジェクトをブロックリストから除外します。" name="unblock_btn"/>
+	</panel>
+	<text name="block_limit">
+		ブロック件数：全[LIMIT]件中[COUNT]件
+	</text>
+	<fs_scroll_list name="block_list">
+		<fs_scroll_list.columns label="名前" name="item_name"/>
+		<fs_scroll_list.columns label="種類" name="item_type"/>
+	</fs_scroll_list>
+</panel>

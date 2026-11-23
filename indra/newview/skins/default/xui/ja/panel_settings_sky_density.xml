@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="空中の光の散乱密度" name="panel_settings_sky_density">
+	<layout_stack name="main_ls">
+		<layout_panel name="lp_1">
+			<slider label="レイリー散乱の指数：" name="rayleigh_exponential"/>
+			<slider label="レイリー散乱の指数係数：" name="rayleigh_exponential_scale"/>
+			<slider label="レイリー散乱の線形項：" name="rayleigh_linear"/>
+			<slider label="レイリー散乱の定数：" name="rayleigh_constant"/>
+			<slider label="レイリー散乱の最大高度：" name="rayleigh_max_altitude"/>
+		</layout_panel>
+		<layout_panel name="lp_2">
+			<slider label="ミー散乱の指数：" name="mie_exponential"/>
+			<slider label="ミー散乱の指数係数：" name="mie_exponential_scale"/>
+			<slider label="ミー散乱の線形項：" name="mie_linear"/>
+			<slider label="ミー散乱の定数" name="mie_constant"/>
+			<slider label="ミー散乱の異方性因子：" name="mie_aniso_factor"/>
+			<slider label="ミー散乱の最高高度：" name="mie_max_altitude"/>
+		</layout_panel>
+		<layout_panel name="lp_3">
+			<slider label="光の吸収の指数：" name="absorption_exponential"/>
+			<slider label="光の吸収の指数係数：" name="absorption_exponential_scale"/>
+			<slider label="光の吸収の線形項：" name="absorption_linear"/>
+			<slider label="光の吸収の定数：" name="absorption_constant"/>
+			<slider label="光の吸収の最大高度：" name="absorption_max_altitude"/>
+		</layout_panel>
+	</layout_stack>
+</panel>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="カメラツール" name="phototools_camera_floater">
+	<floater.string name="rotate_tooltip">
+		対象に対してカメラを回転させます。
+	</floater.string>
+	<floater.string name="zoom_tooltip">
+		対象にズームします。
+	</floater.string>
+	<floater.string name="move_tooltip">
+		カメラを上下左右に移動します。
+	</floater.string>
+	<floater.string name="free_mode_title">
+		オブジェクトを見る。
+	</floater.string>
+	<string name="inactive_combo_text">
+		プリセットを使用
+	</string>
+	<tab_container name="tabs">
+		<panel label="カメラ制御１" name="P_Cam_Controls_1">
+			<panel name="cameracontrolspanel">
+				<panel name="controls1">
+					<panel name="preset_views_list">
+						<panel_camera_item name="front_view">
+							<panel_camera_item.text name="front_view_text">
+								前方ビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+						<panel_camera_item name="group_view">
+							<panel_camera_item.text name="side_view_text">
+								サイドビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+						<panel_camera_item name="rear_view">
+							<panel_camera_item.text name="rear_view_text">
+								後方ビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+						<panel_camera_item name="tpp_view">
+							<panel_camera_item.text name="tpp_view_text">
+								三人称ビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+						<combo_box name="preset_combo">
+							<combo_box.item label="プリセットを使用" name="Use preset"/>
+						</combo_box>
+						<button tool_tip="カメラのプリセット" name="gear_btn"/>
+						<button label="カメラ位置…" name="camera_position_btn"/>
+					</panel>
+					<panel name="camera_modes_list">
+						<panel_camera_item name="object_view">
+							<panel_camera_item.text name="object_view_text">
+								客観ビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+						<panel_camera_item name="mouselook_view">
+							<panel_camera_item.text name="mouselook_view_text">
+								マウスルックビュー
+							</panel_camera_item.text>
+						</panel_camera_item>
+					</panel>
+					<!--TODO: replace + - images -->
+					<panel name="zoom">
+						<joystick_rotate tool_tip="対象に対してカメラを回転させます" name="cam_rotate_stick"/>
+						<button tool_tip="カメラを左に傾けます。" name="roll_left"/>
+						<button tool_tip="カメラを右に傾けます。" name="roll_right"/>
+						<slider_bar tool_tip="カメラを単に近づけたり遠ざけたりします。※注意！　この機能はＲＬのカメラで使われている「ズーム」の動きとは異なります。この機能は画角（FOV1）に影響を与えません。ＲＬと同じ「ズーム」を行いたい場合は「視野角」スライダーをご利用下さい。" name="zoom_slider"/>
+						<joystick_track tool_tip="カメラを上下左右に移動します" name="cam_track_stick"/>
+					</panel>
+					<!-- <FS:Beq> FIRE-34509 Add Camera roll -->
+					<!-- </FS:Beq> -->
+				</panel>
+				<panel name="buttons">
+					<button tool_tip="プリセットビューにします。" name="presets_btn"/>
+					<button tool_tip="軌道、ズーム、パン" name="pan_btn"/>
+					<button tool_tip="カメラモードを切り替えます。" name="avatarview_btn"/>
+					<button tool_tip="現在のカメラビューを保存します。" name="store_camera_view_btn"/>
+					<button tool_tip="保存したカメラビューを読み込みます。" name="load_camera_view_btn"/>
+				</panel>
+			</panel>
+			<panel name="P_Cam_Mov_Settings">
+				<text name="T_Cam_Mov_Settings">
+					カメラの動きを設定
+				</text>
+			</panel>
+			<panel name="P_Zoom">
+				<text tool_tip="ＲＬで言う「ズーム」をするのがこの機能です。これを使うとビューアの画角（ＦｏＶ）が変わります。「CtＲＬ + 0」または「CtＲＬ + 8」を押しても同様の動きをします。※注意！　フライカム（3D Space Navigator）を有効にしているとこの機能は使えません。" name="T_Zoom">
+					視野角
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Camera_Angle"/>
+				<text tool_tip="カメラがズームイン／ズームアウトするスピードを調整します。値が大きいほどゆっくりと、スムーズにズームします。" name="T_Zoom_Speed">
+					ズームスピード
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Zoom_Time"/>
+				<text tool_tip="アバターの動きに対するカメラの動きの遅れを調整します。（「0」でアバターの動きに左右されず、「30」でアバターと同じスピードで動きます。）" name="T_Camera_Lag">
+					カメラの遅延
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Camera_Lag"/>
+				<text tool_tip="デフォルトのカメラ位置からどれだけカメラを遠くに移動させるかのオフセット値です。" name="T_Camera_Offset">
+					カメラのオフセット位置
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Camera_Offset"/>
+				<text tool_tip="カメラがどれだけスムーズに動き始め、停止するかを調整します。値が大きいほどスムーズに（従って若干遅く）動きます。" name="T_Camera_Smoothing">
+					カメラのスムージング
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Camera_Smoothing"/>
+			</panel>
+		</panel>
+		<panel label="カメラ制御２" name="P_Cam_Controls_2">
+			<panel name="P_Mouse_Movement">
+				<text name="T_Mouse_Movement">
+					マウスの動きを設定
+				</text>
+			</panel>
+			<panel name="P_Mouse_Movement_Settings">
+				<text tool_tip="マウスルック・モードの時のマウスの反応を調整します。" name="T_Mouse_Sensitivity">
+					マウス感度
+				</text>
+				<button label="Ｄ" tool_tip="デフォルト値に戻します。" name="Reset_Mouse_Sensitivity"/>
+				<check_box label="アバターをマウスルックでも表示" tool_tip="マウスルック時にアバターと装着しているものを首から下だけ表示します。デフォルトは「OFF」です。" name="first_person_avatar_visible"/>
+				<check_box label="マウスルックの動きをスムーズにする" tool_tip="マウスルックの時にマウスの動きをスムーズにします。" name="MouseSmooth"/>
+			</panel>
+			<panel name="P_Additional_Camera_Options">
+				<text name="T_Additional_Camera_Options">
+					その他のカメラオプション
+				</text>
+			</panel>
+			<panel name="P_Add_Cam_Opt_Settings">
+				<check_box label="アバタークリックでカメラ位置をリセットしない" tool_tip="通常は、自分自身のアバターをクリックするとカメラ位置がリセットされます。このオプションはこの動作を回避します。" name="clickonavatarkeepscamera"/>
+				<check_box label="テレポート後にカメラ位置をリセット" tool_tip="通常は、同一SIM内では、テレポートした後にカメラ位置はリセットされませんが、このオプションはリセットを有効にします。" name="FSResetCameraOnTP"/>
+				<check_box label="カメラが制限なく動くのを許可" tool_tip="通常はSIMによってオブジェクトの外側にしかカメラを当てられませんが、この制限を無視してオブジェクトの中に入ることができるようになります。再起動が必要です！" name="ignorecameraconstraints"/>
+				<check_box label="アバターが動いたらカメラ位置をリセット" tool_tip="自分自身のアバターを動かしたらカメラ位置をデフォルトの位置に戻します。" name="resetcameraonmovement"/>
+			</panel>
+		</panel>
+		<panel label="３Ｄマウス" name="P_3D_Mouse">
+			<panel name="P_3D_Mouse_Settings1">
+				<slider label="左右の動き" tool_tip="左右に動かす時の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale1b"/>
+				<slider label="上下の動き" tool_tip="上下に動かす時の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale2b"/>
+				<slider label="遠近の動き" tool_tip="近寄ったり遠ざかったりする時の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale0b"/>
+				<slider label="傾き" tool_tip="上下方向の傾き（ピッチング）の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale4"/>
+				<slider label="偏揺" tool_tip="回転方向の傾き（ヨーイング）の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale5"/>
+				<slider label="傾斜" tool_tip="前後の軸に対しての回転（ローリング）の感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale3"/>
+				<slider label="ズームスピード" tool_tip="ズームスピードの感度を調整します。正確に動かすのが難しい時は、この値を下げてみて下さい。" name="FlycamAxisScale6"/>
+				<slider label="フェザー" tool_tip="このスライダーを右端まで持って行くと、カメラはしっかりと安定し、ジョイスティックのままに動くようになります。反対に、左端まで持って行くと、動きが滑らかになり、カメラがとても重いように感じられるでしょう。近接撮影には効果的でしょうが、きっちりとしたフレーミングには向きません。" name="FlycamFeathering"/>
+			</panel>
+			<panel name="P_3D_Mouse_Settings2">
+				<spinner label="ズーム軸のマッピング" tool_tip="マウスのどの軸にズーム機能を割り当てるかを調整します。" name="JoystickAxis6"/>
+				<check_box label="３Ｄマウスを有効にする" tool_tip="ここにチェックを入れることで３Ｄマウスが動作します。" name="enable_joystick"/>
+				<check_box label="ズームコントロールを有効にする（ヒント参照！）" tool_tip="ズームコントロールの機能を利用するには、「ズーム軸のマッピング」の値を「4」以上に設定する必要があります。" name="CB_Zoom_Control"/>
+				<check_box label="自動水平（カメラの横揺れを回避）" name="CB_Auto_Leveling"/>
+				<check_box label="アバター移動に３Ｄマウスを利用" name="CB_3D_Mouse_Avatar"/>
+				<check_box label="オブジェクト移動（ビルド）に３Ｄマウスを使用" tool_tip="オブジェクトを制作したり修正したりする時にも３Ｄマウスを使用します。" name="CB_3D_Mouse_Build"/>
+			</panel>
+		</panel>
+	</tab_container>
+</floater>

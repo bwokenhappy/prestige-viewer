@@ -1,0 +1,621 @@
+/**
+ * @file lldiskcache.cpp
+ * @brief The disk cache implementation.
+ *
+ * Note: Rather than keep the top level function comments up
+ * to date in both the source and header files, I elected to
+ * only have explicit comments about each function and variable
+ * in the header - look there for details. The same is true for
+ * description of how this code is supposed to work.
+ *
+ * $LicenseInfo:firstyear=2009&license=viewerlgpl$
+ * Second Life Viewer Source Code
+ * Copyright (C) 2020, Linden Research, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
+ * $/LicenseInfo$
+ */
+
+#include "linden_common.h"
+#include "llapp.h"
+#include "llassettype.h"
+#include "lldir.h"
+#include "llstring.h"
+#include <chrono>
+#include <filesystem>
+
+#include "lldiskcache.h"
+
+ /**
+  * The prefix inserted at the start of a cache file filename to
+  * help identify it as a cache file. It's probably not required
+  * (just the presence in the cache folder is enough) but I am
+  * paranoid about the cache folder being set to something bad
+  * like the users' OS system dir by mistake or maliciously and
+  * this will help to offset any damage if that happens.
+  */
+static const std::string CACHE_FILENAME_PREFIX("sl_cache");
+
+std::string LLDiskCache::sCacheDir;
+
+// <FS:Ansariel> Optimize asset simple disk cache
+static const char* subdirs = "0123456789abcdef";
+
+LLDiskCache::LLDiskCache(const std::string& cache_dir,
+                         const uintmax_t max_size_bytes,
+                         const bool enable_cache_debug_info
+// <FS:Beq> Add High/Low water mark support
+                         ,const F32 highwater_mark_percent
+                         ,const F32 lowwater_mark_percent
+// </FS:Beq>
+                         ) :
+    mMaxSizeBytes(max_size_bytes),
+// <FS:Beq> Add High/Low water mark support
+    mHighPercent(llclamp(highwater_mark_percent, 0.f, 100.f)),
+    mLowPercent(llclamp(lowwater_mark_percent, 0.f, mHighPercent)),
+// </FS:Beq>
+    mEnableCacheDebugInfo(enable_cache_debug_info)
+{
+    sCacheDir = cache_dir;
+    LLFile::mkdir(cache_dir);
+
+    // <FS:Ansariel> Optimize asset simple disk cache
+    for (S32 i = 0; i < 16; i++)
+    {
+        std::string dirname = cache_dir + gDirUtilp->getDirDelimiter() + subdirs[i];
+        LLFile::mkdir(dirname);
+    }
+    // </FS:Ansariel>
+    // <FS:Beq> add static assets into the new cache after clear.
+    // Only missing entries are copied on init, skiplist is setup
+    // For everything we populate FS specific assets to allow future updates
+    prepopulateCacheWithStatic();
+    // </FS:Beq>
+}
+
+// WARNING: purge() is called by LLPurgeDiskCacheThread. As such it must
+// NOT touch any LLDiskCache data without introducing and locking a mutex!
+
+// Interaction through the filesystem itself should be safe. Let's say thread
+// A is accessing the cache file for reading/writing and thread B is trimming
+// the cache. Let's also assume using llifstream to open a file and
+// std::filesystem::remove are not atomic (which will be pretty much the
+// case).
+
+// Now, A is trying to open the file using llifstream ctor. It does some
+// checks if the file exists and whatever else it might be doing, but has not
+// issued the call to the OS to actually open the file yet. Now B tries to
+// delete the file: If the file has been already marked as in use by the OS,
+// deleting the file will fail and B will continue with the next file. A can
+// safely continue opening the file. If the file has not yet been marked as in
+// use, B will delete the file. Now A actually wants to open it, operation
+// will fail, subsequent check via llifstream.is_open will fail, asset will
+// have to be re-requested. (Assuming here the viewer will actually handle
+// this situation properly, that can also happen if there is a file containing
+// garbage.)
+
+// Other situation: B is trimming the cache and A wants to read a file that is
+// about to get deleted. std::filesystem::remove does whatever it is doing
+// before actually deleting the file. If A opens the file before the file is
+// actually gone, the OS call from B to delete the file will fail since the OS
+// will prevent this. B continues with the next file. If the file is already
+// gone before A finally gets to open it, this operation will fail and the
+// asset will have to be re-requested.
+void LLDiskCache::purge()
+{
+    LL_PROFILE_ZONE_SCOPED;
+
+    if (mEnableCacheDebugInfo)
+    {
+        LL_INFOS() << "Total dir size before purge is " << dirFileSize(sCacheDir) << LL_ENDL;
+    }
+
+    std::error_code ec;
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    typedef std::pair<std::filesystem::file_time_type, std::pair<uintmax_t, std::string>> file_info_t;
+    std::vector<file_info_t> file_info;
+
+    uintmax_t file_size_total = 0; // <FS:Beq/> try to make simple cache less naive.
+    std::filesystem::path cache_path = fsyspath(sCacheDir);
+    if (std::filesystem::is_directory(cache_path, ec) && !ec)
+    {
+        // <FS:Ansariel> Optimize asset simple disk cache
+        //std::filesystem::directory_iterator iter(cache_path, ec);
+        //while (iter != std::filesystem::directory_iterator() && !ec)
+        std::filesystem::recursive_directory_iterator iter(cache_path, ec);
+        while (iter != std::filesystem::recursive_directory_iterator() && !ec)
+        // </FS:Ansariel>
+        {
+            if(!LLApp::isRunning())
+            {
+                return;
+            }
+            if (std::filesystem::is_regular_file(*iter, ec) && !ec)
+            {
+                if (fsyspath((*iter).path()).string().find(CACHE_FILENAME_PREFIX) != std::string::npos)
+                {
+                    uintmax_t file_size = std::filesystem::file_size(*iter, ec);
+                    if (ec)
+                    {
+                        continue;
+                    }
+                    const std::string file_path = fsyspath((*iter).path()).string();
+                    const std::filesystem::file_time_type file_time = std::filesystem::last_write_time(*iter, ec);
+                    if (ec)
+                    {
+                        continue;
+                    }
+                    file_size_total += file_size; // <FS:Beq/> try to make simple cache less naive.
+
+                    file_info.push_back(file_info_t(file_time, { file_size, file_path }));
+                }
+            }
+            iter.increment(ec);
+        }
+    }
+
+    // <FS:Beq> add high water/low water thresholds to reduce the churn in the cache.
+    LL_DEBUGS("LLDiskCache") << "Cache is " << (int)(((F32)file_size_total)/mMaxSizeBytes*100.0) << "% full" << LL_ENDL;
+    if( file_size_total < mMaxSizeBytes * (mHighPercent/100) )
+    {
+        // Nothing to do here 
+        LL_DEBUGS("LLDiskCache") << "Not exceded high water - do nothing" << LL_ENDL;
+        return;
+    }
+    // If we reach here we are above the trigger level so we must purge until we've removed enough to take us down to the low water mark.
+    // </FS:Beq>
+    std::sort(file_info.begin(), file_info.end(), [](file_info_t& x, file_info_t& y)
+    {
+        return x.first < y.first; // <FS:Beq/> sort oldest to newest, to we can remove the oldest files first.
+    });
+
+
+    // <FS:Beq> Add high/low water thresholds to reduce cache churn.
+    // LL_INFOS() << "Purging cache to a maximum of " << mMaxSizeBytes << " bytes" << LL_ENDL;
+    auto target_size = (uintmax_t)(mMaxSizeBytes * (mLowPercent/100));
+    LL_INFOS() << "Purging cache to a maximum of " << target_size << " bytes" << LL_ENDL;
+    // </FS:Beq>
+
+    // <FS:Beq> Extra accounting to track retained static assets and filesystem outcomes.
+    // std::vector<bool> file_removed;
+    enum class purge_action { delete_file, keep_file, skip_file, failed_file, missing_file };
+    std::map<std::string, purge_action> file_removed;
+    auto keep = file_info.size();
+    std::size_t del = 0, skip = 0, failed = 0, missing = 0;
+    uintmax_t deleted_size_total = 0;
+    uintmax_t missing_size_total = 0;
+    uintmax_t remaining_size = file_size_total;
+    // </FS:Beq>
+
+    // <FS:Beq> Track actual removals while retaining protected and failed entries.
+    // Upstream purge loop:
+    // if (mEnableCacheDebugInfo)
+    // {
+    //     file_removed.reserve(file_info.size());
+    // }
+    // uintmax_t file_size_total = 0;
+    // for (file_info_t& entry : file_info)
+    // {
+    //     if (!LLApp::isRunning())
+    //     {
+    //         return;
+    //     }
+    //     file_size_total += entry.second.first;
+    //
+    //     bool should_remove = file_size_total > mMaxSizeBytes;
+    //     if (mEnableCacheDebugInfo)
+    //     {
+    //         file_removed.push_back(should_remove);
+    //     }
+    //     if (should_remove)
+    //     {
+    //         std::filesystem::remove(fsyspath(entry.second.second), ec);
+    //         if (ec)
+    //         {
+    //             LL_WARNS() << "Failed to delete cache file " << entry.second.second << ": " << ec.message() << LL_ENDL;
+    //         }
+    //     }
+    // }
+
+    for (const file_info_t& entry : file_info)
+    {
+        if (!LLApp::isRunning())
+        {
+            return;
+        }
+        if (remaining_size <= target_size)
+        {
+            break;
+        }
+
+        const auto& filename = entry.second.second;
+        const fsyspath native_path(filename);
+        auto uuid_as_string = gDirUtilp->getBaseFileName(filename, true);
+        uuid_as_string = uuid_as_string.substr(CACHE_FILENAME_PREFIX.size() + 1, 36);
+        purge_action action;
+        if (std::find(mSkipList.begin(), mSkipList.end(), uuid_as_string) != mSkipList.end())
+        {
+            action = purge_action::skip_file;
+            ++skip;
+            std::error_code timestamp_error;
+            std::filesystem::last_write_time(native_path,
+                std::filesystem::file_time_type::clock::now(), timestamp_error);
+            if (timestamp_error)
+            {
+                LL_WARNS() << "Failed to refresh protected cache file " << filename
+                           << ": " << timestamp_error.message() << LL_ENDL;
+            }
+        }
+        else
+        {
+            std::error_code remove_error;
+            const bool removed = std::filesystem::remove(native_path, remove_error);
+            if (remove_error)
+            {
+                action = purge_action::failed_file;
+                ++failed;
+                LL_WARNS() << "Failed to delete cache file " << filename
+                           << ": " << remove_error.message() << LL_ENDL;
+            }
+            else
+            {
+                // A concurrent purge/removal may already have removed this
+                // entry. Account for its absence without claiming we deleted it.
+                remaining_size -= std::min(remaining_size, entry.second.first);
+                if (removed)
+                {
+                    action = purge_action::delete_file;
+                    ++del;
+                    deleted_size_total += entry.second.first;
+                }
+                else
+                {
+                    action = purge_action::missing_file;
+                    ++missing;
+                    missing_size_total += entry.second.first;
+                }
+            }
+        }
+        --keep;
+        if (mEnableCacheDebugInfo)
+        {
+            file_removed.emplace(filename, action);
+        }
+    }
+    // </FS:Beq>
+
+    // <FS:Beq> Extend purge timing and reporting without changing outcome counters.
+    // Upstream debug logging and summary:
+    // if (mEnableCacheDebugInfo)
+    // {
+    //     auto end_time = std::chrono::high_resolution_clock::now();
+    //     auto execute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    //
+    //     for (size_t i = 0; i < file_info.size(); ++i)
+    //     {
+    //         if (!LLApp::isRunning())
+    //         {
+    //             return;
+    //         }
+    //         const file_info_t& entry = file_info[i];
+    //         const bool removed = file_removed[i];
+    //         const std::string action = removed ? "DELETE:" : "KEEP:";
+    //
+    //         std::ostringstream line;
+    //
+    //         line << action << "  ";
+    //         line << S64(entry.first.time_since_epoch().count()) << "  ";
+    //         line << entry.second.first << "  ";
+    //         line << entry.second.second;
+    //         line << " (" << file_size_total << "/" << mMaxSizeBytes << ")";
+    //         LL_INFOS() << line.str() << LL_ENDL;
+    //     }
+    //
+    //     LL_INFOS() << "Total dir size after purge is " << dirFileSize(sCacheDir) << LL_ENDL;
+    //     LL_INFOS() << "Cache purge took " << execute_time << " ms to execute for " << file_info.size() << " files" << LL_ENDL;
+    // }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto execute_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+    if (mEnableCacheDebugInfo)
+    {
+        uintmax_t detail_remaining = file_size_total;
+        for (const file_info_t& entry : file_info)
+        {
+            if (!LLApp::isRunning())
+            {
+                return;
+            }
+            const auto found = file_removed.find(entry.second.second);
+            const auto action = found == file_removed.end() ? purge_action::keep_file : found->second;
+            const char* label = "KEEP";
+            switch (action)
+            {
+                case purge_action::delete_file: label = "DELETE"; break;
+                case purge_action::skip_file: label = "STATIC"; break;
+                case purge_action::failed_file: label = "FAILED"; break;
+                case purge_action::missing_file: label = "MISSING"; break;
+                case purge_action::keep_file: break;
+            }
+            if (action == purge_action::delete_file || action == purge_action::missing_file)
+            {
+                detail_remaining -= std::min(detail_remaining, entry.second.first);
+            }
+            std::ostringstream line;
+            line << label << "  " << S64(entry.first.time_since_epoch().count())
+                 << "  " << entry.second.first << "  " << entry.second.second
+                 << " (" << detail_remaining << "/" << mMaxSizeBytes << ")";
+            LL_INFOS() << line.str() << LL_ENDL;
+        }
+    }
+
+    auto newCacheSize = updateCacheSize(remaining_size);
+    LL_INFOS("LLDiskCache") << "Total dir size after purge is " << newCacheSize << LL_ENDL; 
+    LL_INFOS("LLDiskCache") << "Cache purge took " << execute_time << " ms to execute for " << file_info.size() << " files" << LL_ENDL;
+    LL_INFOS("LLDiskCache") << "Deleted: " << del << " Skipped: " << skip << " Kept: " << keep
+                           << " Failed: " << failed << " Missing: " << missing << LL_ENDL;
+    if (missing)
+    {
+        LL_INFOS("LLDiskCache") << "Already absent files account for " << missing_size_total << " bytes." << LL_ENDL;
+    }
+    if (remaining_size > target_size)
+    {
+        LL_DEBUGS("LLDiskCache") << "Purge target not reached; protected or unavailable files remain." << LL_ENDL;
+    }
+    LL_INFOS("LLDiskCache") << "Total of " << deleted_size_total << " bytes removed." << LL_ENDL;
+    // </FS:Beq>
+}
+
+const std::string LLDiskCache::metaDataToFilepath(const LLUUID& id, LLAssetType::EType at)
+{
+    char uuid_str[UUID_STR_LENGTH]{};
+    id.to_chars(uuid_str);
+    // <FS:Ansariel> Store assets in subfolders
+    //return llformat("%s%s%s_%s_0.asset", sCacheDir.c_str(), gDirUtilp->getDirDelimiter().c_str(), CACHE_FILENAME_PREFIX.c_str(), uuid_str);
+    return llformat("%s%s%c%s%s_%s_0.asset", sCacheDir.c_str(), gDirUtilp->getDirDelimiter().c_str(), uuid_str[0], gDirUtilp->getDirDelimiter().c_str(), CACHE_FILENAME_PREFIX.c_str(), uuid_str);
+    // <FS:Ansariel>
+}
+
+const std::string LLDiskCache::getCacheInfo()
+{
+    LL_PROFILE_ZONE_SCOPED; // <FS:Beq/> add some instrumentation
+    std::ostringstream cache_info;
+
+    F32 max_in_mb = (F32)mMaxSizeBytes / (1024.0f * 1024.0f);
+    // <FS:Beq> stall prevention. We still need to make sure this initialised when called at startup.
+    F32 percent_used;
+    if (mStoredCacheSize > 0)
+    {
+        percent_used = ((F32)mStoredCacheSize / (F32)mMaxSizeBytes) * 100.0f;
+    }
+    else
+    {
+        percent_used = ((F32)dirFileSize(sCacheDir) / (F32)mMaxSizeBytes) * 100.0f; 
+    }
+    // </FS:Beq>
+    cache_info << std::fixed;
+    cache_info << std::setprecision(1);
+    cache_info << "Max size " << max_in_mb << " MB ";
+    cache_info << "(" << percent_used << "% used)";
+
+    return cache_info.str();
+}
+
+// <FS:Beq> Copy static items into cache and add to the skip list that prevents their purging
+// Note that there is no de-duplication nor other validation of the list.
+void LLDiskCache::prepopulateCacheWithStatic()
+{
+    mSkipList.clear();
+
+    std::vector<std::string> from_folders;
+    from_folders.emplace_back(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "fs_static_assets"));
+#ifdef OPENSIM
+    from_folders.emplace_back(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "static_assets"));
+#endif
+
+    for (const auto& from_folder : from_folders)
+    {
+        if (gDirUtilp->fileExists(from_folder))
+        {
+            auto assets_to_copy = gDirUtilp->getFilesInDir(from_folder);
+            for (auto from_asset_file : assets_to_copy)
+            {
+                from_asset_file = from_folder + gDirUtilp->getDirDelimiter() + from_asset_file;
+                // we store static assets as UUID.asset_type the asset_type is not used in the current simple cache format
+                auto uuid_as_string{ gDirUtilp->getBaseFileName(from_asset_file, true) };
+                LLUUID uuid{ uuid_as_string };
+                auto to_asset_file = metaDataToFilepath(uuid, LLAssetType::AT_UNKNOWN);
+                if (!gDirUtilp->fileExists(to_asset_file))
+                {
+                    if (mEnableCacheDebugInfo)
+                    {
+                        LL_INFOS("LLDiskCache") << "Copying static asset " << from_asset_file << " to cache from " << from_folder << LL_ENDL;
+                    }
+                    if (!LLFile::copy(from_asset_file, to_asset_file))
+                    {
+                        LL_WARNS("LLDiskCache") << "Failed to copy " << from_asset_file << " to " << to_asset_file << LL_ENDL;
+                    }
+                }
+                if (std::find(mSkipList.begin(), mSkipList.end(), uuid_as_string) == mSkipList.end())
+                {
+                    if (mEnableCacheDebugInfo)
+                    {
+                        LL_INFOS("LLDiskCache") << "Adding " << uuid_as_string << " to skip list" << LL_ENDL;
+                    }
+                    mSkipList.emplace_back(uuid_as_string);
+                }
+            }
+        }
+    }
+}
+// </FS:Beq>
+
+void LLDiskCache::clearCache()
+{
+    LL_INFOS() << "clearing cache " << sCacheDir << LL_ENDL;
+    /**
+     * See notes on performance in dirFileSize(..) - there may be
+     * a quicker way to do this by operating on the parent dir vs
+     * the component files but it's called infrequently so it's
+     * likely just fine
+     */
+    std::error_code ec;
+    std::filesystem::path cache_path = fsyspath(sCacheDir);
+    if (std::filesystem::is_directory(cache_path, ec) && !ec)
+    {
+        // <FS:Ansariel> Optimize asset simple disk cache
+        //std::filesystem::directory_iterator iter(cache_path, ec);
+        //while (iter != std::filesystem::directory_iterator() && !ec)
+        std::filesystem::recursive_directory_iterator iter(cache_path, ec);
+        while (iter != std::filesystem::recursive_directory_iterator() && !ec)
+        // </FS:Ansariel>
+        {
+            if (std::filesystem::is_regular_file(*iter, ec) && !ec)
+            {
+                if (fsyspath((*iter).path()).string().find(CACHE_FILENAME_PREFIX) != std::string::npos)
+                {
+                    std::filesystem::remove(*iter, ec);
+                    if (ec)
+                    {
+                        LL_WARNS() << "Failed to delete cache file " << *iter << ": " << ec.message() << LL_ENDL;
+                    }
+                }
+            }
+            iter.increment(ec);
+        }
+        // <FS:Beq> add static assets into the new cache after clear
+    LL_INFOS() << "prepopulating new cache " << LL_ENDL;
+        prepopulateCacheWithStatic();
+    }
+    LL_INFOS() << "Cleared cache " << sCacheDir << LL_ENDL;
+}
+
+void LLDiskCache::removeOldVFSFiles()
+{
+    //VFS files won't be created, so consider removing this code later
+    static const char CACHE_FORMAT[] = "inv.llsd";
+    static const char DB_FORMAT[] = "db2.x";
+
+    std::error_code ec;
+    std::filesystem::path cache_path = fsyspath(gDirUtilp->getExpandedFilename(LL_PATH_CACHE, ""));
+    if (std::filesystem::is_directory(cache_path, ec) && !ec)
+    {
+        std::filesystem::directory_iterator iter(cache_path, ec);
+        while (iter != std::filesystem::directory_iterator() && !ec)
+        {
+            if (std::filesystem::is_regular_file(*iter, ec) && !ec)
+            {
+                const std::string file_path = fsyspath((*iter).path()).string();
+                if ((file_path.find(CACHE_FORMAT) != std::string::npos) ||
+                    (file_path.find(DB_FORMAT) != std::string::npos))
+                {
+                    std::filesystem::remove(*iter, ec);
+                    if (ec)
+                    {
+                        LL_WARNS() << "Failed to delete cache file " << *iter << ": " << ec.message() << LL_ENDL;
+                    }
+                }
+            }
+            iter.increment(ec);
+        }
+    }
+}
+
+// <FS:Beq> Lets not scan every single time if we can avoid it eh?
+// uintmax_t LLDiskCache::dirFileSize(const std::string& dir)
+// {
+uintmax_t LLDiskCache::updateCacheSize(const uintmax_t newsize)
+{
+    mStoredCacheSize = newsize;
+    mLastScanTime = system_clock::now();
+    return mStoredCacheSize;
+}
+
+uintmax_t LLDiskCache::dirFileSize(const std::string& dir, bool force)
+{
+    using namespace std::chrono;
+    const seconds cache_duration{ 120 };// A rather arbitrary number. it takes 5 seconds+ on a fast drive to scan 80K+ items. purge runs every minute and will update. so 120 should mean we never need a superfluous cache scan.
+
+    const auto current_time = system_clock::now();
+
+    const auto time_difference = duration_cast<seconds>(current_time - mLastScanTime);
+
+    // Check if the cached result can be used
+    if( !force && time_difference < cache_duration )
+    {
+        LL_DEBUGS("LLDiskCache") << "Using cached result: " << mStoredCacheSize << LL_ENDL;
+        return mStoredCacheSize;
+    }
+// </FS:Beq>
+    uintmax_t total_file_size = 0;
+
+    /**
+     * There may be a better way that works directly on the folder (similar to
+     * right clicking on a folder in the OS and asking for size vs right clicking
+     * on all files and adding up manually) but this is very fast - less than 100ms
+     * for 10,000 files in my testing so, so long as it's not called frequently,
+     * it should be okay. Note that's it's only currently used for logging/debugging
+     * so if performance is ever an issue, optimizing this or removing it altogether,
+     * is an easy win.
+     */
+    std::error_code ec;
+    std::filesystem::path dir_path = fsyspath(dir);
+    if (std::filesystem::is_directory(dir_path, ec) && !ec)
+    {
+        // <FS:Ansariel> Optimize asset simple disk cache
+        //std::filesystem::directory_iterator iter(dir_path, ec);
+        //while (iter != std::filesystem::directory_iterator() && !ec)
+        std::filesystem::recursive_directory_iterator iter(dir_path, ec);
+        while (iter != std::filesystem::recursive_directory_iterator() && !ec)
+            // </FS:Ansariel>
+        {
+            if (std::filesystem::is_regular_file(*iter, ec) && !ec)
+            {
+                if (fsyspath((*iter).path()).string().find(CACHE_FILENAME_PREFIX) != std::string::npos)
+                {
+                    uintmax_t file_size = std::filesystem::file_size(*iter, ec);
+                    if (!ec)
+                    {
+                        total_file_size += file_size;
+                    }
+                }
+            }
+            iter.increment(ec);
+        }
+    }
+
+// <FS:Beq> Lets not scan every single time if we can avoid it eh?
+    // return total_file_size;
+    return updateCacheSize(total_file_size);
+// </FS:Beq>
+}
+
+LLPurgeDiskCacheThread::LLPurgeDiskCacheThread() :
+    LLThread("PurgeDiskCacheThread", nullptr)
+{
+}
+
+void LLPurgeDiskCacheThread::run()
+{
+    constexpr std::chrono::seconds CHECK_INTERVAL{60};
+
+    while (LLApp::instance()->sleep(CHECK_INTERVAL))
+    {
+        LLDiskCache::instance().purge();
+    }
+}

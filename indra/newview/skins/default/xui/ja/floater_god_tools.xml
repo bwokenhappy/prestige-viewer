@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="ゴッド・ツール" name="godtools floater">
+	<tab_container name="GodTools Tabs">
+		<panel label="グリッド" name="grid">
+			<button label="このリージョンのマップの表示キャッシュを消去" label_selected="このリージョンのマップの表示キャッシュを消去" name="Flush This Region's Map Visibility Caches"/>
+		</panel>
+		<panel label="リージョン" name="region">
+			<text name="Region Name:">
+				リージョン名：
+			</text>
+			<check_box label="準備" tool_tip="この設定により、このリージョンの準備をします。" name="check prelude"/>
+			<check_box label="太陽固定" tool_tip="太陽位置を固定（「リージョン／不動産」＞「地形」の場合と同様）" name="check fixed sun"/>
+			<check_box label="ホーム位置をリセット" tool_tip="住人がテレポートで外に出たら、ホームを目的地にリセットします。" name="check reset home"/>
+			<check_box label="可視" tool_tip="この設定により、このリージョンをゴッド・モード以外でも可視にします。" name="check visible"/>
+			<check_box label="ダメージ" tool_tip="この設定により、このリージョン内でダメージを有効化します。" name="check damage"/>
+			<check_box label="トラフィックのトラッキングをブロック" tool_tip="この設定により、このリージョン内のトラフィック計算をオフにします。" name="block dwell"/>
+			<check_box label="地形編集をブロック" tool_tip="この設定により、このリージョン内での土地整備を" name="block terraform"/>
+			<check_box label="サンドボックス" tool_tip="これがサンドボックスリージョンでも切り替え" name="is sandbox"/>
+			<button label="地形を構築する" label_selected="地形を構築する" tool_tip="現在の地形をデフォルトとして保存します。" name="Bake Terrain"/>
+			<button label="地形を元に戻す" label_selected="地形を元に戻す" tool_tip="現在の地形をデフォルトに置換します。" name="Revert Terrain"/>
+			<button label="地形を交換" label_selected="地形を交換" tool_tip="現在の地形をデフォルトと置き換えます。" name="Swap Terrain"/>
+			<text name="estate id">
+				不動産ＩＤ：
+			</text>
+			<text name="parent id">
+				親ＩＤ：
+			</text>
+			<line_editor tool_tip="これは、このリージョンの親不動産です。" name="parentestate"/>
+			<text name="Grid Pos: ">
+				グリッド位置：
+			</text>
+			<line_editor tool_tip="これは、このリージョンのグリッドＸ座標です。" name="gridposx"/>
+			<line_editor tool_tip="これは、このリージョンのグリッドＹ座標です。" name="gridposy"/>
+			<text name="Redirect to Grid: ">
+				グリッドにリダイレクト：
+			</text>
+			<text name="billable factor text">
+				請求率：
+			</text>
+			<text name="land cost text">
+				㎡当たりのL$：
+			</text>
+			<button label="更新" label_selected="更新" tool_tip="上記の情報を更新するには、ここをクリックします。" name="Refresh"/>
+			<button label="適用" label_selected="適用" tool_tip="上記の変更を適用するには、ここをクリックします。" name="Apply"/>
+			<button label="リージョンを選択" label_selected="リージョンを選択" tool_tip="土地ツールでリージョン全体を選択してください。" name="Select Region"/>
+			<button label="ただちに自動保存する" label_selected="ただちに自動保存する" tool_tip="Gzip状態を自動保存ディレクトリに保存します。" name="Autosave now"/>
+		</panel>
+		<panel label="オブジェクト" name="objects">
+			<panel.string name="no_target">
+				（ターゲットなし）
+			</panel.string>
+			<text name="Region Name:">
+				リージョン名：
+			</text>
+			<text name="region name">
+				ウェルシュ
+			</text>
+			<check_box label="スクリプトを無効化" tool_tip="この設定により、このリージョン内のスクリプトをすべて無効化" name="disable scripts"/>
+			<check_box label="衝突を無効化" tool_tip="この設定により、このリージョン内の非エージェント衝突を無効化" name="disable collisions"/>
+			<check_box label="物理作用を無効化" tool_tip="この設定により、このリージョン内の物理的作用をすべて無効化" name="disable physics"/>
+			<button label="適用" label_selected="適用" tool_tip="上記の変更を適用するには、ここをクリックします。" name="Apply"/>
+			<button label="対象の設定" label_selected="対象の設定" tool_tip="オブジェクト削除の対象となるアバターを設定してください。" name="Set Target"/>
+			<text name="target_avatar_name">
+				（対象なし）
+			</text>
+			<button label="他の土地における対象のスクリプト・オブジェクトを削除" label_selected="他の土地における対象のスクリプト・オブジェクトを削除" tool_tip="このリージョンにおいて対象が所有していないスクリプト・オブジェクトをすべて削除します。（複製禁止）オブジェクトは返却されます。" name="Delete Target's Scripted Objects On Others Land"/>
+			<button label="「すべての」土地における対象のスクリプト・オブジェクトを削除" label_selected="「すべての」土地における対象のスクリプト・オブジェクトを削除" tool_tip="このリージョンにおいて対象が所有しているスクリプト・オブジェクトをすべて削除します。（複製禁止）オブジェクトは返却されます。" name="Delete Target's Scripted Objects On *Any* Land"/>
+			<button label="対象のオブジェクトを「すべて」削除" label_selected="対象のオブジェクトを「すべて」削除" tool_tip="このリージョンにおいて対象が所有しているオブジェクトをすべて削除します。（複製禁止）オブジェクトは返却されます。" name="Delete *ALL* Of Target's Objects"/>
+			<button label="トップ・コライダーを取得" label_selected="トップ・コライダーを取得" tool_tip="最も段階の狭いコールバックが発生したオブジェクトのリストを取得します。" name="Get Top Colliders"/>
+			<button label="トップ・スクリプトを取得" label_selected="トップ・スクリプトを取得" tool_tip="スクリプトの起動に最も時間を費やしているオブジェクトのリストを取得します。" name="Get Top Scripts"/>
+			<button label="スクリプト・ダイジェスト" label_selected="スクリプト・ダイジェスト" tool_tip="すべてのスクリプトとそれらの使用回数のリストを取得します。" name="Scripts digest"/>
+		</panel>
+		<panel label="要求" name="request">
+			<text name="Destination:">
+				目的地：
+			</text>
+			<combo_box name="destination">
+				<combo_box.item label="選択" name="item1"/>
+				<combo_box.item label="エージェントリージョン" name="item2"/>
+			</combo_box>
+			<text name="Request:">
+				要求：
+			</text>
+			<combo_box name="request">
+				<combo_box.item label="コライダー＜ステップ＞" name="item1"/>
+				<combo_box.item label="スクリプト＜回数＞、＜オプション・パターン＞" name="item2"/>
+				<combo_box.item label="オブジェクト＜パターン＞" name="item3"/>
+				<combo_box.item label="rez＜アセットＩＤ＞" name="item4"/>
+			</combo_box>
+			<text name="Parameter:">
+				パラメーター：
+			</text>
+			<button label="リクエストする" label_selected="リクエストする" name="Make Request"/>
+		</panel>
+	</tab_container>
+</floater>

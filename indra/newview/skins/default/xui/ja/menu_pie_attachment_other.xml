@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- *NOTE: See also menu_pie_avatar_other.xml -->
+<pie_menu name="Avatar Pie">
+	<pie_slice label="プロフィール…" name="Profile..."/>
+	<pie_menu label="ミュート　＞" name="mute_menu">
+		<pie_slice label="ミュート" name="Avatar Mute"/>
+		<pie_slice label="パーティクル" name="Mute Particle"/>
+	</pie_menu>
+	<pie_slice label="会いに行く" name="Go to"/>
+	<pie_slice label="嫌がらせの報告…" name="abuse"/>
+	<pie_menu label="追加　＞" name="add_avatar">
+		<pie_slice label="フレンドに追加…" name="Add Friend"/>
+		<pie_slice label="コンタクトセットに追加" name="Add to set"/>
+	</pie_menu>
+	<pie_slice label="支払う…" name="Pay..."/>
+	<pie_menu label="詳細　＞" name="Avatar Pie More 1">
+		<pie_slice label="フリーズ…" name="Freeze..."/>
+		<pie_slice label="コーリングカードを渡す" name="Give Calling Card"/>
+		<pie_slice label="グループに招待…" name="Group Invite..."/>
+		<!-- [FS:Chanayane] Compass floater - face towards avatar from pie menu -->
+		<pie_slice label="顔を向ける" name="Face towards"/>
+		<!-- [/FS:Chanayane] -->
+		<pie_slice label="追放…" name="Eject..."/>
+		<pie_menu label="詳細　＞" name="Avatar Pie More 2">
+			<!-- ## Zi: Is this the right thing to use for avatar textures? -->
+			<pie_slice label="テクスチャ" name="Debug..."/>
+			<pie_slice label="スクリプト情報" name="ScriptInfo"/>
+			<pie_slice label="コール" name="Call"/>
+			<pie_slice label="ズームイン" name="Zoom In"/>
+			<pie_slice label="テクスチャをリフレッシュ" name="Texture Refresh"/>
+			<pie_menu label="リセット　＞" name="ResetMenu">
+				<pie_slice label="スケルトンとアニメ" name="Reset Skeleton And Animations"/>
+				<pie_slice label="スケルトン" name="Reset Skeleton"/>
+				<pie_slice label="メッシュのＬＯＤ" name="Reset Mesh LOD"/>
+			</pie_menu>
+			<pie_menu label="名前をつけて保存　＞" name="ExportMenu">
+				<pie_slice label="バックアップ" name="Backup"/>
+				<pie_slice label="Collada" name="Collada"/>
+				<pie_slice label="ＸＭＬとしてダンプ" name="Dump XML"/>
+			</pie_menu>
+			<pie_menu label="描画　＞" name="RenderMenu">
+				<pie_slice label="通常描画" name="RenderNormally"/>
+				<pie_slice label="描画しない" name="DoNotRender"/>
+				<pie_slice label="常に描画" name="AlwaysRenderFully"/>
+			</pie_menu>
+		</pie_menu>
+		<pie_slice label="調査" name="Avatar Inspect"/>
+		<pie_menu label="描画解除　＞" name="DerenderMenu">
+			<pie_slice label="ブラックリスト" name="DerenderPermanent"/>
+			<pie_slice label="描画解除" name="Derender"/>
+		</pie_menu>
+	</pie_menu>
+	<pie_slice label="ＩＭを送信…" name="Send IM..."/>
+</pie_menu>

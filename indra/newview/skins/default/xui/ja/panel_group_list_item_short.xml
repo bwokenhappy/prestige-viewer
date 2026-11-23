@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="group_list_item">
+	<text name="group_name" value="不明"/>
+	<button tool_tip="プロフィールにグループを表示しないようにします。" name="visibility_hide_btn"/>
+	<button tool_tip="プロフィールにグループを表示するようにします。" name="visibility_show_btn"/>
+	<button tool_tip="グループからの通知を表示します。" name="notices_btn"/>
+	<button tool_tip="詳細情報を表示します。" name="info_btn"/>
+	<!--*TODO: Should only appear on rollover-->
+	<button tool_tip="プロフィールを表示します。" name="profile_btn"/>
+</panel>

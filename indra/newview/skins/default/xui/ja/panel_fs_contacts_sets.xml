@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="contact_sets_panel">
+	<panel.string name="empty_list">
+		コンタクトセットに何も登録がありません。
+	</panel.string>
+	<panel.string name="no_sets">
+		セット未登録
+	</panel.string>
+	<panel.string name="all_sets">
+		全てのセット
+	</panel.string>
+	<panel.string name="pseudonyms">
+		ニックネーム
+	</panel.string>
+	<panel.string name="non_friends">
+		フレンドでない人
+	</panel.string>
+	<button tool_tip="選択したコンタクトセットの設定をします。" name="config_btn"/>
+	<button tool_tip="新しいコンタクトセットを追加します。" name="add_set_btn"/>
+	<button tool_tip="選択したコンタクトセットを削除します。" name="remove_set_btn"/>
+	<filter_editor label="人物をフィルタ" name="contact_sets_filter_input"/>
+	<!-- Action buttons -->
+	<button label="追加…" tool_tip="アバターを現在のコンタクトセットに追加します。" name="add_btn"/>
+	<button label="移動…" tool_tip="このアバターを別のコンタクトセットに移動させます。" name="move_btn"/>
+	<button label="削除…" tool_tip="このアバターを現在のコンタクトセットから削除します。" name="remove_btn"/>
+	<button label="プロフィール…" tool_tip="このアバターのプロフィールを開きます。" name="profile_btn"/>
+	<button label="ＩＭ…" tool_tip="ＩＭを開始します。" name="start_im_btn"/>
+	<button label="テレポート…" tool_tip="あなたが現在いる場所にテレポートで呼びます。" name="offer_teleport_btn"/>
+	<button label="ニックネーム設定…" tool_tip="アバターのニックネームを設定します。" name="set_pseudonym_btn"/>
+	<button label="ニックネーム解除…" tool_tip="アバターのニックネームを削除します" name="remove_pseudonym_btn"/>
+	<button label="表示名削除…" tool_tip="アバターの表示名を削除します。" name="remove_displayname_btn"/>
+	<text name="member_count">
+		メンバー：[COUNT]人
+	</text>
+</panel>

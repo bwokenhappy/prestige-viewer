@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="非表示のアイテム一覧" name="fs_asset_blacklist">
+	<floater.string name="asset_object">
+		オブジェクト
+	</floater.string>
+	<floater.string name="asset_texture">
+		テクスチャ
+	</floater.string>
+	<floater.string name="asset_sound">
+		サウンド
+	</floater.string>
+	<floater.string name="asset_animation">
+		アニメーション
+	</floater.string>
+	<floater.string name="asset_resident">
+		住人
+	</floater.string>
+	<floater.string name="blacklist_flag_mute_avatar_worn_objects_sounds">
+		アバターが着ているオブジェクトのサウンド
+	</floater.string>
+	<floater.string name="blacklist_flag_mute_avatar_rezzed_objects_sounds">
+		アバターがRezしたオブジェクトのサウンド
+	</floater.string>
+	<floater.string name="blacklist_flag_mute_avatar_gestures_sounds">
+		アバターのジェスチャーのサウンド
+	</floater.string>
+	<floater.string name="blacklist_flag_unknown">
+		不明なフラグ
+	</floater.string>
+	<floater.string name="asset_unknown">
+		不明
+	</floater.string>
+	<floater.string name="unknown_object">
+		不明なオブジェクト
+	</floater.string>
+	<floater.string name="unknown_region">
+		不明なリージョン
+	</floater.string>
+	<floater.string name="DateFormatString">[year,datetime,local]年[mthnum,datetime,local]月[day,datetime,local]日　[hour,datetime,local]：[min,datetime,local]：[second,datetime,local]</floater.string>
+	<filter_editor label="非表示アイテム一覧をフィルタ" name="filter_input"/>
+	<fs_scroll_list name="result_list">
+		<columns label="名前" name="name"/>
+		<columns label="リージョン" name="region"/>
+		<columns label="種類" name="type"/>
+		<columns label="フラグ" name="flags"/>
+		<columns label="日時" name="date"/>
+		<columns label="常時" name="permanent"/>
+	</fs_scroll_list>
+	<button label="選択した項目を一覧から除外" name="remove_btn"/>
+	<button label="現在の設定をクリア" name="remove_temp_btn"/>
+	<button label="サウンド再生" tool_tip="選択したサウンドを再生します。一度に１つのサウンドしか選択・再生できません。" name="play_btn"/>
+	<button label="サウンド停止" tool_tip="現在再生されているサウンドを停止します。" name="stop_btn"/>
+	<button label="閉じる" name="close_btn"/>
+</floater>

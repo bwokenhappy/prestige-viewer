@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="デフォルトの作成権限" name="perms default">
+	<panel label="デフォルト権限" name="default permissions">
+		<text name="label_1">
+			次の所有者：
+		</text>
+		<text name="label_2">
+			複製
+		</text>
+		<text name="label_3">
+			修正
+		</text>
+		<text name="label_4">
+			再販・譲渡
+		</text>
+		<text name="label_5">
+			グループで共同管理
+		</text>
+		<text name="label_6">
+			誰でも複製可能
+		</text>
+		<text tool_tip="オブジェクトを作成したときのデフォルトの権限を設定します。" name="label_7">
+			オブジェクト
+		</text>
+		<text tool_tip="アップロードしたアイテムのデフォルトの権限を設定します。" name="label_8">
+			アップロード
+		</text>
+		<text tool_tip="スクリプトを作成したときのデフォルトの権限を設定します。" name="label_9">
+			スクリプト
+		</text>
+		<text tool_tip="ノートカードを作成したときのデフォルトの権限を設定します。" name="label_10">
+			ノートカード
+		</text>
+		<text tool_tip="ジェスチャーを作成したときのデフォルトの権限を設定します。" name="label_11">
+			ジェスチャー
+		</text>
+		<text tool_tip="衣装または身体部位を作成したときのデフォルトの権限を設定します。" name="label_12">
+			装着物
+		</text>
+		<text tool_tip="自然環境の設定を作成したときのデフォルトの権限を設定します。" name="label_13">
+			自然環境の設定
+		</text>
+		<text tool_tip="マテリアルを作成したときのデフォルトの権限を設定します。" name="label_14">
+			マテリアル
+		</text>
+	</panel>
+	<button label="ＯＫ" label_selected="ＯＫ" name="ok"/>
+	<button label="キャンセル" label_selected="キャンセル" name="cancel"/>
+</floater>

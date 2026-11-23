@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="再生履歴" name="stream_history">
+	<fs_scroll_list name="history">
+		<columns label="タイトル" name="title" />
+	</fs_scroll_list>
+	<button label="クリア" name="clear_history"/>
+	<text name="max_entries_label">
+		最大エントリ数：
+	</text>
+	<button label="クリップボードにコピー" name="copy_to_clipboard"/>
+</floater>

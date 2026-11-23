@@ -1,0 +1,32 @@
+<panel label="クラシファイド広告" name="panel_dir_classified">
+	<string name="searching_text">
+		検索しています…
+	</string>
+	<string name="not_found_text">
+		見つかりませんでした。
+	</string>
+	<string name="found_text">
+		[COUNT]件見つかりました。
+	</string>
+	<text name="find">
+		検索語を入力：
+	</text>
+	<combo_box name="Category">
+		<combo_item label="全カテゴリ" name="AnyCategory"/>
+		<combo_item label="ショッピング" name="Shopping"/>
+		<combo_item label="土地のレンタル" name="LandRental"/>
+		<combo_item label="物件のレンタル" name="PropertyRental"/>
+		<combo_item label="特別なアトラクション" name="SpecialAttraction"/>
+		<combo_item label="新製品" name="NewProducts"/>
+		<combo_item label="雇用" name="Employment"/>
+		<combo_item label="募集" name="Wanted"/>
+		<combo_item label="サービス" name="Service"/>
+		<combo_item label="個人" name="Personal"/>
+	</combo_box>
+	<scroll_list name="results">
+		<column label="名前" name="name"/>
+		<column label="価格" name="price"/>
+	</scroll_list>
+	<button tool_tip="前のページ" name="prev_btn"/>
+	<button tool_tip="次のページ" name="next_btn"/>
+</panel>

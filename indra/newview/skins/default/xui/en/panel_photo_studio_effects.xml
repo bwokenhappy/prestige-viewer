@@ -200,9 +200,9 @@ filled in code; nothing in it is declared here).
 	 name="fx_stack">
 		<layout_panel
 		 name="fx_list_panel"
-		 height="156"
+		 height="196"
 		 min_dim="48"
-		 auto_resize="false"
+		 auto_resize="true"
 		 user_resize="true">
 			<search_editor
 			 clear_button_visible="true"
@@ -243,7 +243,7 @@ filled in code; nothing in it is declared here).
 			 left="4"
 			 top="24"
 			 right="-4"
-			 height="130"
+			 height="170"
 			 column_padding="0"
 			 draw_heading="true"
 			 multi_select="false"
@@ -265,7 +265,7 @@ filled in code; nothing in it is declared here).
 		</layout_panel>
 		<layout_panel
 		 name="fx_controls_panel"
-		 height="150"
+		 height="110"
 		 min_dim="44"
 		 auto_resize="true"
 		 user_resize="true">
@@ -296,7 +296,7 @@ filled in code; nothing in it is declared here).
 			 left="2"
 			 top="26"
 			 right="-2"
-			 height="122"
+			 height="82"
 			 reserve_scroll_corner="false"
 			 opaque="false"
 			 name="fx_scroll">

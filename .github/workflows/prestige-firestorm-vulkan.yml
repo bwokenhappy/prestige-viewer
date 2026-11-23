@@ -1,0 +1,120 @@
+# Prestige Viewer: Firestorm + Vulkan port, Windows x64 build.
+#
+# This is the separate build for the firestorm-vulkan branch (Firestorm viewer, rebranded
+# to Prestige, with Slipstream's Vulkan renderer being ported in). It is independent of
+# the "Prestige Windows build" workflow on the prestige branch.
+#
+# Two builds run side by side:
+#   opengl - the port branch with PRESTIGE_VULKAN off. This is the shipping baseline and
+#            must stay green: it proves the port didn't break the Firestorm viewer.
+#   vulkan - the same source with PRESTIGE_VULKAN on. It compiles in the Vulkan code that
+#            has been ported so far (see PORTING.md for what works at each phase).
+#
+# Uses Firestorm's open-source configuration (ReleaseFS_open): no FMOD Studio, KDU or
+# Havok, because those are licensed packages that are not available to this repository.
+#
+# Run it from the Actions tab ("Run workflow" -> branch firestorm-vulkan), or push to the
+# firestorm-vulkan branch.
+name: Prestige Firestorm-Vulkan build
+
+on:
+  workflow_dispatch:
+    inputs:
+      renderer:
+        description: Which build(s) to run
+        type: choice
+        options: [both, opengl, vulkan]
+        default: both
+  push:
+    branches: [firestorm-vulkan]
+    paths-ignore:
+      - '**.md'
+
+concurrency:
+  group: prestige-firestorm-vulkan-${{ github.ref }}
+  cancel-in-progress: false   # let a running build finish; the newest push queues behind it
+
+jobs:
+  windows:
+    name: Windows x64 (${{ matrix.renderer }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # push runs both; "Run workflow" can pick one
+        renderer: ${{ fromJSON(inputs.renderer == 'opengl' && '["opengl"]' || inputs.renderer == 'vulkan' && '["vulkan"]' || '["opengl","vulkan"]') }}
+    runs-on: windows-2022
+    timeout-minutes: 360
+    env:
+      AUTOBUILD_VSVER: "170"
+      AUTOBUILD_ADDRSIZE: "64"
+      AUTOBUILD_INSTALLABLE_CACHE: ${{ github.workspace }}\.autobuild-cache
+      PYTHONUTF8: "1"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install autobuild and Python requirements
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          autobuild --version
+          echo "PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+
+      - name: Install the Vulkan SDK (glslc, loader import library)
+        if: matrix.renderer == 'vulkan'
+        uses: humbletim/install-vulkan-sdk@v1.2
+        with:
+          version: 1.4.309.0
+          cache: true
+
+      - name: Restore autobuild package cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}\.autobuild-cache
+          key: autobuild-win64-${{ hashFiles('autobuild.xml') }}
+          restore-keys: autobuild-win64-
+
+      - name: Configure
+        run: |
+          set -euo pipefail
+          EXTRA="-DOPENSIM:BOOL=ON -DHAVOK_TPV:BOOL=OFF -DLL_TESTS:BOOL=OFF"
+          if [ "${{ matrix.renderer }}" = "vulkan" ]; then
+            EXTRA="$EXTRA -DPRESTIGE_VULKAN:BOOL=ON"
+          else
+            EXTRA="$EXTRA -DPRESTIGE_VULKAN:BOOL=OFF"
+          fi
+          autobuild configure -A64 -c ReleaseFS_open -- --package --chan Release $EXTRA
+
+      - name: Build
+        run: autobuild build -A64 -c ReleaseFS_open --no-configure
+
+      - name: Collect build logs
+        if: always()
+        run: |
+          mkdir -p ci-logs
+          find . -path ./.autobuild-cache -prune -o \( -name '*.log' -o -name '*.err' \) -path '*logs*' -print \
+            -exec cp --parents {} ci-logs/ \; 2>/dev/null || true
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-windows-${{ matrix.renderer }}
+          path: ci-logs
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Prestige-Firestorm-${{ matrix.renderer }}-Windows-x64
+          path: |
+            build-vc*-64/newview/Release/*Setup.exe
+          if-no-files-found: error
+          retention-days: 30

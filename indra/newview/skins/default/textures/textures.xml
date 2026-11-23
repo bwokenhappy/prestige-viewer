@@ -178,13 +178,13 @@ with the same filename but different name
   <texture name="Cam_Orbit_Off" file_name="bottomtray/Cam_Orbit_Off.png" preload="false" vector_file="phosphor/cube-focus.svg" vector_color="IconColor@BF" vector_box="0.111,0.167,0.889,0.944" />
   <texture name="Cam_Pan_Off" file_name="bottomtray/Cam_Pan_Off.png" preload="false" vector_file="phosphor/hand-grabbing.svg" vector_color="IconColor@BF" vector_box="0.111,0.056,0.889,0.889" />
 
-  <texture name="Cam_Preset_Back_Off" file_name="bottomtray/Cam_Preset_Back_Off.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
-  <texture name="Cam_Preset_Back_On" file_name="bottomtray/Cam_Preset_Back_On.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
+  <texture name="Cam_Preset_Back_Off" file_name="bottomtray/Cam_Preset_Back_Off.png" preload="false" />
+  <texture name="Cam_Preset_Back_On" file_name="bottomtray/Cam_Preset_Back_On.png" preload="false" />
   <texture name="Cam_Preset_Eye_Off" file_name="bottomtray/Cam_Preset_Eye_Off.png" preload="false" vector_file="phosphor/eye.svg" vector_color="IconColor" />
-  <texture name="Cam_Preset_Front_Off" file_name="bottomtray/Cam_Preset_Front_Off.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
-  <texture name="Cam_Preset_Front_On" file_name="bottomtray/Cam_Preset_Front_On.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
-  <texture name="Cam_Preset_Side_Off" file_name="bottomtray/Cam_Preset_Side_Off.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
-  <texture name="Cam_Preset_Side_On" file_name="bottomtray/Cam_Preset_Side_On.png" preload="false" vector_file="phosphor/video-camera.svg" vector_color="IconColor" />
+  <texture name="Cam_Preset_Front_Off" file_name="bottomtray/Cam_Preset_Front_Off.png" preload="false" />
+  <texture name="Cam_Preset_Front_On" file_name="bottomtray/Cam_Preset_Front_On.png" preload="false" />
+  <texture name="Cam_Preset_Side_Off" file_name="bottomtray/Cam_Preset_Side_Off.png" preload="false" />
+  <texture name="Cam_Preset_Side_On" file_name="bottomtray/Cam_Preset_Side_On.png" preload="false" />
 
   <texture name="Cam_Rotate_In" file_name="bottomtray/Cam_Rotate_In.png" preload="false" vector_file="phosphor/arrow-up.svg" vector_color="IconAccentColor" vector_box="0.410,0.013,0.590,0.385" />
   <texture name="Cam_Rotate_Out" file_name="bottomtray/Cam_Rotate_Out.png" preload="false" vector_file="phosphor/crosshair.svg" vector_color="IconColor@D1" />

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prestige Viewer</title>
+<style>
+  :root {
+    --charcoal-0: #121315;
+    --charcoal-1: #1b1c1f;
+    --charcoal-2: #242528;
+    --text: #ececee;
+    --muted: #8d8e94;
+    --orange: #f28c28;
+    --orange-soft: rgba(242, 140, 40, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--charcoal-0);
+    font-family: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--text);
+    -webkit-user-select: none; user-select: none;
+    cursor: default;
+  }
+  /* dusk sky: deep charcoal above, a low warm glow on the horizon */
+  .sky {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(120% 70% at 72% 108%, rgba(242,140,40,0.30) 0%, rgba(160,70,40,0.12) 35%, transparent 62%),
+      radial-gradient(90% 60% at 18% 100%, rgba(120,70,110,0.20) 0%, transparent 60%),
+      linear-gradient(180deg, #0f1012 0%, #16171a 45%, #1f1d20 78%, #2a2120 100%);
+  }
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(130% 100% at 50% 40%, transparent 55%, rgba(0,0,0,0.55) 100%);
+  }
+  .horizon {
+    position: fixed; left: 0; right: 0; bottom: 21%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(242,140,40,0.35) 30%, rgba(242,140,40,0.55) 70%, transparent);
+    opacity: .55;
+  }
+  .stage {
+    position: fixed; inset: 0 0 14% 0;            /* keep clear of the login bar */
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand { display: flex; align-items: center; gap: 4.2vmin; }
+  .mark {
+    position: relative; width: 26vmin; height: 26vmin; max-width: 280px; max-height: 280px;
+  }
+  .mark::before {                                 /* soft orange under-glow */
+    content: ""; position: absolute; inset: 12%;
+    background: radial-gradient(closest-side, rgba(242,140,40,0.40), transparent 75%);
+    filter: blur(18px);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  .mark img { position: relative; width: 100%; height: 100%; object-fit: contain;
+              filter: drop-shadow(0 10px 24px rgba(0,0,0,0.6)); }
+  .words { display: flex; flex-direction: column; }
+  .wordmark {
+    font-size: clamp(36px, 8.4vmin, 92px); font-weight: 600;
+    letter-spacing: 0.32em; line-height: 1; margin-right: -0.32em;
+    background: linear-gradient(180deg, #ffffff 0%, #cfd0d4 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub {
+    margin-top: 1.6vmin; display: flex; align-items: center; gap: 1.6vmin;
+    font-size: clamp(12px, 2vmin, 20px); font-weight: 600;
+    letter-spacing: 0.62em; color: var(--orange); text-transform: uppercase;
+  }
+  .sub .rule { flex: 1; height: 1px; min-width: 6vmin;
+               background: linear-gradient(90deg, var(--orange), transparent); }
+  .tagline {
+    margin-top: 2.6vmin; font-size: clamp(12px, 1.9vmin, 17px);
+    color: var(--muted); letter-spacing: 0.04em;
+  }
+  .fine {
+    position: fixed; right: 2.2vmin; top: 1.8vmin;
+    font-size: 11px; color: rgba(255,255,255,0.28); letter-spacing: .03em; text-align: right;
+  }
+  @keyframes breathe { 0%,100% { opacity: .75; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .mark::before { animation: none; } }
+</style>
+</head>
+<body>
+  <div class="sky"></div>
+  <div class="horizon"></div>
+  <div class="vignette"></div>
+
+  <main class="stage">
+    <div class="brand">
+      <div class="mark"><img src="prestige_p.png" alt="Prestige"></div>
+      <div class="words">
+        <div class="wordmark">PRESTIGE</div>
+        <div class="sub"><span>Viewer</span><span class="rule"></span></div>
+        <div class="tagline">A refined Second Life viewer on a GPU-driven Vulkan engine</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="fine">Third-party viewer &middot; not affiliated with Linden Lab</div>
+</body>
+</html>

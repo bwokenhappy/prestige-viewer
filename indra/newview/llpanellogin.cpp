@@ -963,6 +963,27 @@ void LLPanelLogin::loadLoginPage()
         return;
     }
 
+    // <Prestige> Branded local splash screen on Second Life grids. Skipped when a login
+    // page is forced (ForceLoginURL), on OpenSim grids (they have their own welcome pages),
+    // or when PrestigeLocalLoginSplash is off. Falls back to the grid's page if missing.
+    static LLCachedControl<bool> use_local_splash(gSavedSettings, "PrestigeLocalLoginSplash", true);
+    if (use_local_splash && force_login_url.empty() && !LLGridManager::getInstance()->isOpenSimGrid())
+    {
+        const std::string splash_file = gDirUtilp->findSkinnedFilename("html", gDirUtilp->add("prestige", "login.html"));
+        if (!splash_file.empty())
+        {
+            gViewerWindow->setMenuBackgroundColor(false, !LLGridManager::getInstance()->isInProductionGrid());
+            LLMediaCtrl* splash_browser = sInstance->getChild<LLMediaCtrl>("login_html");
+            if (splash_browser->getCurrentNavUrl() != splash_file)
+            {
+                splash_browser->navigateToLocalPage("prestige", "login.html");
+            }
+            return;
+        }
+        LL_WARNS("AppInit") << "Prestige splash not found, using the grid login page" << LL_ENDL;
+    }
+    // </Prestige>
+
     // Language
     params["lang"] = LLUI::getLanguage();
 

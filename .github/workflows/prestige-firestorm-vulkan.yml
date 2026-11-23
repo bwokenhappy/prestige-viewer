@@ -48,12 +48,19 @@ jobs:
       AUTOBUILD_VSVER: "170"
       AUTOBUILD_ADDRSIZE: "64"
       AUTOBUILD_INSTALLABLE_CACHE: ${{ github.workspace }}\.autobuild-cache
+      AUTOBUILD_VARIABLES_FILE: ${{ github.workspace }}/build-variables/variables
       PYTHONUTF8: "1"
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+
+      - name: Checkout Firestorm's public build variables
+        uses: actions/checkout@v4
+        with:
+          repository: FirestormViewer/fs-build-variables
+          path: build-variables
 
       - uses: actions/setup-python@v5
         with:

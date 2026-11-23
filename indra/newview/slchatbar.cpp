@@ -545,7 +545,10 @@ void SLChatBar::stopChat()
 {
     SLChatBar* bar = LLFloaterReg::getTypedInstance<SLChatBar>("chatbar");
     bar->mInputEditor->setFocus(FALSE);
-    bar->setVisible(FALSE);
+    // <Prestige> Firestorm-style: the chat bar stays at the bottom left instead of hiding
+    static LLCachedControl<bool> always_visible(gSavedSettings, "PrestigeChatBarAlwaysVisible", true);
+    bar->setVisible(always_visible);
+    // </Prestige>
     bar->cancelIM();   // MMO chat log (closing ends IM mode)
     gAgent.stopTyping();
 }

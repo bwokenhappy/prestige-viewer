@@ -28477,6 +28477,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>PrestigeChatBarAlwaysVisible</key>
+    <map>
+      <key>Comment</key>
+      <string>Keep the nearby chat bar visible at the bottom left of the window (as in Firestorm) instead of only while typing.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeLocalLoginSplash</key>
     <map>
       <key>Comment</key>
@@ -36040,7 +36051,7 @@
             <key>Type</key>
             <string>S32</string>
             <key>Value</key>
-            <integer>4</integer>
+            <integer>1</integer>
         </map>
         <key>SLPhotoStudioPanels</key>
         <map>

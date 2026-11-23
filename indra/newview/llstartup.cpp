@@ -2953,6 +2953,16 @@ bool idle_startup()
         // account) is offered now, once.
         SLFloaterFirstRun::offerPendingImport();
 
+        // <Prestige> Firestorm-style: nearby chat bar always shown at the bottom left
+        if (gSavedSettings.getBOOL("PrestigeChatBarAlwaysVisible"))
+        {
+            if (LLFloater* chat_bar = LLFloaterReg::getInstance("chatbar"))
+            {
+                chat_bar->setVisible(true);
+            }
+        }
+        // </Prestige>
+
         gViewerWindow->logTopBarLayout();   // #1082
 
         //// We're successfully logged in.

@@ -27,6 +27,7 @@
 #include "linden_common.h"
 
 #include "llrender.h"
+#include "llrenderbackend.h" // <Prestige/> Vulkan renderer port
 
 #include "llvertexbuffer.h"
 #include "llcubemap.h"
@@ -76,6 +77,15 @@ bool LLRender::sGLCoreProfile = false;
 bool LLRender::sNsightDebugSupport = false;
 LLVector2 LLRender::sUIGLScaleFactor = LLVector2(1.f, 1.f);
 bool LLRender::sClassicMode = false;
+
+// <Prestige> Vulkan renderer port (phase 2): see llrenderbackend.h.
+LLRenderBackend* LLRender::sBackend = nullptr;
+
+void LLRender::setBackend(LLRenderBackend* backend)
+{
+    sBackend = backend;
+}
+// </Prestige>
 
 static const GLenum sGLTextureType[] =
 {
@@ -148,6 +158,13 @@ void LLTexUnit::refreshState(void)
 
 void LLTexUnit::activate(void)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return;
+        gGL.mCurrTextureUnitIndex = mIndex;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        return;
+    } // </Prestige>
     if (mIndex < 0) return;
 
     if ((S32)gGL.mCurrTextureUnitIndex != mIndex || gGL.mDirty)
@@ -188,6 +205,11 @@ void LLTexUnit::disable(void)
 
 void LLTexUnit::bindFast(LLTexture* texture)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        bind(texture);
+        return;
+    } // </Prestige>
     LLImageGL* gl_tex = texture->getGLTexture();
     texture->setActive();
     glActiveTexture(GL_TEXTURE0 + mIndex);
@@ -214,6 +236,11 @@ void LLTexUnit::bindFast(LLTexture* texture)
 
 bool LLTexUnit::bind(LLTexture* texture, bool for_rendering, bool forceBind)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (texture) texture->setActive();
+        return bind(texture ? texture->getGLTexture() : nullptr, for_rendering, forceBind);
+    } // </Prestige>
     LL_PROFILE_ZONE_SCOPED_CATEGORY_PIPELINE;
     stop_glerror();
     if (mIndex >= 0)
@@ -279,6 +306,15 @@ bool LLTexUnit::bind(LLTexture* texture, bool for_rendering, bool forceBind)
 
 bool LLTexUnit::bind(LLImageGL* texture, bool for_rendering, bool forceBind, S32 usename)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return false;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        LLRender::sBackend->bindLLImageGL(texture);
+        LLRender::sBackend->setTextureAddressMode(texture ? (U32)texture->getAddressMode() : (U32)TAM_CLAMP);
+        mCurrTexType = TT_TEXTURE;
+        return texture != nullptr;
+    } // </Prestige>
     stop_glerror();
     if (mIndex < 0) return false;
 
@@ -330,6 +366,7 @@ bool LLTexUnit::bind(LLImageGL* texture, bool for_rendering, bool forceBind, S32
 
 bool LLTexUnit::bind(LLCubeMap* cubeMap)
 {
+    if (LLRender::sBackend) return false; // <Prestige/> cube maps are drawn by the Vulkan world renderer
     if (mIndex < 0) return false;
 
     gGL.flush();
@@ -370,6 +407,7 @@ bool LLTexUnit::bind(LLCubeMap* cubeMap)
 // LLRenderTarget is unavailible on the mapserver since it uses FBOs.
 bool LLTexUnit::bind(LLRenderTarget* renderTarget, bool bindDepth)
 {
+    if (LLRender::sBackend) return false; // <Prestige/> GL render targets don't exist under the Vulkan backend
     if (mIndex < 0) return false;
 
     gGL.flush();
@@ -390,6 +428,7 @@ bool LLTexUnit::bind(LLRenderTarget* renderTarget, bool bindDepth)
 
 bool LLTexUnit::bindManual(eTextureType type, U32 texture, bool hasMips)
 {
+    if (LLRender::sBackend) return false; // <Prestige/> raw GL texture names don't exist under the Vulkan backend
     if (mIndex < 0)
     {
         return false;
@@ -410,6 +449,14 @@ bool LLTexUnit::bindManual(eTextureType type, U32 texture, bool hasMips)
 
 void LLTexUnit::unbind(eTextureType type)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        LLRender::sBackend->unbindTexture();
+        mCurrTexture = 0;
+        return;
+    } // </Prestige>
     stop_glerror();
 
     if (mIndex < 0) return;
@@ -438,6 +485,14 @@ void LLTexUnit::unbind(eTextureType type)
 
 void LLTexUnit::unbindFast(eTextureType type)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        LLRender::sBackend->unbindTexture();
+        mCurrTexture = 0;
+        return;
+    } // </Prestige>
     activate();
 
     // Disabled caching of binding state.
@@ -458,6 +513,13 @@ void LLTexUnit::unbindFast(eTextureType type)
 
 void LLTexUnit::setTextureAddressMode(eTextureAddressMode mode)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        LLRender::sBackend->setTextureAddressMode((U32)mode);
+        return;
+    } // </Prestige>
     if (mIndex < 0 || mCurrTexture == 0) return;
 
     gGL.flush();
@@ -469,6 +531,7 @@ void LLTexUnit::setTextureAddressMode(eTextureAddressMode mode)
 
 void LLTexUnit::setTextureAddressModeFast(eTextureAddressMode mode, eTextureType tex_type)
 {
+    if (LLRender::sBackend) { LLRender::sBackend->setTextureAddressMode((U32)mode); return; } // <Prestige/>
     glTexParameteri(sGLTextureType[tex_type], GL_TEXTURE_WRAP_S, sGLAddressMode[mode]);
     glTexParameteri(sGLTextureType[tex_type], GL_TEXTURE_WRAP_T, sGLAddressMode[mode]);
     if (tex_type == TT_CUBE_MAP || tex_type == TT_CUBE_MAP_ARRAY || tex_type == TT_TEXTURE_3D)
@@ -479,6 +542,13 @@ void LLTexUnit::setTextureAddressModeFast(eTextureAddressMode mode, eTextureType
 
 void LLTexUnit::setTextureFilteringOption(LLTexUnit::eTextureFilterOptions option)
 {
+    if (LLRender::sBackend) // <Prestige>
+    {
+        if (mIndex < 0) return;
+        LLRender::sBackend->setActiveTextureUnit((U32)mIndex);
+        LLRender::sBackend->setTextureFilter(option == TFO_POINT ? 0u : 1u);
+        return;
+    } // </Prestige>
     if (mIndex < 0 || mCurrTexture == 0 || mCurrTexType == LLTexUnit::TT_MULTISAMPLE_TEXTURE) return;
 
     gGL.flush();
@@ -488,6 +558,7 @@ void LLTexUnit::setTextureFilteringOption(LLTexUnit::eTextureFilterOptions optio
 
 void LLTexUnit::setTextureFilteringOptionFast(LLTexUnit::eTextureFilterOptions option, eTextureType tex_type)
 {
+    if (LLRender::sBackend) { LLRender::sBackend->setTextureFilter(option == TFO_POINT ? 0u : 1u); return; } // <Prestige/>
     if (option == TFO_POINT)
     {
         glTexParameteri(sGLTextureType[tex_type], GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1063,6 +1134,7 @@ void LLRender::syncMatrices()
 
 void LLRender::translatef(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 {
+    if (sBackend) sBackend->translatef(x, y, z); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1073,6 +1145,7 @@ void LLRender::translatef(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 
 void LLRender::scalef(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 {
+    if (sBackend) sBackend->scalef(x, y, z); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1083,6 +1156,7 @@ void LLRender::scalef(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 
 void LLRender::ortho(F32 left, F32 right, F32 bottom, F32 top, F32 zNear, F32 zFar)
 {
+    if (sBackend) sBackend->ortho(left, right, bottom, top, zNear, zFar); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1093,6 +1167,7 @@ void LLRender::ortho(F32 left, F32 right, F32 bottom, F32 top, F32 zNear, F32 zF
 
 void LLRender::rotatef(const GLfloat& a, const GLfloat& x, const GLfloat& y, const GLfloat& z)
 {
+    if (sBackend) sBackend->rotatef(a, x, y, z); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1103,6 +1178,7 @@ void LLRender::rotatef(const GLfloat& a, const GLfloat& x, const GLfloat& y, con
 
 void LLRender::pushMatrix()
 {
+    if (sBackend) sBackend->pushMatrix(); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1120,6 +1196,7 @@ void LLRender::pushMatrix()
 
 void LLRender::popMatrix()
 {
+    if (sBackend) sBackend->popMatrix(); // <Prestige/> (CPU matrix stack below is kept)
     flush();
     {
         if (mMatIdx[mMatrixMode] > 0)
@@ -1136,6 +1213,7 @@ void LLRender::popMatrix()
 
 void LLRender::loadMatrix(const GLfloat* m)
 {
+    if (sBackend) sBackend->loadMatrix(m); // <Prestige/> (CPU matrix stack below is kept)
     flush();
     {
         mMatrix[mMatrixMode][mMatIdx[mMatrixMode]] = glm::make_mat4((GLfloat*) m);
@@ -1145,6 +1223,7 @@ void LLRender::loadMatrix(const GLfloat* m)
 
 void LLRender::multMatrix(const GLfloat* m)
 {
+    if (sBackend) sBackend->multMatrix(m); // <Prestige/> (CPU matrix stack below is kept)
     flush();
     {
         mMatrix[mMatrixMode][mMatIdx[mMatrixMode]] *= glm::make_mat4(m);
@@ -1154,6 +1233,7 @@ void LLRender::multMatrix(const GLfloat* m)
 
 void LLRender::matrixMode(eMatrixMode mode)
 {
+    if (sBackend) sBackend->matrixMode((U32)mode); // <Prestige/> (CPU matrix stack below is kept)
     if (mode == MM_TEXTURE)
     {
         U32 tex_index = gGL.getCurrentTexUnitIndex();
@@ -1185,6 +1265,7 @@ LLRender::eMatrixMode LLRender::getMatrixMode()
 
 void LLRender::loadIdentity()
 {
+    if (sBackend) sBackend->loadIdentity(); // <Prestige/> (CPU matrix stack below is kept)
     flush();
 
     {
@@ -1295,6 +1376,13 @@ void LLRender::setColorMask(bool writeColor, bool writeAlpha)
 
 void LLRender::setColorMask(bool writeColorR, bool writeColorG, bool writeColorB, bool writeAlpha)
 {
+    if (sBackend) // <Prestige>
+    {
+        mCurrColorMask[0] = writeColorR; mCurrColorMask[1] = writeColorG;
+        mCurrColorMask[2] = writeColorB; mCurrColorMask[3] = writeAlpha;
+        sBackend->setColorMask(writeColorR, writeColorG, writeColorB, writeAlpha);
+        return;
+    } // </Prestige>
     flush();
 
     if (mCurrColorMask[0] != writeColorR ||
@@ -1316,6 +1404,7 @@ void LLRender::setColorMask(bool writeColorR, bool writeColorG, bool writeColorB
 
 void LLRender::setSceneBlendType(eBlendType type)
 {
+    if (sBackend) { sBackend->setSceneBlendType((U32)type); return; } // <Prestige/>
     switch (type)
     {
         case BT_ALPHA:
@@ -1347,6 +1436,13 @@ void LLRender::setSceneBlendType(eBlendType type)
 
 void LLRender::blendFunc(eBlendFactor sfactor, eBlendFactor dfactor)
 {
+    if (sBackend) // <Prestige>
+    {
+        mCurrBlendColorSFactor = mCurrBlendAlphaSFactor = sfactor;
+        mCurrBlendColorDFactor = mCurrBlendAlphaDFactor = dfactor;
+        sBackend->blendFunc((U32)sfactor, (U32)dfactor);
+        return;
+    } // </Prestige>
     llassert(sfactor < BF_UNDEF);
     llassert(dfactor < BF_UNDEF);
     if (mCurrBlendColorSFactor != sfactor || mCurrBlendColorDFactor != dfactor ||
@@ -1364,6 +1460,13 @@ void LLRender::blendFunc(eBlendFactor sfactor, eBlendFactor dfactor)
 void LLRender::blendFunc(eBlendFactor color_sfactor, eBlendFactor color_dfactor,
              eBlendFactor alpha_sfactor, eBlendFactor alpha_dfactor)
 {
+    if (sBackend) // <Prestige> (the backend blends colour and alpha alike, as in Slipstream)
+    {
+        mCurrBlendColorSFactor = color_sfactor; mCurrBlendAlphaSFactor = alpha_sfactor;
+        mCurrBlendColorDFactor = color_dfactor; mCurrBlendAlphaDFactor = alpha_dfactor;
+        sBackend->blendFunc((U32)color_sfactor, (U32)color_dfactor);
+        return;
+    } // </Prestige>
     llassert(color_sfactor < BF_UNDEF);
     llassert(color_dfactor < BF_UNDEF);
     llassert(alpha_sfactor < BF_UNDEF);
@@ -1464,6 +1567,7 @@ void LLRender::endList()
 
 void LLRender::begin(const GLuint& mode)
 {
+    if (sBackend) { mMode = mode; sBackend->begin(mode); return; } // <Prestige/>
     if (mode != mMode)
     {
         if (mMode == LLRender::LINES ||
@@ -1483,6 +1587,7 @@ void LLRender::begin(const GLuint& mode)
 
 void LLRender::end()
 {
+    if (sBackend) { sBackend->end(); return; } // <Prestige/>
     if (mCount == 0)
     {
         return;
@@ -1500,6 +1605,7 @@ void LLRender::end()
 
 void LLRender::flush()
 {
+    if (sBackend) { sBackend->flush(); return; } // <Prestige/>
     STOP_GLERROR;
     if (mCount > 0)
     {
@@ -1703,6 +1809,21 @@ void LLRender::resetStriders(S32 count)
 
 void LLRender::vertex3f(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 {
+    if (sBackend) // <Prestige> apply the UI offset/scale stacks, then forward
+    {
+        if (mUIOffset.empty())
+        {
+            sBackend->vertex3f(x, y, z);
+        }
+        else
+        {
+            LLVector4a vert(x, y, z);
+            vert.add(mUIOffset.back());
+            vert.mul(mUIScale.back());
+            sBackend->vertex3f(vert[0], vert[1], vert[2]);
+        }
+        return;
+    } // </Prestige>
     //the range of mVerticesp, mColorsp and mTexcoordsp is [0, 4095]
     if (mCount > 2048)
     { //break when buffer gets reasonably full to keep GL command buffers happy and avoid overflow below
@@ -1740,6 +1861,14 @@ void LLRender::vertex3f(const GLfloat& x, const GLfloat& y, const GLfloat& z)
 
 void LLRender::vertexBatchPreTransformed(LLVector4a* verts, S32 vert_count)
 {
+    if (sBackend) // <Prestige> positions only: the backend keeps the current colour/uv
+    {
+        for (S32 i = 0; i < vert_count; ++i)
+        {
+            sBackend->vertex3f(verts[i][0], verts[i][1], verts[i][2]);
+        }
+        return;
+    } // </Prestige>
     if (mCount + vert_count > 4094)
     {
         //  LL_WARNS() << "GL immediate mode overflow.  Some geometry not drawn." << LL_ENDL;
@@ -1761,6 +1890,15 @@ void LLRender::vertexBatchPreTransformed(LLVector4a* verts, S32 vert_count)
 
 void LLRender::vertexBatchPreTransformed(LLVector4a* verts, LLVector2* uvs, S32 vert_count)
 {
+    if (sBackend) // <Prestige>
+    {
+        for (S32 i = 0; i < vert_count; ++i)
+        {
+            sBackend->texCoord2f(uvs[i].mV[0], uvs[i].mV[1]);
+            sBackend->vertex3f(verts[i][0], verts[i][1], verts[i][2]);
+        }
+        return;
+    } // </Prestige>
     if (mCount + vert_count > 4094)
     {
         //  LL_WARNS() << "GL immediate mode overflow.  Some geometry not drawn." << LL_ENDL;
@@ -1785,6 +1923,26 @@ void LLRender::vertexBatchPreTransformed(LLVector4a* verts, LLVector2* uvs, S32 
 
 void LLRender::vertexBatchPreTransformed(LLVector4a* verts, LLVector2* uvs, LLColor4U* colors, S32 vert_count)
 {
+    if (sBackend) // <Prestige> the call LLFontGL uses for glyph quads: pack into the backend's flat arrays
+    {
+        std::vector<F32> pos((size_t)vert_count * 3);
+        std::vector<F32> uv((size_t)vert_count * 2);
+        std::vector<U8>  col((size_t)vert_count * 4);
+        for (S32 i = 0; i < vert_count; ++i)
+        {
+            pos[i * 3 + 0] = verts[i][0];
+            pos[i * 3 + 1] = verts[i][1];
+            pos[i * 3 + 2] = verts[i][2];
+            uv[i * 2 + 0] = uvs[i].mV[0];
+            uv[i * 2 + 1] = uvs[i].mV[1];
+            col[i * 4 + 0] = colors[i].mV[0];
+            col[i * 4 + 1] = colors[i].mV[1];
+            col[i * 4 + 2] = colors[i].mV[2];
+            col[i * 4 + 3] = colors[i].mV[3];
+        }
+        sBackend->vertexBatchPreTransformed(pos.data(), uv.data(), col.data(), vert_count);
+        return;
+    } // </Prestige>
     if (mCount + vert_count > 4094)
     {
         //  LL_WARNS() << "GL immediate mode overflow.  Some geometry not drawn." << LL_ENDL;
@@ -1830,6 +1988,7 @@ void LLRender::vertex3fv(const GLfloat* v)
 
 void LLRender::texCoord2f(const GLfloat& x, const GLfloat& y)
 {
+    if (sBackend) { sBackend->texCoord2f(x, y); return; } // <Prestige/>
     mTexcoordsp[mCount] = LLVector2(x,y);
 }
 
@@ -1845,6 +2004,7 @@ void LLRender::texCoord2fv(const GLfloat* tc)
 
 void LLRender::color4ub(const GLubyte& r, const GLubyte& g, const GLubyte& b, const GLubyte& a)
 {
+    if (sBackend) { sBackend->color4ub(r, g, b, a); return; } // <Prestige/>
     if (!LLGLSLShader::sCurBoundShaderPtr || LLGLSLShader::sCurBoundShaderPtr->mAttributeMask & LLVertexBuffer::MAP_COLOR)
     {
         mColorsp[mCount] = LLColor4U(r,g,b,a);
@@ -1861,6 +2021,7 @@ void LLRender::color4ubv(const GLubyte* c)
 
 void LLRender::color4f(const GLfloat& r, const GLfloat& g, const GLfloat& b, const GLfloat& a)
 {
+    if (sBackend) { sBackend->color4f(r, g, b, a); return; } // <Prestige/>
     color4ub((GLubyte) (llclamp(r, 0.f, 1.f)*255),
         (GLubyte) (llclamp(g, 0.f, 1.f)*255),
         (GLubyte) (llclamp(b, 0.f, 1.f)*255),
@@ -1884,6 +2045,7 @@ void LLRender::color3fv(const GLfloat* c)
 
 void LLRender::diffuseColor3f(F32 r, F32 g, F32 b)
 {
+    if (sBackend) { sBackend->color4f(r, g, b, 1.f); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1895,6 +2057,7 @@ void LLRender::diffuseColor3f(F32 r, F32 g, F32 b)
 
 void LLRender::diffuseColor3fv(const F32* c)
 {
+    if (sBackend) { sBackend->color4f(c[0], c[1], c[2], 1.f); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1906,6 +2069,7 @@ void LLRender::diffuseColor3fv(const F32* c)
 
 void LLRender::diffuseColor4f(F32 r, F32 g, F32 b, F32 a)
 {
+    if (sBackend) { sBackend->color4f(r, g, b, a); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1917,6 +2081,7 @@ void LLRender::diffuseColor4f(F32 r, F32 g, F32 b, F32 a)
 
 void LLRender::diffuseColor4fv(const F32* c)
 {
+    if (sBackend) { sBackend->color4f(c[0], c[1], c[2], c[3]); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1928,6 +2093,7 @@ void LLRender::diffuseColor4fv(const F32* c)
 
 void LLRender::diffuseColor4ubv(const U8* c)
 {
+    if (sBackend) { sBackend->color4ub(c[0], c[1], c[2], c[3]); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1939,6 +2105,7 @@ void LLRender::diffuseColor4ubv(const U8* c)
 
 void LLRender::diffuseColor4ub(U8 r, U8 g, U8 b, U8 a)
 {
+    if (sBackend) { sBackend->color4ub(r, g, b, a); return; } // <Prestige/> no shader uniforms under the backend
     LLGLSLShader* shader = LLGLSLShader::sCurBoundShaderPtr;
     llassert(shader != NULL);
 
@@ -1950,6 +2117,7 @@ void LLRender::diffuseColor4ub(U8 r, U8 g, U8 b, U8 a)
 
 void LLRender::setLineWidth(F32 width)
 {
+    if (sBackend) { mLineWidth = width; sBackend->setLineWidth(width); return; } // <Prestige/>
     gGL.flush();
 
     width = llclamp(width, gGLManager.mAliasedLineRange[0], gGLManager.mAliasedLineRange[1]);

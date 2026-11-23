@@ -58,8 +58,8 @@ There is also code outside the renderer:
 | # | Phase | Result | Status |
 |---|---|---|---|
 | 0 | Firestorm import, Prestige rebrand, separate build action | rebranded Firestorm builds in CI | done |
-| 1 | Vulkan toolchain + device pre-flight | `PRESTIGE_VULKAN` option, vendored Khronos headers + VMA, `ll::vulkan`; Slipstream's `vk_requirements` / `vk_compat` run at startup, GPU report in the log and in Help > About | **done in this commit** |
-| 2 | Render backend seam | `LLRenderBackend` + `LLTextureData` in Firestorm's `llrender`; `gGL` forwards when a backend is installed, OpenGL otherwise | next |
+| 1 | Vulkan toolchain + device pre-flight | `PRESTIGE_VULKAN` option, vendored Khronos headers + VMA, `ll::vulkan`; Slipstream's `vk_requirements` / `vk_compat` run at startup, GPU report in the log and in Help > About | done |
+| 2 | Render backend seam | `LLRenderBackend` in Firestorm's `llrender`: every `gGL` immediate-mode, matrix, blend, colour-mask, line-width and texture-unit call forwards to an installed backend, OpenGL otherwise (`LLTextureData` moves with phase 4) | **done** |
 | 3 | Vulkan window + swapchain | `llnativewindow` / Win32 surface beside the GL context; `vk_device`, `vk_swapchain`, `vk_vma`; clear-screen frame behind `RenderUseVulkan` | |
 | 4 | UI on Vulkan | `LLRenderVK` (`vkgfx/llrendervk`) as the backend; Firestorm's UI, fonts and floaters draw through it | |
 | 5 | World on Vulkan | `llcleanrenderervk` + the 332 world shaders; feed it from Firestorm's `LLVOVolume` / `LLFace` / avatar data instead of draw pools and the spatial partition | |
@@ -68,6 +68,24 @@ There is also code outside the renderer:
 
 Phases 3 to 6 are the bulk of the work. Each one lands as several small commits, and the
 **opengl** build stays green throughout.
+
+## Phase 2: what was ported
+
+- `indra/llrender/llrenderbackend.h`: Slipstream's backend interface. It has one Firestorm
+  addition, `bindLLImageGL()`, because Firestorm's textures are still `LLImageGL`.
+- `indra/llrender/llrender.{h,cpp}`: adds `LLRender::sBackend` / `setBackend()`, which is
+  `nullptr` by default. With a backend installed, these calls go to it instead of OpenGL:
+  - `begin`, `end`, `flush`
+  - `vertex*`, `texCoord*`, `color*` / `diffuseColor*`
+  - `vertexBatchPreTransformed` (fonts)
+  - the matrix operations. These also keep Firestorm's CPU matrix stacks, so code that reads `gGL`'s matrices still works.
+  - `setColorMask`, `blendFunc`, `setSceneBlendType`, `setLineWidth`
+  - texture units: bind, unbind, address mode, filtering
+
+  Cube maps, GL render targets and raw GL texture names don't bind under a backend.
+- No backend is installed yet, so the viewer behaves exactly as before. The Vulkan backend
+  (`LLRenderVK`) is installed in phase 4.
+- Still on OpenGL, for phase 4: `LLGLState` enables, depth and scissor scopes (`llgl.cpp`, `llglstates.h`).
 
 ## Phase 1: what was ported
 

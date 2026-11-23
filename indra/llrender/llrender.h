@@ -55,6 +55,7 @@ class LLImageGL;
 class LLRenderTarget;
 class LLTexture;
 class LLVertexBufferData;
+class LLRenderBackend; // <Prestige/> Vulkan renderer port
 
 #define LL_MATRIX_STACK_DEPTH 32
 
@@ -490,6 +491,15 @@ public:
     static U32 sUIVerts;
     static F32 sAnisotropicFilteringLevel;
     static bool sGLCoreProfile;
+
+    // <Prestige> Vulkan renderer port (phase 2). nullptr = stock Firestorm OpenGL drawing.
+    // When a backend is installed, gGL's immediate-mode drawing, matrix, blend, colour-mask,
+    // line-width and texture-unit calls go to it instead of OpenGL (the CPU-side matrix
+    // stacks are still kept, so code reading gGL's matrices keeps working).
+    static LLRenderBackend* sBackend;
+    static void setBackend(LLRenderBackend* backend);
+    static bool hasBackend() { return sBackend != nullptr; }
+    // </Prestige>
     static bool sNsightDebugSupport;
     static LLVector2 sUIGLScaleFactor;
     static bool sClassicMode; // classic sky mode active

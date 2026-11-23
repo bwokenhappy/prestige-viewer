@@ -175,6 +175,14 @@ void LLProgressView::setStartupComplete()
 {
     mStartupComplete = true;
 
+    // <Prestige> The login panel was only closed by onIdle once mFadeFromLoginTimer ran out.
+    // When startup finished first (fast login, or a login retried after an authenticator
+    // prompt) the timer was stopped below or by setVisible(false) and the panel stayed over
+    // the world for the whole session. Logged in: the login panel always goes.
+    LLPanelLogin::closePanel();
+    gIdleCallbacks.deleteFunction(onIdle, this);
+    // </Prestige>
+
     // if we are not showing a video, fade into world
     if (!mMediaCtrl->getVisible())
     {

@@ -562,20 +562,18 @@ bool LLLoginInstance::handleTOSResponse(bool accepted, const std::string& key)
     return true;
 }
 
+// <Prestige/> true once the user ticks "Remember this computer for 30 days" at the prompt
+static bool sMFASaveChosen = false;
+
 void LLLoginInstance::showMFAChallange(const std::string& message)
 {
     LLSD args(llsd::map("MESSAGE", message));
     LLSD payload;
-    if (gSavedSettings.getBOOL("RememberUser"))
-    {
-        LLNotificationsUtil::add("PromptMFATokenWithSave", args, payload,
-                                 boost::bind(&LLLoginInstance::handleMFAChallenge, this, _1, _2));
-    }
-    else
-    {
-        LLNotificationsUtil::add("PromptMFAToken", args, payload,
-                                 boost::bind(&LLLoginInstance::handleMFAChallenge, this, _1, _2));
-    }
+    // <Prestige> Always offer "Remember this computer for 30 days", not only when
+    // "Remember me" is ticked on the login screen.
+    LLNotificationsUtil::add("PromptMFATokenWithSave", args, payload,
+                             boost::bind(&LLLoginInstance::handleMFAChallenge, this, _1, _2));
+    // </Prestige>
 }
 
 bool LLLoginInstance::handleMFAChallenge(LLSD const & notif, LLSD const & response)
@@ -594,6 +592,7 @@ bool LLLoginInstance::handleMFAChallenge(LLSD const & notif, LLSD const & respon
         // Set the request data to true and retry login.
         mRequestData["params"]["token"] = token;
         mSaveMFA = response.has("ignore") ? response["ignore"].asBoolean() : false;
+        sMFASaveChosen = mSaveMFA;   // <Prestige/> the user ticked the 30-day box this session
         reconnect();
     } else {
         LL_INFOS("LLLogin") << "PromptMFAToken: no token, attemptComplete" << LL_ENDL;
@@ -608,7 +607,8 @@ void LLLoginInstance::saveMFAHash(LLSD const& response)
     std::string user_id(LLStartUp::getUserId());
 
     // Only save mfa_hash for future logins if the user wants their info remembered.
-    if (response.has("mfa_hash") && gSavedSettings.getBOOL("RememberUser") && LLLoginInstance::getInstance()->saveMFA())
+    // <Prestige/> also saved when the user ticked the 30-day box without "Remember me"
+    if (response.has("mfa_hash") && (gSavedSettings.getBOOL("RememberUser") || sMFASaveChosen) && LLLoginInstance::getInstance()->saveMFA())
     {
         gSecAPIHandler->addToProtectedMap("mfa_hash", grid, user_id, response["mfa_hash"]);
     }

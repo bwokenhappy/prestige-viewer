@@ -18,7 +18,7 @@
     <!-- Primary: blue. Bar = menu/status/title bars; Blue = text, outlines, glyphs; BlueDeep = fills under light text -->
     <color name="SlipstreamBar" value="0.149 0.153 0.169 1" />
     <color name="SlipstreamBlue" value="0.949 0.549 0.157 1" />
-    <color name="SlipstreamBlueDeep" value="0.267 0.180 0.110 1" />
+    <color name="SlipstreamBlueDeep" value="0.212 0.220 0.247 1" />
     <!-- Secondary: purple. Purple = text/icon accents; PurpleDeep = fills under white text -->
     <color name="SlipstreamPurple" value="0.976 0.659 0.341 1" />
     <color name="SlipstreamPurpleDeep" value="0.698 0.380 0.098 1" />

@@ -13,14 +13,20 @@
 
 #include "slfloaterquickprefs.h"
 
+#include <algorithm>
 #include <set>
+#include <vector>
 
 #include "llcombobox.h"
+#include "lldir.h"
+#include "lldiriterator.h"
 #include "llenvironment.h"
 #include "llinventoryfunctions.h"
 #include "llinventorymodel.h"
 #include "llinventorysettings.h"
+#include "llsettingsvo.h"
 #include "lltrans.h"
+#include "lluri.h"
 #include "llviewercontrol.h"
 #include "llvoavatar.h"
 #if defined(LL_HAS_CLEAN_PIPELINE)
@@ -30,6 +36,61 @@
 namespace
 {
     const std::string REGION_DEFAULT("region");
+    // <Prestige> combo values of the bundled Windlight presets: prefix + display name
+    const std::string BUNDLED_SKY("wlsky:");
+    const std::string BUNDLED_WATER("wlwater:");
+
+    std::string bundledDir(const std::string& subdir)
+    {
+        return gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", subdir);
+    }
+
+    // Windlight presets in app_settings/windlight/<subdir>: display name -> escaped file base
+    std::map<std::string, std::string> scanBundled(const std::string& subdir)
+    {
+        std::map<std::string, std::string> found;
+        const std::string dir = bundledDir(subdir);
+        if (!gDirUtilp->fileExists(dir))
+        {
+            return found;
+        }
+        LLDirIterator iter(dir, "*.xml");
+        std::string file;
+        while (iter.next(file))
+        {
+            const std::string base = gDirUtilp->getBaseFileName(file, true);
+            if (!base.empty())
+            {
+                found.emplace(LLURI::unescape(base), base);
+            }
+        }
+        return found;
+    }
+
+    // After the inventory presets: a separator, then every bundled preset, alphabetically
+    void addBundled(LLComboBox* combo, const std::map<std::string, std::string>& bundled, const std::string& prefix)
+    {
+        if (bundled.empty())
+        {
+            return;
+        }
+        std::vector<std::string> names;
+        names.reserve(bundled.size());
+        for (const auto& entry : bundled)
+        {
+            names.push_back(entry.first);
+        }
+        std::sort(names.begin(), names.end(), [](const std::string& a, const std::string& b)
+            {
+                return LLStringUtil::compareDict(a, b) < 0;
+            });
+        combo->addSeparator();
+        for (const std::string& name : names)
+        {
+            combo->add(name, LLSD(prefix + name));
+        }
+    }
+    // </Prestige>
 
     // Environment settings in the inventory and the Library, each asset once, not the ones
     // listed on the Marketplace
@@ -73,13 +134,22 @@ namespace
 
     // The local environment's sky / water if it is one of the listed presets; "Region default"
     // without a local environment; for any other local one, nothing selected and other_label
-    void selectPreset(LLComboBox* combo, bool local, const LLUUID& asset_id, const std::string& other_label)
+    void selectPreset(LLComboBox* combo, bool local, const LLUUID& asset_id, const std::string& bundled_value,
+                      const std::string& other_label)
     {
         if (!local)
         {
             combo->selectByValue(LLSD(REGION_DEFAULT));
         }
-        else if (asset_id.isNull() || !combo->selectByValue(LLSD(asset_id)))
+        else if (asset_id.notNull() && combo->selectByValue(LLSD(asset_id)))
+        {
+            // an inventory / Library preset
+        }
+        else if (asset_id.isNull() && !bundled_value.empty() && combo->selectByValue(LLSD(bundled_value)))
+        {
+            // <Prestige/> a bundled Windlight preset (built locally, so it has no asset)
+        }
+        else
         {
             combo->clear();
             combo->setLabel(other_label);
@@ -196,6 +266,16 @@ void SLFloaterQuickPrefs::loadEnvironmentPresets()
     const std::string region_label = getString("region_default");
     fillPresets(mSkyCombo, skies, region_label);
     fillPresets(mWaterCombo, waters, region_label);
+    // <Prestige> bundled Windlight presets (scanned once; they ship with the viewer)
+    if (!mBundledScanned)
+    {
+        mBundledSkies = scanBundled("skies");
+        mBundledWaters = scanBundled("water");
+        mBundledScanned = true;
+    }
+    addBundled(mSkyCombo, mBundledSkies, BUNDLED_SKY);
+    addBundled(mWaterCombo, mBundledWaters, BUNDLED_WATER);
+    // </Prestige>
     selectEnvironmentPresets();
 }
 
@@ -206,8 +286,10 @@ void SLFloaterQuickPrefs::selectEnvironmentPresets()
     LLSettingsSky::ptr_t sky = local ? env.getEnvironmentFixedSky(LLEnvironment::ENV_LOCAL) : LLSettingsSky::ptr_t();
     LLSettingsWater::ptr_t water = local ? env.getEnvironmentFixedWater(LLEnvironment::ENV_LOCAL) : LLSettingsWater::ptr_t();
     const std::string other_label = getString("other_environment");
-    selectPreset(mSkyCombo, local, sky ? sky->getAssetId() : LLUUID::null, other_label);
-    selectPreset(mWaterCombo, local, water ? water->getAssetId() : LLUUID::null, other_label);
+    selectPreset(mSkyCombo, local, sky ? sky->getAssetId() : LLUUID::null,
+                 sky ? BUNDLED_SKY + sky->getName() : std::string(), other_label);
+    selectPreset(mWaterCombo, local, water ? water->getAssetId() : LLUUID::null,
+                 water ? BUNDLED_WATER + water->getName() : std::string(), other_label);
 }
 
 void SLFloaterQuickPrefs::onEnvironmentCommit(LLComboBox* combo)
@@ -226,5 +308,49 @@ void SLFloaterQuickPrefs::onEnvironmentCommit(LLComboBox* combo)
         // showing), a water the local sky.
         env.setEnvironment(LLEnvironment::ENV_LOCAL, value.asUUID());
         env.setSelectedEnvironment(LLEnvironment::ENV_LOCAL);
+    }
+    else if (value.isString())
+    {
+        // <Prestige> A bundled Windlight preset, read from app_settings/windlight and applied
+        // as the local environment. As with the inventory presets, a sky keeps the water
+        // showing and a water keeps the sky.
+        const std::string selected = value.asString();
+        const bool is_sky = selected.rfind(BUNDLED_SKY, 0) == 0;
+        const bool is_water = !is_sky && selected.rfind(BUNDLED_WATER, 0) == 0;
+        if (!is_sky && !is_water)
+        {
+            return;
+        }
+        const std::string name = selected.substr((is_sky ? BUNDLED_SKY : BUNDLED_WATER).size());
+        const std::map<std::string, std::string>& bundled = is_sky ? mBundledSkies : mBundledWaters;
+        const auto it = bundled.find(name);
+        if (it == bundled.end())
+        {
+            return;
+        }
+        LLSD messages;
+        if (is_sky)
+        {
+            LLSettingsSky::ptr_t sky = LLSettingsVOSky::buildFromLegacyPresetFile(it->second, bundledDir("skies"), messages);
+            if (!sky)
+            {
+                LL_WARNS("Environment") << "Could not load Windlight sky \"" << name << "\"" << LL_ENDL;
+                return;
+            }
+            env.setEnvironment(LLEnvironment::ENV_LOCAL, sky);
+        }
+        else
+        {
+            LLSettingsWater::ptr_t water = LLSettingsVOWater::buildFromLegacyPresetFile(it->second, bundledDir("water"), messages);
+            if (!water)
+            {
+                LL_WARNS("Environment") << "Could not load Windlight water \"" << name << "\"" << LL_ENDL;
+                return;
+            }
+            env.setEnvironment(LLEnvironment::ENV_LOCAL, water);
+        }
+        env.setSelectedEnvironment(LLEnvironment::ENV_LOCAL);
+        env.updateEnvironment();
+        // </Prestige>
     }
 }

@@ -335,7 +335,7 @@
      left_pad="0"
      top_delta="-2"
      name="qp_sky"
-     tool_tip="Show this sky, for you only (from your inventory and the Library). Region default goes back to the region's environment, sky and water."
+     tool_tip="Show this sky, for you only: from your inventory and the Library, or one of the hundreds of Windlight presets that come with Prestige (listed after them). Region default goes back to the region's environment, sky and water."
      width="210"/>
   <text
      follows="left|top"
@@ -353,7 +353,7 @@
      left_pad="0"
      top_delta="-2"
      name="qp_water"
-     tool_tip="Show this water, for you only (from your inventory and the Library). Region default goes back to the region's environment, sky and water."
+     tool_tip="Show this water, for you only: from your inventory and the Library, or one of the hundreds of Windlight presets that come with Prestige (listed after them). Region default goes back to the region's environment, sky and water."
      width="210"/>
   <check_box
      control_name="EnvironmentPersistAcrossLogin"

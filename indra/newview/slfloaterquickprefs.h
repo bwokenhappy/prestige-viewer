@@ -26,6 +26,7 @@
 #ifndef SL_FLOATERQUICKPREFS_H
 #define SL_FLOATERQUICKPREFS_H
 
+#include <map>
 #include <string>
 
 #include "llfloaterhoverheight.h"
@@ -53,6 +54,12 @@ private:
 
     LLComboBox* mSkyCombo = nullptr;
     LLComboBox* mWaterCombo = nullptr;
+    // <Prestige> Windlight presets shipped in app_settings/windlight (skies / water), listed
+    // after the inventory ones: display name -> file name without ".xml" (URL-escaped)
+    std::map<std::string, std::string> mBundledSkies;
+    std::map<std::string, std::string> mBundledWaters;
+    bool mBundledScanned = false;
+    // </Prestige>
     LLComboBox* mUpscaleCombo = nullptr;
     std::string mUpscaleToolTip;
     boost::signals2::scoped_connection mMaxAvatarsConn;

@@ -277,6 +277,16 @@
       </menu_item_call>
 
         <menu_item_check
+         label="Pose stand"
+         name="Pose stand">
+            <menu_item_check.on_check
+             function="Floater.Visible"
+             parameter="prestige_pose_stand" />
+            <menu_item_check.on_click
+             function="Floater.Toggle"
+             parameter="prestige_pose_stand" />
+        </menu_item_check>
+        <menu_item_check
          label="Pose Studio"
          name="Poser"
          use_mac_ctrl="true">

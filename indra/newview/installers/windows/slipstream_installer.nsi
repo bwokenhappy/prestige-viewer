@@ -128,6 +128,17 @@ Section /o "Open secondlife:// links with ${APP_NAME}" SecSLURL
     !insertmacro RegisterScheme "x-grid-location-info"
 SectionEnd
 
+; Prestige: Windows keeps old icons in its icon cache, so a pinned taskbar button or
+; shortcut can keep showing an earlier build's logo. Tell the shell the icons changed
+; and refresh the cache so the current P artwork shows straight away.
+Function .onInstSuccess
+    System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0x1000, p 0, p 0)'
+    ${If} ${FileExists} "$SYSDIR\ie4uinit.exe"
+        nsExec::Exec '"$SYSDIR\ie4uinit.exe" -show'
+        Pop $0
+    ${EndIf}
+FunctionEnd
+
 ; Only remove a scheme handler that still points at this install (another viewer may have
 ; taken it over since).
 !macro UnregisterScheme scheme

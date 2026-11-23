@@ -277,7 +277,7 @@
      reference="AlchemyText" />
     <color
      name="AgentChatColor"
-     value="0.8705882352941176 0.8705882352941176 0.8705882352941176 1" />
+     value="0.96 0.96 0.96 1" />
     <color
      name="AlertBoxColor"
      reference="SlipstreamRaised" />
@@ -972,7 +972,7 @@
      reference="AlchemyText" />
     <color
      name="UserChatColor"
-     value="0.601563 0.601563 0.601563 1" />
+     value="1 1 1 1" />
     <color
      name="llOwnerSayChatColor"
      value="0.957 0.745 0.286 1" />

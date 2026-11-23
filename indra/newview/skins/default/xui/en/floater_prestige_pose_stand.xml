@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater
+ positioning="cascading"
+ save_rect="true"
+ can_resize="false"
+ height="96"
+ width="280"
+ layout="topleft"
+ name="prestige_pose_stand"
+ single_instance="true"
+ title="Pose stand">
+    <text
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left="10"
+     name="pose_label"
+     top="26"
+     width="40">
+        Pose:
+    </text>
+    <combo_box
+     follows="left|top|right"
+     height="22"
+     layout="topleft"
+     left_pad="2"
+     name="pose_combo"
+     tool_tip="The pose to hold while this window is open. Everyone around you sees it."
+     top="22"
+     width="160">
+        <combo_box.item label="Arms out (fitting)" name="arms_out" value="arms_out" />
+        <combo_box.item label="Standing 1" name="stand_1" value="stand_1" />
+        <combo_box.item label="Standing 2" name="stand_2" value="stand_2" />
+        <combo_box.item label="Standing 3" name="stand_3" value="stand_3" />
+        <combo_box.item label="Standing 4" name="stand_4" value="stand_4" />
+    </combo_box>
+    <button
+     follows="top|right"
+     height="22"
+     image_overlay="Arrow_Left_Off"
+     layout="topleft"
+     left_pad="4"
+     name="prev_btn"
+     tool_tip="Previous pose"
+     top_delta="0"
+     width="28" />
+    <button
+     follows="top|right"
+     height="22"
+     image_overlay="Arrow_Right_Off"
+     layout="topleft"
+     left_pad="2"
+     name="next_btn"
+     tool_tip="Next pose"
+     top_delta="0"
+     width="28" />
+    <button
+     follows="left|top"
+     height="22"
+     label="Adjust height..."
+     layout="topleft"
+     left="10"
+     name="height_btn"
+     tool_tip="Raise or lower your avatar (hover height)"
+     top_pad="12"
+     width="120" />
+    <button
+     follows="top|right"
+     height="22"
+     label="Done"
+     layout="topleft"
+     left="190"
+     name="done_btn"
+     tool_tip="Stop posing (your AO comes back on if it was on)"
+     top_delta="0"
+     width="80" />
+</floater>

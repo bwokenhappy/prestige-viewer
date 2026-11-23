@@ -325,6 +325,7 @@ bool SLFloaterAO::postBuild()
         });
     getChild<LLButton>("prev_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().nextAnim(-1); });
     getChild<LLButton>("next_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().nextAnim(1); });
+    getChild<LLButton>("reset_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().reset(); });
     getChild<LLButton>("edit_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { LLFloaterReg::showInstance("sl_ao_editor"); });
     getChild<LLButton>("ignore_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().ignoreTakeoverAnim(); });
     getChild<LLButton>("resume_scripted_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().resumeFromScriptedAO(); });

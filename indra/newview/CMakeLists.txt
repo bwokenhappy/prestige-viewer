@@ -204,6 +204,7 @@ set(viewer_SOURCE_FILES
     slcurvemodel.cpp
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
+    prestigefloaterposestand.cpp
     slfloaterao.cpp
     slfloaterfirstrun.cpp
     slfloatergesturesets.cpp
@@ -1230,6 +1231,7 @@ set(viewer_HEADER_FILES
     slcurvemodel.h
     sldaycyclelandmarks.h
     sldiscordpresence.h
+    prestigefloaterposestand.h
     slfloaterao.h
     slfloaterfirstrun.h
     slfloatergesturesets.h

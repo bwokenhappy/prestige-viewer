@@ -27,7 +27,17 @@
      name="set_combo"
      tool_tip="Active AO set (/ao set &lt;name&gt;)"
      top="21"
-     width="182" />
+     width="150" />
+    <button
+     follows="top|right"
+     height="22"
+     image_overlay="Refresh_Off"
+     layout="topleft"
+     left_pad="4"
+     name="reset_btn"
+     tool_tip="Refresh / reset the AO: stops stuck animations, reloads your AO sets and starts the right one again"
+     top_delta="0"
+     width="28" />
     <button
      follows="top|right"
      height="22"

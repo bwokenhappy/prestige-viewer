@@ -875,6 +875,13 @@ void LLFloaterIMSessionTab::refreshConversation()
         if (participants_uuids.size() != 0)
         {
             LLAvatarActions::buildResidentsString(participants_uuids, session_name);
+            if (is_ad_hoc)
+            {
+                // Prestige: label conferences so they are not mistaken for one-to-one IMs
+                LLStringUtil::format_map_t args;
+                args["[NAMES]"] = session_name;
+                session_name = LLTrans::getString("prestige-conference-label", args);
+            }
         }
         else
         {

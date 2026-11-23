@@ -75,6 +75,9 @@ public:
     bool isEnabled() const;
     void setEnabled(bool enabled);
     void toggle() { setEnabled(!isEnabled()); }
+    // Prestige: stop everything the AO is playing, restore the default animations,
+    // re-read the AO sets from inventory and start again from the current state.
+    void reset();
 
     bool isUserPaused() const { return mUserPaused; }
     void setUserPaused(bool paused);

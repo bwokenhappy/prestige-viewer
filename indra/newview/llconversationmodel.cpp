@@ -339,6 +339,13 @@ void LLConversationItemSession::updateName(LLConversationItemParticipant* partic
     {
         std::string new_session_name;
         LLAvatarActions::buildResidentsString(temp_uuids, new_session_name);
+        if (conversation_type == CONV_SESSION_AD_HOC)
+        {
+            // Prestige: say it is a conference so it is not mistaken for a one-to-one IM
+            LLStringUtil::format_map_t args;
+            args["[NAMES]"] = new_session_name;
+            new_session_name = LLTrans::getString("prestige-conference-label", args);
+        }
         renameItem(new_session_name);
         postEvent("update_session", this, NULL);
     }

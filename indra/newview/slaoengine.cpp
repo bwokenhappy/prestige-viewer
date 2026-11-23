@@ -316,6 +316,19 @@ void SLAOEngine::setEnabled(bool enabled)
     notifyChanged();
 }
 
+void SLAOEngine::reset()
+{
+    if (!mInitialized)
+    {
+        return;
+    }
+    stopAll(true);
+    mUserPaused = false;
+    SLAOSets::instance().requestRescan();
+    update();
+    notifyChanged();
+}
+
 void SLAOEngine::setUserPaused(bool paused)
 {
     if (mUserPaused != paused)

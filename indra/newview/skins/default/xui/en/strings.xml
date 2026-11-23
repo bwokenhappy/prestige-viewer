@@ -3916,8 +3916,9 @@ Please reinstall viewer from https://github.com/prestige-viewer/prestige-viewer/
     Connecting...
   </string>
   <string name="conference-title">
-    Multi-person chat
+    Conference
   </string>
+  <string name="prestige-conference-label">Conference: [NAMES]</string>
   <string name="conference-title-incoming">
     Conference with [AGENT_NAME]
   </string>

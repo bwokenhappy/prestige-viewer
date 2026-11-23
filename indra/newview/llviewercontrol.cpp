@@ -77,6 +77,7 @@
 #include "llspellcheck.h"
 #include "llslurl.h"
 #include "llstartup.h"
+#include "llfloaterreg.h"
 #include "llperfstats.h"
 #include "llvkautotune.h"   // #422
 // [RLVa:KB] - Checked: 2015-12-27 (RLVa-1.5.0)
@@ -242,6 +243,20 @@ static bool handleGlowControlsChanged(const LLSD& newvalue)
     (void)newvalue;
     return true;
 }
+
+// <Prestige> the chat-bar tick box on the toolbar: show / hide the chat bar right away
+static bool handlePrestigeChatBarVisible(const LLSD& newvalue)
+{
+    if (LLStartUp::getStartupState() >= STATE_STARTED)
+    {
+        if (LLFloater* chat_bar = LLFloaterReg::getInstance("chatbar"))
+        {
+            chat_bar->setVisible(newvalue.asBoolean());
+        }
+    }
+    return true;
+}
+// </Prestige>
 
 static bool handleRenderGlowChanged(const LLSD& newvalue)
 {
@@ -801,6 +816,7 @@ void settings_setup_listeners()
     LLPipeline::sRenderGlow = gSavedSettings.getBOOL("RenderGlow") ||
                               gSavedSettings.getBOOL("RenderClassicGlow");
     setting_setup_signal_listener(gSavedSettings, "FirstPersonAvatarVisible", handleRenderAvatarMouselookChanged);
+    setting_setup_signal_listener(gSavedSettings, "PrestigeChatBarAlwaysVisible", handlePrestigeChatBarVisible); // <Prestige/>
     // Motion blur preset (Preferences > Advanced): writes the underlying RenderVKMotionBlur* settings.
     setting_setup_signal_listener(gSavedSettings, "SLMotionBlurPreset", [](const LLSD& newvalue)
     {

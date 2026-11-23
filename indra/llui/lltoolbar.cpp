@@ -28,6 +28,7 @@
 #include "linden_common.h"
 
 #include "lltoolbar.h"
+#include "llcheckboxctrl.h"
 
 #include "llcommandmanager.h"
 #include "llmenugl.h"
@@ -1088,6 +1089,17 @@ void LLToolBar::refreshCommandState()
         {
             const bool button_command_running = (*btn->mIsRunningSignal)(btn, command->isRunningParameters());
             btn->setToggleState(button_command_running);
+            // <Prestige/> the AO tick box follows the AO state
+            if (command->name() == "ao")
+            {
+                if (LLCheckBoxCtrl* tick = btn->findChild<LLCheckBoxCtrl>("toolbar_tick", false))
+                {
+                    if (tick->get() != button_command_running)
+                    {
+                        tick->set(button_command_running);
+                    }
+                }
+            }
         }
     }
 }
@@ -1179,6 +1191,47 @@ LLToolBarButton* LLToolBar::createButton(const LLCommandId& id)
 
             button->mIsRunningSignal->connect(isRunningCB);
         }
+
+        // <Prestige> Firestorm-style tick box in the corner of some toolbar buttons: the tick
+        // switches the feature on / off, a click on the rest of the button opens its window.
+        //   ao    -> animation overrider on / off
+        //   speak -> voice chat on / off
+        //   chat  -> the nearby chat bar at the bottom left shown / hidden
+        const std::string& tick_command = commandp->name();
+        if (tick_command == "ao" || tick_command == "speak" || tick_command == "chat")
+        {
+            const S32 TICK_SIZE = 14;
+            const LLRect button_rect = button->getRect();
+            LLCheckBoxCtrl::Params tick_p;
+            tick_p.name("toolbar_tick");
+            tick_p.rect(LLRect(button_rect.getWidth() - TICK_SIZE - 1, button_rect.getHeight() - 1,
+                               button_rect.getWidth() - 1, button_rect.getHeight() - TICK_SIZE - 1));
+            tick_p.follows.flags(FOLLOWS_RIGHT | FOLLOWS_TOP);
+            if (tick_command == "speak")
+            {
+                tick_p.control_name("EnableVoiceChat");
+                tick_p.tool_tip("Voice chat on / off");
+            }
+            else if (tick_command == "chat")
+            {
+                tick_p.control_name("PrestigeChatBarAlwaysVisible");
+                tick_p.tool_tip("Show / hide the chat bar at the bottom left");
+            }
+            else
+            {
+                tick_p.tool_tip("Animation overrider on / off");
+            }
+            LLCheckBoxCtrl* tick = LLUICtrlFactory::create<LLCheckBoxCtrl>(tick_p);
+            if (tick_command == "ao")
+            {
+                // state comes from the command's is-running function (updateLayoutAsNeeded)
+                LLUICtrl::CommitCallbackParam toggle_param;
+                toggle_param.function_name = "SLAO.Toggle";
+                tick->setCommitCallback(initCommitCallback(toggle_param));
+            }
+            button->addChild(tick);
+        }
+        // </Prestige>
     }
 
     // Drag and drop behavior must work also if provided in the Toybox and, potentially, any read-only toolbar
@@ -1360,6 +1413,15 @@ LLToolBarButton::~LLToolBarButton()
 
 bool LLToolBarButton::handleMouseDown(S32 x, S32 y, MASK mask)
 {
+    // <Prestige> a click on the tick box goes to the tick box, not the button
+    if (LLView* tick = findChildView("toolbar_tick", false))
+    {
+        if (tick->getVisible() && tick->getRect().pointInRect(x, y))
+        {
+            return tick->handleMouseDown(x - tick->getRect().mLeft, y - tick->getRect().mBottom, mask);
+        }
+    }
+    // </Prestige>
     mMouseDownX = x;
     mMouseDownY = y;
     return LLButton::handleMouseDown(x, y, mask);

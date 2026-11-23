@@ -973,6 +973,14 @@ bool LLToolPie::walkToClickedLocation()
 
     if (avatar_object && ((LLVOAvatar*)avatar_object)->isSelf())
     {
+        // Prestige: clicking (or double-clicking) your own avatar leaves it where it is,
+        // instead of walking it a few metres forward (PrestigeClickSelfStays).
+        static LLCachedControl<bool> click_self_stays(gSavedSettings, "PrestigeClickSelfStays", true);
+        if (click_self_stays)
+        {
+            mPick = saved_pick;
+            return false;
+        }
         const F64 SELF_CLICK_WALK_DISTANCE = 3.0;
         // pretend we picked some point a bit in front of avatar
         mPick.mPosGlobal = gAgent.getPositionGlobal() + LLVector3d(LLViewerCamera::instance().getAtAxis()) * SELF_CLICK_WALK_DISTANCE;

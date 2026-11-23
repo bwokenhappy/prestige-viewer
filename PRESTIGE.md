@@ -91,13 +91,17 @@ Slipstream, and so Prestige, is built on Linux. The Windows version is cross-com
 
 Linux note: the Linux binary and launcher keep their upstream names (`slipstream-bin`, `packaged/slipstream`) so Slipstream's Linux packaging scripts keep working. The deb/AUR/Flatpak scripts still say Slipstream and need rebranding before any Linux release.
 
-### Getting the source from `prestige-slipstream.bundle`
+### Getting the source (inside WSL)
+You need `Slipstream-main.zip` (the snapshot Prestige is based on) and the `prestige-slipstream-patches` folder. On Windows, copy both somewhere like `C:\Users\<you>\Downloads`; WSL sees that as `/mnt/c/Users/<you>/Downloads`.
 ```sh
-git clone prestige-slipstream.bundle prestige-viewer
-cd prestige-viewer
-git checkout prestige
+cd ~
+unzip /mnt/c/Users/<you>/Downloads/Slipstream-main.zip      # creates ~/slipstream
+mv slipstream prestige-viewer && cd prestige-viewer
+git init -b main && git add -A && git commit -m "Slipstream main snapshot"
+git checkout -b prestige
+git am --keep-cr --whitespace=nowarn /mnt/c/Users/<you>/Downloads/prestige-slipstream-patches/*.patch
 ```
-The bundle contains the full Slipstream snapshot and the Prestige commits. To publish it, create an empty repository (for example on GitHub) and push the `main` and `prestige` branches.
+To publish it, create an empty repository (for example on GitHub) and push both branches.
 
 ### First-run test checklist
 1. The login screen shows the Prestige splash, the P icon in the taskbar, and the charcoal-and-orange skin.

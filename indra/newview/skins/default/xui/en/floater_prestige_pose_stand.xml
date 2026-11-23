@@ -25,9 +25,11 @@
      layout="topleft"
      left_pad="2"
      name="pose_combo"
-     tool_tip="The pose to hold while this window is open. Everyone around you sees it."
+     tool_tip="The pose to hold while this window is open. T-pose and A-pose show on your screen only (for fitting); the others everyone around you sees."
      top="22"
      width="160">
+        <combo_box.item label="T-pose" name="t_pose" value="t_pose" />
+        <combo_box.item label="A-pose" name="a_pose" value="a_pose" />
         <combo_box.item label="Arms out (fitting)" name="arms_out" value="arms_out" />
         <combo_box.item label="Standing 1" name="stand_1" value="stand_1" />
         <combo_box.item label="Standing 2" name="stand_2" value="stand_2" />

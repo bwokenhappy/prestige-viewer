@@ -8,6 +8,7 @@
     <command name="move"/>
     <command name="view"/>
     <command name="people"/>
+    <command name="contacts"/>
     <command name="appearance"/>
     <command name="search"/>
     <command name="places"/>
@@ -24,7 +25,6 @@
     button_display_mode="icons_only_small">
     <command name="avatar"/>
     <command name="profile"/>
-    <command name="contacts"/>
     <command name="destinations"/>
     <command name="myenvironments"/>
     <command name="stats"/>

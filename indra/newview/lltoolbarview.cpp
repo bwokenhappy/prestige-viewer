@@ -234,7 +234,7 @@ bool LLToolBarView::loadToolbars(bool force_default)
     {
         // Prestige: when a newer default layout ships (new buttons such as Places on the
         // bottom bar), give each account the new layout once; later changes are kept.
-        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 2;
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 3;
         if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout")
             && gSavedPerAccountSettings.getU32("PrestigeToolbarLayout") < PRESTIGE_TOOLBAR_LAYOUT)
         {

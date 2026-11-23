@@ -39,6 +39,7 @@ private:
 
     LLComboBox* mPoseCombo = nullptr;
     LLUUID      mPlaying;
+    LLUUID      mLocalPose;  // T-pose / A-pose: a local motion on your avatar only
     bool        mPausedAO = false;   // we paused the AO and must resume it
 };
 

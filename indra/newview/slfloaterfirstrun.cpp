@@ -90,6 +90,13 @@ void SLFloaterFirstRun::onOpen(const LLSD& key)
     mChoice = gSavedSettings.getString("FirstRunViewerChoice");
     const auto& ids = slpresets::presetIds();
     if (std::find(ids.begin(), ids.end(), mChoice) == ids.end()) mChoice.clear();
+    // <Prestige> Prestige keeps Firestorm's layout and habits: preselect the Firestorm setup
+    // on a first run. The user still confirms with Continue, or picks another / skips.
+    if (mChoice.empty() && std::find(ids.begin(), ids.end(), std::string("firestorm")) != ids.end())
+    {
+        mChoice = "firestorm";
+    }
+    // </Prestige>
     refresh();
 }
 

@@ -107,7 +107,7 @@
            />
   <command name="ao"
            available_in_toybox="true"
-           icon="Command_Move_Icon"
+           icon="Command_AO_Icon"
            label_ref="Command_AO_Label"
            tooltip_ref="Command_AO_Tooltip"
            execute_function="Floater.ToggleOrBringToFront"

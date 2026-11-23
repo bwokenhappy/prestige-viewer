@@ -10837,6 +10837,24 @@ void initialize_menus()
     // People button / Contacts in Conversations (#489)
     commit.add("People.ToggleOrBringToFront", [](LLUICtrl*, const LLSD&) { people_toggle_or_bring_to_front(); });
     enable.add("People.IsOpen", [](LLUICtrl*, const LLSD&) { return people_is_open(); });
+    // Prestige: the Friends toolbar button opens People on its Friends tab.
+    commit.add("People.ToggleFriends", [](LLUICtrl*, const LLSD&)
+    {
+        LLPanel* friends = LLFloaterSidePanelContainer::getPanel("people", "friends_panel");
+        if (friends && friends->isInVisibleChain())
+        {
+            LLFloaterReg::hideInstance("people");
+            return;
+        }
+        LLSD param;
+        param["people_panel_tab_name"] = "friends_panel";
+        LLFloaterSidePanelContainer::showPanel("people", "panel_people", param);
+    });
+    enable.add("People.FriendsOpen", [](LLUICtrl*, const LLSD&)
+    {
+        LLPanel* friends = LLFloaterSidePanelContainer::findPanel("people", "friends_panel");
+        return friends && friends->isInVisibleChain();
+    });
 
     // Client AO (#496)
     commit.add("SLAO.Toggle", [](LLUICtrl*, const LLSD&) { SLAOEngine::instance().toggle(); });

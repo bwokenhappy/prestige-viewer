@@ -17652,7 +17652,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>60.0</real>
+    <real>10.0</real>
   </map>
   <key>WeatherWetSurfaces</key>
   <map>
@@ -17905,7 +17905,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>1.0</real>
+    <real>0.4</real>
   </map>
   <key>WeatherWindVariation</key>
   <map>
@@ -34567,7 +34567,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
   </map>
   <key>SlipstreamTouchOwnRiggedMesh</key>
   <map>

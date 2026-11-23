@@ -534,7 +534,7 @@
    control_name="ClickOnAvatarKeepsCamera"
    follows="left|top"
    height="16"
-   label="Clicking my avatar keeps camera"
+   label="Clicking my avatar doesn't move the camera"
    tool_tip="Normally clicking your own avatar brings the camera back behind you. With this on the camera stays put, so a framed shot survives a stray click. (Also in Photo Studio &gt; Cam.)"
    layout="topleft"
    left="30"

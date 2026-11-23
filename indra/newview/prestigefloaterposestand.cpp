@@ -52,7 +52,7 @@ namespace
     // as a small BVH (the avatar's bind pose is the T-pose: arms straight out, palms down) and
     // played on your own avatar only -- they are for fitting, which is about what you see.
     // Frame 0 is the BVH reference frame (ignored, but every joint must differ from it to be
-    // kept), frames 1 and 2 hold the pose.
+    // kept; the pelvis is played relative to it), frames 1 and 2 hold the pose.
     const char* BVH_JOINTS[] = { "abdomen", "chest", "neck", "head",
                                  "lCollar", "lShldr", "lForeArm", "lHand",
                                  "rCollar", "rShldr", "rForeArm", "rHand",
@@ -93,7 +93,10 @@ namespace
         {
             const bool ref = frame == 0;
             s += "0 43.5 0";                                        // hip position: the same every frame (kept still)
-            s += ref ? " 7 7 7" : " 0 0 0";                         // hip rotation: upright
+            // Hip rotation: the loader plays the pelvis RELATIVE to frame 0, so the reference must be
+            // upright too (a tilted reference tilted the whole body). The 0.15 degree nudge in the
+            // held frames only makes the loader keep the pelvis (so the stand cannot sway it).
+            s += ref ? " 0 0 0" : " 0.15 0 0";
             for (const char* j : BVH_JOINTS)
             {
                 F32 xr = 0.f, zr = 0.f, yr = 0.f;

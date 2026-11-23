@@ -55,7 +55,7 @@
      width="335">
     <panel
      follows="left|top|right"
-     height="1011"
+     height="1041"
      layout="topleft"
      left="0"
      name="weather_panel"
@@ -393,6 +393,23 @@
      min_val="1"
      name="weather_snow_speed"
      tool_tip="How much faster than real snowfall the snow gets deeper. 1 = real time (about 1.5 cm an hour in ordinary snow, too slow to see); 30 = deep snow within half an hour."
+     top_pad="8"
+     width="296" />
+    <slider
+     control_name="WeatherFogAmount"
+     decimal_digits="2"
+     follows="left|top"
+     height="16"
+     increment="0.05"
+     initial_value="0.4"
+     label="Rain / snow haze:"
+     label_width="110"
+     layout="topleft"
+     left="10"
+     max_val="1"
+     min_val="0"
+     name="weather_fog_amount"
+     tool_tip="How much the falling rain or snow hazes the distance. Lower it if far walls and buildings look washed-out grey; 1 = the full real-world amount."
      top_pad="8"
      width="296" />
     <check_box

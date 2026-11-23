@@ -523,12 +523,14 @@ void weatherWet(inout SurfaceLit s, vec3 P, float sky, float wet0, float face, f
     // Puddles: low-frequency noise on near-flat surfaces, growing with the wetness.
     float pud = 0.0;
     const float flood = wx_flood;
-    if (s.Ng.z > mix(0.97, 0.94, flood))
+    if (s.Ng.z > mix(0.97, 0.9, flood))
     {
         const float n = weatherFbm(P.xy * 0.18);
         // (M4: puddles seed along a drip line; Prestige: flooding spreads them until they join)
-        const float th = 1.0 - 0.55 * wet0 - 0.45 * pudBoost - 0.75 * flood;
-        pud = smoothstep(th, th + 0.06 + 0.1 * flood, n) * sky;
+        // (the flood term reaches every level surface by about two-thirds flooded, so the water
+        //  joins up evenly instead of staying in a few patches)
+        const float th = 1.0 - 0.55 * wet0 - 0.45 * pudBoost - 1.6 * flood;
+        pud = smoothstep(th, th + 0.06 + 0.1 * flood, n) * mix(sky, max(sky, 0.85), smoothstep(0.3, 0.9, flood));
     }
     // REFLECTIONS (M2): the water film's roughness decides which reflection path a wet surface
     // takes -- nothing separate is added. Puddles (0.02) and VERY wet near-flat ground (0.09, a

@@ -1,7 +1,7 @@
 # Prestige Viewer: Windows x64 test build on GitHub-hosted runners.
 #
-# Cross-compiles on Ubuntu exactly like Slipstream's own CI (scripts/wincross: clang-cl +
-# lld-link 22 against the MSVC CRT / Windows SDK unpacked by xwin), then uploads
+# Cross-compiles on Ubuntu (scripts/wincross: clang-cl + lld-link 22 against the MSVC
+# CRT / Windows SDK unpacked by xwin), then uploads
 # Prestige_<version>_win64.zip and Prestige_<version>_Setup.exe as a run artifact.
 #
 # Run it from the Actions tab ("Run workflow"), or push to the prestige branch.

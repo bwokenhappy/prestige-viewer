@@ -218,6 +218,7 @@ class ViewerManifest(LLManifest):
                     self.path("*/*/*/*.js")
                     self.path("*/*/*.html")
                     self.path("*/*/*.png")   # <Prestige/> login splash artwork
+                    self.path("*/*/*.ogg")   # <Prestige/> login music
 
             #build_data.json.  Standard with exception handling is fine.  If we can't open a new file for writing, we have worse problems
             #platform is computed above with other arg parsing

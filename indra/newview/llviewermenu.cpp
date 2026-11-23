@@ -32,6 +32,7 @@
 #endif
 
 #include "llviewermenu.h"
+#include "lliconctrl.h"
 #include "llinstantreplay.h"   // instant replay (GunMetal-DX port)
 #include "slvideostudio.h"     // Video Studio (#1668)
 
@@ -629,10 +630,23 @@ void init_menus()
     LLView* menu_bar_holder = gViewerWindow->getRootView()->getChildView("menu_bar_holder");
 
     gMenuBarView = LLUICtrlFactory::getInstance()->createFromFile<LLMenuBarGL>("menu_viewer.xml", gMenuHolder, LLViewerMenuHolderGL::child_registry_t::instance());
-    gMenuBarView->setRect(LLRect(0, menu_bar_holder->getRect().mTop, 0, menu_bar_holder->getRect().mTop - MENU_BAR_HEIGHT));
+    // <Prestige> the P logo in the top left corner; the menus start to its right
+    const S32 PRESTIGE_LOGO_SIZE = MENU_BAR_HEIGHT - 2;
+    const S32 PRESTIGE_LOGO_SPACE = PRESTIGE_LOGO_SIZE + 6;
+    gMenuBarView->setRect(LLRect(PRESTIGE_LOGO_SPACE, menu_bar_holder->getRect().mTop, PRESTIGE_LOGO_SPACE, menu_bar_holder->getRect().mTop - MENU_BAR_HEIGHT));
     gMenuBarView->setBackgroundColor( color );
 
     menu_bar_holder->addChild(gMenuBarView);
+    {
+        LLIconCtrl::Params logo_params;
+        logo_params.name("prestige_logo");
+        logo_params.rect(LLRect(3, menu_bar_holder->getRect().mTop - 1, 3 + PRESTIGE_LOGO_SIZE, menu_bar_holder->getRect().mTop - 1 - PRESTIGE_LOGO_SIZE));
+        logo_params.image(LLUI::getUIImage("AL_Logo"));
+        logo_params.follows.flags(FOLLOWS_LEFT | FOLLOWS_TOP);
+        logo_params.mouse_opaque(false);
+        menu_bar_holder->addChild(LLUICtrlFactory::create<LLIconCtrl>(logo_params));
+    }
+    // </Prestige>
 
     gViewerWindow->setMenuBackgroundColor(false,
         LLGridManager::getInstance()->isInProductionGrid());

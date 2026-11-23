@@ -1,0 +1,32 @@
+[
+  {
+    "label": "base",
+    "source": "ef70f524fe6a5f796bfc4c8442b6567629cdc77b",
+    "package_files": {
+      "Slipstream_1.7.0.0-ef70f524fe_win64.zip": "3b834c9a7fbd732751c46d43d31169648744af5bc76863bf08a359499e03117c"
+    },
+    "executable_sha256": "5194308f86ac3f8cf569a0081b235fe49ad15670775701643817761b88d0764c",
+    "source_shader_headers": {},
+    "build_shader_headers": {
+      "newview/vkshaders/vk_fx_shaders_spv.h": "01012ed43b279ab2049b069dbe6c99f5c4e7892896d0323cb7ee100b67f1ff3d",
+      "newview/vkshaders/vk_ui_shaders_spv.h": "352146575ed22b902f0e8ed69144dea027c994d0ebee8410579c36eb460a0e2b",
+      "newview/vkshaders/vk_fsr3_shaders_spv.h": "c883ca1bf140c08f458cb9cf5d7b02a6b8e823242b8d7aa45cfedcfba5ae8343",
+      "newview/vkshaders/vk_world_shaders_spv.h": "563506281a47c8afd70f1ba27d7fb7f34a47170c41de17f13b4bcb30b54c3cab"
+    }
+  },
+  {
+    "label": "fixed",
+    "source": "f76d349635e175e1e571d30394ffb96e4bb349bb",
+    "package_files": {
+      "Slipstream_1.7.0.0-f76d349635_win64.zip": "13b741f57e6ca7b9c9fd61cdf90d811bc90e8456da2201fd9cd851d057030cb9"
+    },
+    "executable_sha256": "daeb1f83396a98bb72c7258cc40d2d54968167f5300228619474983a220a8a5c",
+    "source_shader_headers": {},
+    "build_shader_headers": {
+      "newview/vkshaders/vk_fx_shaders_spv.h": "01012ed43b279ab2049b069dbe6c99f5c4e7892896d0323cb7ee100b67f1ff3d",
+      "newview/vkshaders/vk_ui_shaders_spv.h": "352146575ed22b902f0e8ed69144dea027c994d0ebee8410579c36eb460a0e2b",
+      "newview/vkshaders/vk_fsr3_shaders_spv.h": "c883ca1bf140c08f458cb9cf5d7b02a6b8e823242b8d7aa45cfedcfba5ae8343",
+      "newview/vkshaders/vk_world_shaders_spv.h": "563506281a47c8afd70f1ba27d7fb7f34a47170c41de17f13b4bcb30b54c3cab"
+    }
+  }
+]

@@ -1,0 +1,150 @@
+--- a/indra/vkclean/shaders/clean_deferred_light.comp
++++ b/indra/vkclean/shaders/clean_deferred_light.comp
+@@ -3867,6 +3867,60 @@
+             if (score - rd > sbest) { sbest = score - rd; sfb = ts; }
+         }
+     }
++    // ASTRA experiment: bounded receiver-support search. 0 is the original path;
++    // 1 counts only, 2 searches + counts, 3 searches without measurement atomics.
++    // Words 112..117 are reserved by recordLitGuardBegin and copied after lighting.
++    const uint supportMode = lg_words[112u];
++    const bool missingI = iw <= 1e-4;
++    const bool missingS = wantSpec && sw <= 1e-4;
++    bool repairedI = false, repairedS = false;
++    if (supportMode >= 2u && (missingI || missingS))
++    {
++        float repairIScore = -1e30, repairSScore = -1e30;
++        // The surrounding 4x4 footprint minus the original 2x2: at most 12 loads.
++        // No rays, probe walks, history writes or unbounded queues are introduced.
++        for (int ry = -1; ry <= 2; ++ry)
++        for (int rx = -1; rx <= 2; ++rx)
++        {
++            if (rx >= 0 && rx <= 1 && ry >= 0 && ry <= 1) continue;
++            const ivec2 q = b + ivec2(rx, ry);
++            if (any(lessThan(q, ivec2(0))) || any(greaterThan(q, hmax))) continue;
++            const uvec4 h = imageLoad(uReflHalf, ivec3(q, DEFER_LAYER));
++            if ((h.z & DS_HALF_SURF) == 0u) continue;
++            const vec3 n = gbOctDecode(vec2(float(h.z & 1023u), float((h.z >> 10) & 1023u)) * (2.0 / 1023.0) - 1.0);
++            const float nd = dot(n, s.Ng);
++            const float dz = abs(dot(n, rel) - uintBitsToFloat(h.w)) * itol;
++            float nw = max(nd, 0.0);
++            nw *= nw; nw *= nw; nw *= nw;
++            const float pw = max(0.0, 1.0 - dz);
++            // Same geometry kernel as the four original taps, without bilinear
++            // distance weights outside their footprint. A supported black is valid.
++            if (!(pw * pw * nw > 1e-4)) continue;
++            const float score = nd - dz;
++            if (missingI && score > repairIScore)
++            {
++                repairIScore = score; ifb = dsUnpackRGB9E5(h.x); repairedI = true;
++            }
++            if (missingS && (h.z & DS_HALF_SPEC) != 0u)
++            {
++                const float rd = abs(float(h.z >> 24) * (1.0 / 255.0) - srough) * 4.0;
++                if (pw * pw * nw * max(0.0, 1.0 - rd) > 1e-4 && score - rd > repairSScore)
++                {
++                    repairSScore = score - rd; sfb = dsUnpackRGB9E5(h.y); repairedS = true;
++                }
++            }
++        }
++    }
++    if (supportMode == 1u || supportMode == 2u)
++    {
++        atomicAdd(lg_words[113u], 1u);
++        if (missingI) atomicAdd(lg_words[114u], 1u);
++        if (missingS) atomicAdd(lg_words[115u], 1u);
++        if (repairedI) atomicAdd(lg_words[116u], 1u);
++        if (repairedS) atomicAdd(lg_words[117u], 1u);
++    }
++    // If the search found nothing, preserve the old best-neighbour fallback.
++    // Missing support is never converted to black or labelled a valid sample.
+     irr  = iw > 1e-4 ? isum / iw : ifb;
+     spec = sw > 1e-4 ? ssum / sw : sfb;
+ }
+--- a/indra/newview/vkgfx/llcleanrenderervk.h
++++ b/indra/newview/vkgfx/llcleanrenderervk.h
+@@ -7985,7 +7985,14 @@
+     // read and their terms, the U set's sums, every tap's slot ids and filtered values), past the hang beacon's words. The
+     // readback copies [kLgFirstWord, kLgMprXWord + kLgMprXWords) in one piece (the beacon's three words ride along).
+     static constexpr uint32_t kLgMprXWord = 64, kLgMprXWords = 48;
+-    static constexpr uint32_t kLgCopyWords = kLgMprXWord + kLgMprXWords - kLgFirstWord;
++    // ASTRA opt-in reflection-support experiment: mode + five per-frame counters.
++    static constexpr uint32_t kLgReflectWord = 112, kLgReflectWords = 6;
++    static constexpr uint32_t kLgCopyWords = kLgReflectWord + kLgReflectWords - kLgFirstWord;
++    static_assert(kLgReflectWord >= kLgMprXWord + kLgMprXWords
++        && (kLgReflectWord + kLgReflectWords) * 4u <= kOdCounterBytes, "reflection support counters fit");
++    uint64_t mReflectSupportAcc[5] = {};
++    uint32_t mReflectSupportFrames = 0, mReflectSupportMode = 0;
++    double mReflectSupportNextLog = 0.0;
+     static_assert((kLgMprXWord + kLgMprXWords) * 4u <= kOdCounterBytes && kLgMprXWord >= kLgBcWord + 3u,
+                   "the mover probe's fold words sit past the hang beacon's, inside mOdCounter");
+     static_assert(kLgFirstWord + kLgWords == kLgMprWord && kLgMprWord + kLgMprWords <= kLgBcWord,
+--- a/indra/newview/vkgfx/llcleanrenderervk.cpp
++++ b/indra/newview/vkgfx/llcleanrenderervk.cpp
+@@ -55621,6 +55621,11 @@
+     vkCmdPipelineBarrier2(cmd, &d);
+     vkCmdFillBuffer(cmd, mOdCounter.buffer, kLgFirstWord * sizeof(uint32_t), kLgWords * sizeof(uint32_t), 0u);
+     {
++        static LLCachedControl<U32> s_support(gSavedSettings, "RenderVKDeferReflectSupport", 0U);
++        const uint32_t support[kLgReflectWords] = {std::min<uint32_t>(s_support, 3u), 0u, 0u, 0u, 0u, 0u};
++        vkCmdUpdateBuffer(cmd, mOdCounter.buffer, kLgReflectWord * sizeof(uint32_t), sizeof(support), support);
++    }
++    {
+         // MOVER PROBE (RenderVKMoverProbePixel): the probed render pixel (the screen centre) and this frame's tag
+         U32 probe = 0;
+ #if defined(LL_HAS_CLEAN_PIPELINE)
+@@ -55946,6 +55951,34 @@
+     mLgRbValid[slot] = false;
+     uint32_t w[kLgWords];
+     std::memcpy(w, mLgRb[slot].mapped, sizeof(w));
++    {
++        uint32_t support[kLgReflectWords];
++        std::memcpy(support, static_cast<const uint32_t*>(mLgRb[slot].mapped)
++            + kLgReflectWord - kLgFirstWord, sizeof(support));
++        if (support[0] != mReflectSupportMode)
++        {
++            std::fill(std::begin(mReflectSupportAcc), std::end(mReflectSupportAcc), 0u);
++            mReflectSupportFrames = 0;
++            mReflectSupportMode = support[0];
++        }
++        if (support[0] == 1u || support[0] == 2u)
++        {
++            ++mReflectSupportFrames;
++            for (uint32_t i = 0; i < 5u; ++i) mReflectSupportAcc[i] += support[i + 1u];
++            const double supportNow = std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
++            if (supportNow >= mReflectSupportNextLog)
++            {
++                mReflectSupportNextLog = supportNow + 1.0;
++                LL_INFOS("VKReflectSupport") << "mode=" << support[0] << " frames=" << mReflectSupportFrames
++                    << " eligible=" << mReflectSupportAcc[0] << " missingI=" << mReflectSupportAcc[1]
++                    << " missingS=" << mReflectSupportAcc[2] << " repairedI=" << mReflectSupportAcc[3]
++                    << " repairedS=" << mReflectSupportAcc[4] << " (per-texel invocations; missing means weight <= 1e-4)"
++                    << LL_ENDL;
++                std::fill(std::begin(mReflectSupportAcc), std::end(mReflectSupportAcc), 0u);
++                mReflectSupportFrames = 0;
++            }
++        }
++    }
+     if (mLgRbMprTag[slot] != 0u)
+     {
+         // MOVER PROBE (RenderVKMoverProbePixel; clean_deferred_light.comp mprCombine): the lighting's side at the
+--- a/indra/newview/app_settings/settings.xml
++++ b/indra/newview/app_settings/settings.xml
+@@ -14649,6 +14649,17 @@
+     <integer>0</integer>
+     <key>Type</key>
+     <string>Boolean</string>
++    <key>Value</key>
++    <integer>0</integer>
++  </map>
++  <key>RenderVKDeferReflectSupport</key>
++  <map>
++    <key>Comment</key>
++    <string>ASTRA experiment, split half-resolution reflection reconstruction: 0 original, 1 support counters only, 2 bounded 12-tap support search plus counters, 3 search without counters. Preserves the original fallback if no supported sample exists; supported black remains valid. Adds no rays. Not a default recommendation. Live; logs VKReflectSupport.</string>
++    <key>Persist</key>
++    <integer>0</integer>
++    <key>Type</key>
++    <string>U32</string>
+     <key>Value</key>
+     <integer>0</integer>
+   </map>

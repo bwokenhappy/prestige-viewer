@@ -508,6 +508,10 @@ vec2 weatherRipple(vec2 uv, float t, uint salt, float density)
     return d / max(r, 1e-4) * dh;
 }
 
+// Prestige FLOODING 0..1 (ssr.weather[0].x above 1: weatherSurface splits it off): standing water
+// after long rain -- the puddles spread and join until level ground is under a sheet of water.
+float wx_flood = 0.0;
+
 // WET: darker porous albedo, a water film, puddles and ripples (wet0 > 0, sky > 0). face: the
 // surface's facing to the precipitation (weatherFacing, > 0).
 void weatherWet(inout SurfaceLit s, vec3 P, float sky, float wet0, float face, float pudBoost)
@@ -518,11 +522,13 @@ void weatherWet(inout SurfaceLit s, vec3 P, float sky, float wet0, float face, f
     const float wet = wet0 * sky * smoothstep(0.05, 0.45, face) * mix(0.6, 1.0, up);
     // Puddles: low-frequency noise on near-flat surfaces, growing with the wetness.
     float pud = 0.0;
-    if (s.Ng.z > 0.97)
+    const float flood = wx_flood;
+    if (s.Ng.z > mix(0.97, 0.94, flood))
     {
         const float n = weatherFbm(P.xy * 0.18);
-        const float th = 1.0 - 0.55 * wet0 - 0.45 * pudBoost;   // (M4: puddles seed along a drip line)
-        pud = smoothstep(th, th + 0.06, n) * sky;
+        // (M4: puddles seed along a drip line; Prestige: flooding spreads them until they join)
+        const float th = 1.0 - 0.55 * wet0 - 0.45 * pudBoost - 0.75 * flood;
+        pud = smoothstep(th, th + 0.06 + 0.1 * flood, n) * sky;
     }
     // REFLECTIONS (M2): the water film's roughness decides which reflection path a wet surface
     // takes -- nothing separate is added. Puddles (0.02) and VERY wet near-flat ground (0.09, a
@@ -550,6 +556,14 @@ void weatherWet(inout SurfaceLit s, vec3 P, float sky, float wet0, float face, f
         s.gloss = mix(s.gloss, max(s.gloss, 0.98), pud);
         s.spec = max(s.spec, vec3(0.3 * max(wet, pud)));
         s.env = max(s.env, 0.25 * max(wet, pud));
+    }
+    // Prestige: deep standing water (flooding) darkens what lies under it and is a near mirror.
+    if (flood > 0.0 && pud > 0.0)
+    {
+        const float deep = pud * smoothstep(0.15, 0.8, flood);
+        s.albedo *= mix(1.0, 0.55, deep);
+        if (s.model == SURF_PBR) s.rough = mix(s.rough, 0.01, deep);
+        else s.gloss = mix(s.gloss, max(s.gloss, 0.99), deep);
     }
     // Standing water hides the surface's own bumps.
     if (pud > 0.0) s.N = normalize(mix(s.N, s.Ng, pud));
@@ -1024,7 +1038,9 @@ vec3 weatherOcclDebug(vec3 P, vec3 Ng, uint flags)
 
 void weatherSurface(inout SurfaceLit s, vec3 P)
 {
-    const float wet0 = ssr.weather[0].x;
+    // Prestige: x carries the wetness 0..1 plus the flooding 0..1 on top.
+    const float wet0 = min(ssr.weather[0].x, 1.0);
+    wx_flood = clamp(ssr.weather[0].x - 1.0, 0.0, 1.0);
     const float snow0 = ssr.weather[5].x;
     // #901: an avatar fragment with its own wetness state runs even with the world dry (an avatar
     // that walked out of the rain, or teleported, dries on its own clock); the shelter debug

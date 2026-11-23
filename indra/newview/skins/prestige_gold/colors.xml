@@ -717,7 +717,7 @@
      reference="AlchemyWhite" />
     <color
      name="NameTagFriend"
-     reference="AlBlue" />
+     value="0.38 0.93 0.38 1" />
     <color
      name="NameTagLegacy"
      reference="AlchemyWhite" />

@@ -55,7 +55,7 @@
      width="335">
     <panel
      follows="left|top|right"
-     height="861"
+     height="1011"
      layout="topleft"
      left="0"
      name="weather_panel"
@@ -94,6 +94,37 @@
      tool_tip="Turn on your own weather: rain or snow, wind and wet surfaces. Off: no weather cost at all once the surfaces have dried."
      top_pad="6"
      width="290" />
+    <text
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left="10"
+     name="quick_label"
+     top_pad="12"
+     width="110">
+        Quick weather:
+    </text>
+    <combo_box
+     follows="left|top"
+     height="22"
+     label="Pick a weather..."
+     layout="topleft"
+     left_pad="4"
+     name="quick_weather"
+     tool_tip="One click: sets the rain or snow, wind and thunder below together (and turns on your own weather). Fine-tune with the controls below."
+     top_delta="-4"
+     width="180">
+        <combo_box.item label="Clear" name="clear" value="clear" />
+        <combo_box.item label="Light rain" name="light_rain" value="light_rain" />
+        <combo_box.item label="Rain" name="rain" value="rain" />
+        <combo_box.item label="Heavy rain" name="heavy_rain" value="heavy_rain" />
+        <combo_box.item label="Thunderstorm" name="thunderstorm" value="thunderstorm" />
+        <combo_box.item label="Severe storm (flooding)" name="severe_storm" value="severe_storm" />
+        <combo_box.item label="Light snow" name="light_snow" value="light_snow" />
+        <combo_box.item label="Snow" name="snow" value="snow" />
+        <combo_box.item label="Heavy snow" name="heavy_snow" value="heavy_snow" />
+        <combo_box.item label="Blizzard" name="blizzard" value="blizzard" />
+    </combo_box>
     <text
      follows="left|top"
      height="16"
@@ -318,6 +349,51 @@
      name="weather_storm"
      tool_tip="Lightning and thunder. 0 = none. Strikes come more often in heavier rain, and a heavier storm strikes closer; the thunder arrives after the flash, later the farther away it struck."
      top_pad="10"
+     width="296" />
+    <check_box
+     control_name="WeatherFlooding"
+     follows="left|top"
+     height="16"
+     label="Flooding (puddles grow and join in long rain)"
+     layout="topleft"
+     left="10"
+     name="weather_flooding"
+     tool_tip="Once the ground is soaked and the rain keeps coming, the puddles spread and join until level ground is under standing water. It drains away after the rain stops."
+     top_pad="8"
+     width="296" />
+    <slider
+     control_name="WeatherFloodSeconds"
+     decimal_digits="0"
+     follows="left|top"
+     height="16"
+     increment="30"
+     initial_value="600"
+     label="Flood after (s):"
+     label_width="110"
+     layout="topleft"
+     left="10"
+     max_val="3600"
+     min_val="60"
+     name="weather_flood_secs"
+     tool_tip="How long it takes for standing water to cover level ground once the ground is soaked, in steady rain (heavier rain floods sooner)."
+     top_pad="8"
+     width="296" />
+    <slider
+     control_name="WeatherSnowBuildSpeed"
+     decimal_digits="0"
+     follows="left|top"
+     height="16"
+     increment="1"
+     initial_value="30"
+     label="Snow build-up speed:"
+     label_width="110"
+     layout="topleft"
+     left="10"
+     max_val="240"
+     min_val="1"
+     name="weather_snow_speed"
+     tool_tip="How much faster than real snowfall the snow gets deeper. 1 = real time (about 1.5 cm an hour in ordinary snow, too slow to see); 30 = deep snow within half an hour."
+     top_pad="8"
      width="296" />
     <check_box
      control_name="WeatherWetSurfaces"

@@ -4045,7 +4045,11 @@ LLColor4 LLVOAvatar::getNameTagColor(bool is_friend)
     return LLUIColorTable::getInstance()->getColor( color_name );
 #endif
     static LLUIColor name_tag_match = LLUIColorTable::instance().getColor("NameTagMatch");
-    LLColor4 color_name = name_tag_match;
+    static LLUIColor name_tag_friend = LLUIColorTable::instance().getColor("NameTagFriend");
+    static LLUICachedControl<bool> show_friends("NameTagShowFriends", true);
+    // Prestige: friends' name tags in green, like classic Firestorm (a contact set or
+    // group colour still wins below).
+    LLColor4 color_name = (show_friends && is_friend) ? name_tag_friend : name_tag_match;
     color_name = LGGContactSets::getInstance()->getAvatarColor(getID(), color_name, ContactSetType::TAG);
     color_name = LLGroupColorMap::instance().tint(getID(), color_name); // Ported from GunMetal-DX (squeedledorf, LGPL 2.1), v0.3.0 cf5f1f4: group colour wins over contact sets
 

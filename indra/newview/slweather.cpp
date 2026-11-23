@@ -500,7 +500,12 @@ void SLWeather::update()
         // The rates (m/s): #954 the snowfall rate falling now (its bands included) x (1 - the
         // settling); a tag's rate= overrides it for the depth (the snowfall still drives the falling
         // flakes); a tag depth= without a usable rate holds.
-        const F32 fresh = falling ? std::max(mState.snowFall, 0.f) * (1.f - kSnowSettle) / (100.f * 3600.f) : 0.f;
+        // Prestige: WeatherSnowBuildSpeed speeds the build-up up (real snowfall lays ~1.5 cm an hour at
+        // the default amount: too slow to see during a visit). 1 = real time.
+        static LLCachedControl<F32> s_buildSpeed(gSavedSettings, "WeatherSnowBuildSpeed", 30.f);
+        const F32 fresh = falling ? std::max(mState.snowFall, 0.f) * (1.f - kSnowSettle) / (100.f * 3600.f)
+                                        * llclamp((F32)s_buildSpeed, 1.f, 240.f)
+                                  : 0.f;
         F32 build = 0.f, melt = 0.f;
         if (sharedLevel >= 0.f)
         {
@@ -587,12 +592,30 @@ void SLWeather::update()
         }
         if (melted > 0.f)
             mState.wetness = std::min(mState.wetness + melted * kMeltWater, 1.f);
-        if (!raining && mState.snowCover <= 0.f)
+        // Prestige FLOODING: soaked surfaces in continuing rain gather standing water (faster in
+        // heavier rain); it drains once the rain stops, and the ground stays wet until it has.
+        static LLCachedControl<bool> s_flood(gSavedSettings, "WeatherFlooding", true);
+        static LLCachedControl<F32>  s_floodSecs(gSavedSettings, "WeatherFloodSeconds", 600.f);
+        static LLCachedControl<F32>  s_floodDrain(gSavedSettings, "WeatherFloodDrainSeconds", 900.f);
+        if (!s_flood)
+            mState.flood = 0.f;
+        else if (raining && mState.wetness >= 0.98f)
+        {
+            const F32 speed = llclamp(mState.rainFall / kWetRefFall, kWetSpeedMin, kWetSpeedMax);
+            mState.flood = std::min(mState.flood + (F32)dt / std::max((F32)s_floodSecs, 1.f) * speed, 1.f);
+        }
+        else if (!raining && mState.flood > 0.f)
+        {
+            mState.flood = std::max(mState.flood - (F32)dt / std::max((F32)s_floodDrain, 1.f), 0.f);
+            if (mState.flood < kEpsilon) mState.flood = 0.f;
+        }
+        if (!raining && mState.snowCover <= 0.f && mState.flood <= 0.f)
         {
             mState.wetness = std::max(mState.wetness - (F32)dt / std::max((F32)s_dry, 1.f), 0.f);
             if (mState.wetness < kEpsilon) mState.wetness = 0.f;
         }
     }
+    if (!s_surf) mState.flood = 0.f;
 
     // M4 RUN-OFF (slweather.h RUN-OFF): the rain on wet surfaces + melt water; drains after.
     {
@@ -913,6 +936,8 @@ void SLWeather::stepFade(const Target& t, F32 dt)
     {
         mState.wetness -= mState.wetness * k;
         mState.runoff -= mState.runoff * k;
+        mState.flood -= mState.flood * k;
+        if (mState.flood < kEpsilon) mState.flood = 0.f;
         if (mState.wetness < kEpsilon) mState.wetness = 0.f;
         if (mState.runoff < kEpsilon) mState.runoff = 0.f;
     }

@@ -49,3 +49,20 @@ prod80:
 - the rest: left out to keep the set modest
 
 Not bundled by policy (user-installed only): qUINT, iMMERSE, Lilium HDR, crosire `reshade-shaders` samples.
+
+## Prestige effect library (added by Prestige)
+
+Same audit rule as above: permissive licences only, unmodified files, nothing whose header names other terms or authors without terms. Not bundled: qUINT and AstrayFX (all rights reserved / no terms), fubax effects under NC / ND or OCL terms (or that include BlueNoiseDither.fxh), AlucardDH (GPL-2), LUT effects, PandaFX (large texture), Daltonize / DisplayDepth (no terms).
+
+| Pack | Source | Commit | Licence | Effects |
+|---|---|---|---|---|
+| SweetFX (more effects) | https://github.com/CeeJayDK/SweetFX | `93ddf39b357f` | MIT, Copyright (c) 2014 CeeJayDK (text above). CAS.fx: MIT, Copyright (c) 2017-2019 Advanced Micro Devices, Inc. (notice in the file) | ASCII, Cartoon, ChromaticAberration, ColorMatrix, FakeHDR, Nostalgia, Sepia, Splitscreen, CAS |
+| OtisFX | https://github.com/FransBouma/OtisFX | `193aa0bf07ee` | MIT / BSD-2-Clause, Copyright (c) 2018-2023 Frans Bouma (notices in the files and LICENSE.txt); textures from the same repository | AdaptiveFog, CinematicDOF, DepthDarkness, DepthHaze, DirectionalDepthBlur, Emphasize, GoldenRatio, Heightfog, MagicBorder |
+| potatoFX | https://github.com/GimleLarpes/potatoFX | `f55a02212168` | MIT, Copyright (c) 2023 Gimle Larpes; textures from the same repository | pCamera, pColorNoise, pColors, pPalettePosterize |
+| FXShaders | https://github.com/luluco250/FXShaders | `76365e35c48e` | MIT, Copyright (c) 2017 Lucas Melo (CRT_Lottes.fxh: public domain, Timothy Lottes); lens dirt texture from the same repository | AdaptiveTonemapper, ArtisticVignette, AspectRatioSuite, CRT_Lottes, ColorLab, Dither, FlexibleCA, FocalDOF, GrainSpread, LiquidLens, MagicHDR, MinimalColorGrading, MultiFX, NeoBloom, PiecewiseFilmicTonemap, RetroFog, SCurve, UnrealLens, Unsharp |
+| CShade | https://github.com/papadanku/CShade | `2b220380477c` | BSD-3-Clause, Copyright (c) 2026 papadanku; files crediting others keep their notices (AMD, Microsoft, Keijiro Takahashi: MIT; kDatamosh: public domain) | cAutoExposure, cBloom, cCAS, cDots, cEnsor, cLens, cLetterBox, cMotionBlur, cNoiseBlur, cQuantize, cThreshold, kContour, kDatamosh, kMirror |
+| Glamayre Fast Effects | https://github.com/rj200/Glamarye_Fast_Effects_for_ReShade | `9dd9b826fa2c` | MIT, Copyright (c) 2021 Robert Jessop, Alex Tuderan | Glamayre_Fast_Effects, fastBlur, rj_sharpen |
+| Daodan317081 reshade-shaders | https://github.com/Daodan317081/reshade-shaders | `f01ddb6f3dce` | BSD-3-Clause, Copyright (c) 2018-2019 Alexander Federwisch | AspectRatioComposition, ColorIsolation, ColorfulPoster, Comic, MultiTonePoster, RemoveTint, RetroTint |
+| reshade-shaders Deband | https://github.com/crosire/reshade-shaders | `fd0022170615` | MIT, Copyright (c) 2015 Niklas Haas (notice in the file) | Deband |
+| fubax-shaders | https://github.com/Fubaxiusz/fubax-shaders | `d902cc2e8216` | by Jakub Maksymilian Fober: CC BY-SA 4.0 (BeforeAfter, Chromakey, FilmicAnamorphSharpen, SimpleGrain, SunsetFilter; https://creativecommons.org/licenses/by-sa/4.0/), CC0 (Letterbox, LinearWorkflow.fxh, ColorConversion.fxh); unmodified | BeforeAfter, Chromakey, FilmicAnamorphSharpen, Letterbox, SimpleGrain, SunsetFilter |
+| brussell1 Shaders | https://github.com/brussell1/Shaders | `3869218ea004` | CC BY 4.0, by brussell (https://creativecommons.org/licenses/by/4.0/); unmodified | EyeAdaption |

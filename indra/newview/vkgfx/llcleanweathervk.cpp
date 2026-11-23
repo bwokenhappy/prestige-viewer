@@ -1570,7 +1570,8 @@ bool LLCleanWeatherVK::prepare(VkCommandBuffer cmd, const Frame& f)
     // and drips aging out between faces.
     const double clock = (f.offscreen && mLastTime >= 0.0) ? mLastTime : (double)f.camTime[3];
     const float time = (float)std::fmod(clock, 1000.0);
-    mWx[0][0] = st.wetness;
+    // Prestige: wetness 0..1 plus the flooding 0..1 on top (clean_weather_surface.glsl splits them)
+    mWx[0][0] = st.wetness + st.flood;
     mWx[0][1] = st.rain;
     mWx[0][2] = time;
     mWx[0][3] = s_ripples ? kRippleStrength : 0.f;

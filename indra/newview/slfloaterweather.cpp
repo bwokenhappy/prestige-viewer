@@ -123,6 +123,47 @@ bool SLFloaterWeather::postBuild()
     mFallUnit = getChild<LLTextBox>("fall_unit");
     mFallSpin->setCommitCallback([this](LLUICtrl*, const LLSD&) { onFallCommit(); });
     mPreset->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetCommit(); });
+    // Prestige QUICK WEATHER: one pick sets the precipitation, wind and thunder together.
+    if (LLComboBox* quick = findChild<LLComboBox>("quick_weather"))
+    {
+        quick->setCommitCallback([this](LLUICtrl* ctrl, const LLSD&)
+        {
+            struct Quick { const char* id; bool on; U32 type; F32 fall, storm, wind, gust, var; };
+            static const Quick kQuick[] = {
+                // id               on     type  rate (mm/h or cm/h)  storm  wind  gust  comes-and-goes
+                { "clear",          false, 0u,   -1.f,  0.f,   3.f,  0.5f, 0.35f },
+                { "light_rain",     true,  0u,    1.5f, 0.f,   2.f,  0.3f, 0.30f },
+                { "rain",           true,  0u,    6.f,  0.f,   4.f,  0.4f, 0.35f },
+                { "heavy_rain",     true,  0u,   25.f,  0.15f, 6.f,  0.5f, 0.45f },
+                { "thunderstorm",   true,  0u,   45.f,  0.85f, 9.f,  0.7f, 0.6f  },
+                { "severe_storm",   true,  0u,   90.f,  1.f,  15.f,  0.85f,0.7f  },
+                { "light_snow",     true,  1u,    0.4f, 0.f,   1.5f, 0.3f, 0.3f  },
+                { "snow",           true,  1u,    2.f,  0.f,   3.f,  0.4f, 0.35f },
+                { "heavy_snow",     true,  1u,    6.f,  0.f,   6.f,  0.5f, 0.45f },
+                { "blizzard",       true,  1u,   14.f,  0.f,  18.f,  0.8f, 0.6f  },
+            };
+            const std::string id = ctrl->getValue().asString();
+            for (const Quick& q : kQuick)
+            {
+                if (id != q.id) continue;
+                gSavedSettings.setBOOL("WeatherMasterEnabled", true);
+                gSavedSettings.setBOOL("WeatherEnabled", q.on);
+                if (q.on)
+                {
+                    gSavedSettings.setU32("WeatherType", q.type);
+                    gSavedSettings.setF32(q.type == 1u ? "WeatherSnowFall" : "WeatherRainFall", q.fall);
+                    gSavedSettings.setF32("WeatherStorm", q.storm);
+                    gSavedSettings.setF32("WeatherWindSpeed", q.wind);
+                    gSavedSettings.setF32("WeatherWindGustiness", q.gust);
+                    gSavedSettings.setF32("WeatherPrecipVariation", q.var);
+                    if (q.type == 1u) gSavedSettings.setBOOL("WeatherSnowCoating", true);
+                    else gSavedSettings.setBOOL("WeatherWetSurfaces", true);
+                }
+                break;
+            }
+            refreshFall();
+        });
+    }
     getChild<LLUICtrl>("weather_intensity")->setCommitCallback([](LLUICtrl*, const LLSD&)
     {
         const bool snow = gSavedSettings.getU32("WeatherType") == SLWeather::PRECIP_SNOW;

@@ -257,6 +257,9 @@ public:
         F32 fog = 0.f;
         F32 cloud = 0.f;
         F32 wetness = 0.f;          // surface wetness 0..1
+        // Prestige FLOODING 0..1: standing water once the surfaces are soaked and the rain keeps
+        // coming (WeatherFlooding): puddles grow, join and cover level ground; drains after the rain.
+        F32 flood = 0.f;
         F32 snowCover = 0.f;        // snow lying on open, upward surfaces 0..1
         // M3: the open-sky snow DEPTH (m): what an open, level surface holds now. Builds with
         // the snowfall (#954: its rate x (1 - kSnowSettle)), melts after it, never deeper than
@@ -294,7 +297,7 @@ public:
         bool visible() const
         {
             return rain > kEpsilon || snow > kEpsilon || wetness > kEpsilon || snowCover > kEpsilon || lightning > kEpsilon
-                || runoff > kEpsilon;
+                || runoff > kEpsilon || flood > kEpsilon;
         }
     };
     static constexpr F32 kEpsilon = 1e-3f;

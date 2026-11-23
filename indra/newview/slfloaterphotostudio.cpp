@@ -110,7 +110,7 @@ constexpr S32 SLOT_GAP = 4;
 
 /// What a fresh Photo Studio shows: four panels, the two grading pages, the
 /// sky and the scopes.
-const std::array<const char*, SLFloaterPhotoStudio::MAX_SLOTS> DEFAULT_SECTIONS = { { "look", "lens", "sky", "scopes" } };
+const std::array<const char*, SLFloaterPhotoStudio::MAX_SLOTS> DEFAULT_SECTIONS = { { "effects", "look", "lens", "sky" } };   // Prestige: the ReShade filters first
 
 /// Count of grading sections switched off for comparison.
 S32 bypassedSections(U32 mask)
@@ -432,6 +432,23 @@ bool SLFloaterPhotoStudio::handleStudioKey(KEY key, MASK mask)
 
 void SLFloaterPhotoStudio::loadState()
 {
+    // Prestige: once, open with the ReShade filters list beside Look (two panels),
+    // whatever an earlier build saved.
+    if (gSavedSettings.controlExists("PrestigePhotoStudioDefaults")
+        && gSavedSettings.getU32("PrestigePhotoStudioDefaults") < 1)
+    {
+        gSavedSettings.setU32("PrestigePhotoStudioDefaults", 1);
+        gSavedSettings.setS32("SLPhotoStudioLayout", 2);
+        LLSD panels = LLSD::emptyArray();
+        for (S32 i = 0; i < MAX_SLOTS; ++i)
+        {
+            LLSD entry;
+            entry["section"] = DEFAULT_SECTIONS[i];
+            entry["popped"] = false;
+            panels.append(entry);
+        }
+        gSavedSettings.setLLSD("SLPhotoStudioPanels", panels);
+    }
     const S32 layout = gSavedSettings.getS32("SLPhotoStudioLayout");
     mLayout = (layout == 1 || layout == 2) ? layout : MAX_SLOTS;
 

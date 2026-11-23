@@ -17500,6 +17500,50 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>WeatherFlooding</key>
+  <map>
+    <key>Comment</key>
+    <string>Prestige weather: once the surfaces are soaked and the rain keeps coming, standing water gathers -- the puddles spread and join until level ground is under water -- and drains after the rain.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>WeatherFloodSeconds</key>
+  <map>
+    <key>Comment</key>
+    <string>Prestige weather: seconds of steady rain (5 mm/h; heavier rain is faster) after the ground is soaked for standing water to cover level ground.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>600.0</real>
+  </map>
+  <key>WeatherFloodDrainSeconds</key>
+  <map>
+    <key>Comment</key>
+    <string>Prestige weather: seconds the standing water takes to drain away after the rain stops (the ground stays wet until it has).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>900.0</real>
+  </map>
+  <key>WeatherSnowBuildSpeed</key>
+  <map>
+    <key>Comment</key>
+    <string>Prestige weather: how much faster than the real snowfall rate the snow gets deeper (1 = real time, ~1.5 cm an hour in ordinary snow; 30 = deep snow within half an hour; up to 240).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>30.0</real>
+  </map>
   <key>WeatherMasterEnabled</key>
   <map>
     <key>Comment</key>
@@ -17707,7 +17751,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>600.0</real>
+    <real>240.0</real>
   </map>
   <key>WeatherSnowMeltSeconds</key>
   <map>
@@ -17729,7 +17773,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>0.35</real>
+    <real>0.5</real>
   </map>
   <key>WeatherSnowSyncFadeSeconds</key>
   <map>
@@ -36051,7 +36095,20 @@
             <key>Type</key>
             <string>S32</string>
             <key>Value</key>
+            <integer>2</integer>
+        </map>
+        <key>PrestigePhotoStudioDefaults</key>
+        <map>
+            <key>Comment</key>
+            <string>Prestige: version of the Photo Studio default layout this install last received (1 = the filters list beside Look).</string>
+            <key>Persist</key>
             <integer>1</integer>
+            <key>HideFromEditor</key>
+            <integer>1</integer>
+            <key>Type</key>
+            <string>U32</string>
+            <key>Value</key>
+            <integer>0</integer>
         </map>
         <key>SLPhotoStudioPanels</key>
         <map>
@@ -36063,6 +36120,12 @@
             <string>LLSD</string>
             <key>Value</key>
             <array>
+                <map>
+                    <key>section</key>
+                    <string>effects</string>
+                    <key>popped</key>
+                    <boolean>0</boolean>
+                </map>
                 <map>
                     <key>section</key>
                     <string>look</string>
@@ -36078,12 +36141,6 @@
                 <map>
                     <key>section</key>
                     <string>sky</string>
-                    <key>popped</key>
-                    <boolean>0</boolean>
-                </map>
-                <map>
-                    <key>section</key>
-                    <string>scopes</string>
                     <key>popped</key>
                     <boolean>0</boolean>
                 </map>
@@ -39018,13 +39075,13 @@
     <key>SLFxEnabled</key>
     <map>
       <key>Comment</key>
-      <string>Built-in effects stack (#542): run the enabled ReShade FX effects on the world (before RLVa vision restrictions, selection outlines, name tags, HUD and UI). Off by default.</string>
+      <string>Built-in effects stack (#542): run the enabled ReShade FX effects on the world (before RLVa vision restrictions, selection outlines, name tags, HUD and UI). Prestige: on by default (nothing runs until you tick an effect).</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>SLFxNoFx</key>
     <map>

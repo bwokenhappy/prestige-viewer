@@ -256,6 +256,51 @@ vec3 meteorColor(vec3 d)
     return sum;
 }
 
+// Prestige LIGHTNING BOLT helpers (see main).
+float pbHash(float n) { return fract(sin(n * 127.1) * 43758.5453); }
+float pbNoise(float x, float seed)
+{
+    const float i = floor(x), f = fract(x);
+    const float u = f * f * (3.0 - 2.0 * f);
+    return mix(pbHash(i + seed), pbHash(i + 1.0 + seed), u) * 2.0 - 1.0;
+}
+// The channel's sideways wander (radians) at height e (radians above the horizon).
+float pbWander(float e, float seed)
+{
+    return 0.030 * pbNoise(e * 9.0, seed) + 0.014 * pbNoise(e * 31.0, seed + 7.3) + 0.006 * pbNoise(e * 97.0, seed + 3.1);
+}
+vec3 prestigeBolt(vec3 dir)
+{
+    const vec3 L = ssr.weather[9].xyz;
+    const vec2 lh = L.xy, dh = dir.xy;
+    if (dot(lh, lh) < 1e-6 || dot(dh, dh) < 1e-6) return vec3(0.0);
+    const float e = asin(clamp(dir.z, -1.0, 1.0));
+    const float seed = floor(fract(L.x * 17.13 + L.y * 31.71) * 1000.0);
+    const float top = mix(0.22, 0.42, pbHash(seed + 0.5));          // cloud base, 13-24 degrees up
+    if (e < -0.01 || e > top + 0.02) return vec3(0.0);
+    const vec2 a = normalize(lh), b = normalize(dh);
+    const float u = atan(a.x * b.y - a.y * b.x, dot(a, b));          // azimuth from the strike
+    if (abs(u) > 0.35) return vec3(0.0);
+    const float x = u - pbWander(e, seed);
+    const float core = exp(-pow(x / 0.0016, 2.0));
+    const float glow = exp(-abs(x) / 0.012);
+    float bolt = (core + 0.25 * glow) * smoothstep(top + 0.02, top - 0.03, e);
+    // One or two branches forking off part way down and dying out before the ground.
+    for (int k = 0; k < 2; ++k)
+    {
+        const float fk = float(k);
+        const float e0 = top * mix(0.45, 0.85, pbHash(seed + 11.0 + fk));
+        if (e > e0) continue;
+        const float len = top * mix(0.2, 0.45, pbHash(seed + 19.0 + fk));
+        const float side = pbHash(seed + 23.0 + fk) < 0.5 ? -1.0 : 1.0;
+        const float xb = u - pbWander(e0, seed) - side * (e0 - e) * mix(0.4, 0.9, pbHash(seed + 29.0 + fk))
+                       - pbWander(e, seed + 41.0 + fk) * 0.6;
+        const float fade = 1.0 - smoothstep(0.0, len, e0 - e);
+        bolt += (exp(-pow(xb / 0.0011, 2.0)) * 0.7 + 0.15 * exp(-abs(xb) / 0.008)) * fade;
+    }
+    return vec3(0.82, 0.88, 1.0) * bolt * (6.0 + 30.0 * max(max(ssr.weather[8].r, ssr.weather[8].g), ssr.weather[8].b));
+}
+
 void main()
 {
     vec3 dir = vec3(1.0, 0.0, 0.0);
@@ -309,6 +354,10 @@ void main()
     // Volumetric clouds (#719): the main view marches + composites them after pass 1; the
     // mirror's sky takes the panorama (no-op unless the layer is live).
     if (pc.u_horizon.w < 0.5) c = volCloudSkyApply(c, dir);
+    // Prestige LIGHTNING BOLT: while a flash is on, a jagged, branching channel from the cloud
+    // base down to the horizon toward the strike (ssr.weather[9].xyz), drawn over the clouds it
+    // hangs below. Its shape is hashed from the strike direction, so each strike has its own.
+    if (pc.u_horizon.w < 0.5 && ssr.weather[8].w > 0.0) c += prestigeBolt(dir) * ssr.weather[8].w;
     // Night-sky effects (Lightbox Sky tab). The CPU zeroes them by day (star brightness
     // gate) and in snapshots of reflection probes, as upstream skips them in cube maps.
     if (pc.u_cam.w > 0.5)

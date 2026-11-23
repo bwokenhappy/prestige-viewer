@@ -43,6 +43,7 @@ values are saved in SLPhotoStudioPanels, so never change a value.
 	 max_chars="64"
 	 name="section_combo"
 	 tool_tip="What this panel shows (Ctrl+1 to Ctrl+4 jump to a panel's dropdown). Two panels may show the same section; they stay in step.">
+		<combo_box.item label="Filters (ReShade effects)" name="effects" value="effects" />
 		<combo_box.item label="Look (everything)" name="look" value="look" />
 		<combo_box.item label="Look: Exposure &amp; Tone" name="tone" value="tone" />
 		<combo_box.item label="Look: Color Grading" name="grading" value="grading" />
@@ -54,7 +55,6 @@ values are saved in SLPhotoStudioPanels, so never change a value.
 		<combo_box.item label="Sky" name="sky" value="sky" />
 		<combo_box.item label="Cam" name="cam" value="cam" />
 		<combo_box.item label="Scopes" name="scopes" value="scopes" />
-		<combo_box.item label="Effects (ReShade FX)" name="effects" value="effects" />
 	</combo_box>
 	<button
 	 follows="top|right"

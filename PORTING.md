@@ -1,0 +1,97 @@
+# Porting Slipstream's Vulkan renderer into Firestorm
+
+This branch (`firestorm-vulkan`) is the Firestorm viewer, rebranded as Prestige Viewer, with
+Slipstream's Vulkan renderer being ported in. It is built by its own GitHub Action,
+**Prestige Firestorm-Vulkan build** (`.github/workflows/prestige-firestorm-vulkan.yml`).
+That action is separate from the **Prestige Windows build** on the `prestige` branch.
+
+| | |
+|---|---|
+| Firestorm base | `FirestormViewer/phoenix-firestorm` @ `7e44160d` (23 Nov 2026) |
+| Renderer source | this repository's `prestige` branch @ `cd94540c` (Slipstream, LGPL 2.1) |
+| Switch | CMake `-DPRESTIGE_VULKAN=ON` (default `OFF` = stock OpenGL Firestorm) |
+
+Every action run builds the viewer twice:
+- **opengl** (`PRESTIGE_VULKAN` off) must always pass.
+- **vulkan** (`PRESTIGE_VULKAN` on) compiles the Vulkan code ported so far.
+
+## How big this is (measured, not estimated)
+
+Slipstream did not add Vulkan next to OpenGL. It **deleted the OpenGL renderer** and
+rebuilt drawing around a GPU-resident scene. Moving that into Firestorm means replacing the
+same parts of Firestorm.
+
+| | Slipstream / Prestige | Firestorm |
+|---|---|---|
+| Vulkan renderer (`newview/vkgfx`) | 217,016 lines, 218 files | none |
+| World shaders (`indra/vkclean/shaders`) | 332 Vulkan GLSL files | 0 (Firestorm's GL shaders are in `app_settings/shaders`) |
+| `pipeline.cpp` | 2,220 lines | 12,586 lines |
+| `llviewerdisplay.cpp` | 485 lines | 2,102 lines |
+| `llrender.cpp` (gGL) | 897 lines (forwards to a backend) | 2,084 lines (OpenGL) |
+| `llgl.cpp` | 107 lines | 3,054 lines |
+| Draw pools (`lldrawpool*`) | 2 files | 26 files |
+| `llvertexbuffer`, `llglslshader`, `llimagegl`, `llrendertarget`, `llviewershadermgr`, `llspatialpartition` | **deleted** | present, used everywhere |
+| Windows window (`llwindowwin32.cpp`) | replaced by SDL3 + `llnativewindow` | 6,022 lines, OpenGL context |
+
+There is also code outside the renderer:
+- 188 Firestorm source files call OpenGL-side APIs directly (`gGL.`, `LLGLSLShader`, `gPipeline.`, `LLRenderTarget`, `LLGLEnable`).
+- In `newview` alone, 988 files the two viewers share have diverged, by about 240,000 changed lines.
+
+## Strategy
+
+1. **Firestorm stays shippable at every step.** Ported code goes behind `PRESTIGE_VULKAN`, and
+   at runtime behind a `RenderUseVulkan` setting once there is something to switch to. The
+   OpenGL build is the release build until the Vulkan path draws everything.
+2. **Port Slipstream's code as it is.** Bring it in as-is, and keep Firestorm-specific glue
+   in new `ll*vk*` / `prestige*` files with `<Prestige>` markers. That way both upstreams
+   can still be merged.
+3. **Use the seams Slipstream already built.**
+   - `LLRenderBackend` (llrender): `gGL` immediate-mode calls forward to a backend. This
+     moves Firestorm's UI drawing (about 190 files) over without editing each one.
+   - `LLTextureData`: the GPU-agnostic texture handle that replaces `LLImageGL` at call sites.
+   - `LLRenderRecorder`: records UI draws for the Vulkan backend.
+4. **Test without a GPU first.** Mesa's lavapipe (software Vulkan) runs the pre-flight and,
+   later, off-screen frames in CI and on dev machines before a real GPU is involved.
+
+## Phases
+
+| # | Phase | Result | Status |
+|---|---|---|---|
+| 0 | Firestorm import, Prestige rebrand, separate build action | rebranded Firestorm builds in CI | done |
+| 1 | Vulkan toolchain + device pre-flight | `PRESTIGE_VULKAN` option, vendored Khronos headers + VMA, `ll::vulkan`; Slipstream's `vk_requirements` / `vk_compat` run at startup, GPU report in the log and in Help > About | **done in this commit** |
+| 2 | Render backend seam | `LLRenderBackend` + `LLTextureData` in Firestorm's `llrender`; `gGL` forwards when a backend is installed, OpenGL otherwise | next |
+| 3 | Vulkan window + swapchain | `llnativewindow` / Win32 surface beside the GL context; `vk_device`, `vk_swapchain`, `vk_vma`; clear-screen frame behind `RenderUseVulkan` | |
+| 4 | UI on Vulkan | `LLRenderVK` (`vkgfx/llrendervk`) as the backend; Firestorm's UI, fonts and floaters draw through it | |
+| 5 | World on Vulkan | `llcleanrenderervk` + the 332 world shaders; feed it from Firestorm's `LLVOVolume` / `LLFace` / avatar data instead of draw pools and the spatial partition | |
+| 6 | Firestorm's own render features | snapshots, 360 capture, previews, beacons, highlights, selection outlines, area search markers, mini-map, Firestorm graphics prefs, mapped onto the Vulkan renderer | |
+| 7 | Vulkan by default | Retire the GL path (or keep it as a fallback), QA, release | |
+
+Phases 3 to 6 are the bulk of the work. Each one lands as several small commits, and the
+**opengl** build stays green throughout.
+
+## Phase 1: what was ported
+
+From `prestige` @ `cd94540c`, `indra/newview/vkgfx/`:
+- `vk_common.h`, `vk_enumerate.h`, `vk_compat.{h,cpp}`, `vk_requirements.{h,cpp}`: unchanged copies
+- `third_party/vulkan` (Khronos headers, header version 363) and `third_party/vma`: unchanged copies
+- `vk_result_string.cpp`: `vkResultString()` split out of `vk_device.cpp`, so these files link
+  before the 8,700-line device context is ported
+
+New Prestige glue:
+- `indra/cmake/PrestigeVulkan.cmake`: the option and the `ll::vulkan` target
+- `indra/newview/llvkprobe.{h,cpp}`: runs the pre-flight once, logs it, and gives the About-box line
+- `llappviewer.cpp`: runs the probe at startup and adds "Vulkan renderer (in development): …" to Help > About
+- `strings.xml` (en): the `AboutVulkan` string
+
+Verified locally against Mesa lavapipe:
+
+> `Vulkan pre-flight: renderer would use llvmpipe (LLVM 20.1.2, 256 bits)`
+
+## Credits and licences
+
+- Firestorm © The Phoenix Firestorm Project, Inc., LGPL 2.1.
+- Slipstream © its authors, LGPL 2.1, built on Alchemy and Linden Lab's viewer.
+- Vulkan headers © The Khronos Group, Apache 2.0 / MIT.
+- Vulkan Memory Allocator © AMD, MIT.
+
+Licence files are kept next to the vendored code.

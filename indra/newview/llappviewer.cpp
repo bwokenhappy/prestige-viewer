@@ -27,6 +27,7 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llappviewer.h"
+#include "llvkprobe.h" // <Prestige/> Vulkan renderer port
 
 // Viewer includes
 #include "llversioninfo.h"
@@ -1008,6 +1009,7 @@ bool LLAppViewer::init()
     }
 
     LL_INFOS("InitInfo") << "Configuration initialized." << LL_ENDL ;
+    LLVkProbe::run(); // <Prestige/> Vulkan pre-flight (logs the GPU report; no-op without PRESTIGE_VULKAN)
     //set the max heap size.
     initMaxHeapSize() ;
     LLCoros::instance().setStackSize(gSavedSettings.getS32("CoroutineStackSize"));
@@ -4426,6 +4428,9 @@ LLSD LLAppViewer::getViewerInfo() const
     info["RLV_VERSION"] = (rlv_handler_t::isEnabled()) ? RlvStrings::getVersionAbout() : LLTrans::getString("RLVaStatusDisabled");
 // [/RLVa:KB]
     info["OPENGL_VERSION"] = ll_safe_string((const char*)(glGetString(GL_VERSION)));
+#if PRESTIGE_VULKAN // <Prestige> Vulkan renderer port
+    info["VULKAN_RENDERER"] = LLVkProbe::summary();
+#endif // </Prestige>
     info["LIBCURL_VERSION"] = LLCore::LLHttp::getCURLVersion();
     // Settings
     // <FS:Beq> gViewerWindow can be null on shutdown. Crashes if bugsplatt uses the info
@@ -4675,6 +4680,12 @@ std::string LLAppViewer::getViewerInfoString(bool default_string) const
         support << "\n" << LLTrans::getString("AboutDriver", args, default_string);
     }
     support << "\n" << LLTrans::getString("AboutOGL", args, default_string);
+    // <Prestige> Vulkan renderer port
+    if (info.has("VULKAN_RENDERER"))
+    {
+        support << "\n" << LLTrans::getString("AboutVulkan", args, default_string);
+    }
+    // </Prestige>
     //support << "\n\n" << LLTrans::getString("AboutSettings", args, default_string); // <FS> Custom sysinfo
 #if LL_DARWIN
     support << "\n" << LLTrans::getString("AboutOSXHiDPI", args, default_string);

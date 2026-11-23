@@ -20,6 +20,7 @@ include(GLIB)
 include(DragDrop)
 if (USE_DISCORD)
   include(Discord)
+include(PrestigeVulkan) # <Prestige/> Vulkan renderer port
 endif ()
 include(EXPAT)
 include(FMODSTUDIO)
@@ -2222,6 +2223,34 @@ set_source_files_properties(${viewer_XUI_FILES}
                             PROPERTIES HEADER_FILE_ONLY TRUE)
 list(APPEND viewer_SOURCE_FILES ${viewer_XUI_FILES})
 
+# <Prestige> Vulkan renderer port from Slipstream (see PORTING.md). llvkprobe is always
+# compiled (it is a no-op without PRESTIGE_VULKAN); the vkgfx sources only when it is ON.
+list(APPEND viewer_SOURCE_FILES llvkprobe.cpp)
+list(APPEND viewer_HEADER_FILES llvkprobe.h)
+if (PRESTIGE_VULKAN)
+  set(prestige_vkgfx_SOURCE_FILES
+      vkgfx/vk_compat.cpp
+      vkgfx/vk_requirements.cpp
+      vkgfx/vk_result_string.cpp
+      )
+  set(prestige_vkgfx_HEADER_FILES
+      vkgfx/vk_common.h
+      vkgfx/vk_compat.h
+      vkgfx/vk_enumerate.h
+      vkgfx/vk_requirements.h
+      )
+  # Slipstream's sources don't use the viewer's precompiled header, and are written
+  # against clang/GCC warning sets: don't let MSVC /W3 nits fail the build (/WX).
+  set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+  if (WINDOWS)
+    set_source_files_properties(${prestige_vkgfx_SOURCE_FILES} PROPERTIES COMPILE_OPTIONS "/WX-")
+  endif ()
+  source_group("Prestige Vulkan" FILES ${prestige_vkgfx_SOURCE_FILES} ${prestige_vkgfx_HEADER_FILES})
+  list(APPEND viewer_SOURCE_FILES ${prestige_vkgfx_SOURCE_FILES})
+  list(APPEND viewer_HEADER_FILES ${prestige_vkgfx_HEADER_FILES})
+endif ()
+# </Prestige>
+
 # Add the shader sources
 file(GLOB_RECURSE viewer_SHADER_FILES LIST_DIRECTORIES FALSE
     ${CMAKE_CURRENT_SOURCE_DIR}/app_settings/shaders/*.glsl)
@@ -2685,6 +2714,8 @@ endif (WINDOWS)
 # variables, PNG_PRELOAD_ARCHIVES and ZLIBNG_PRELOAD_ARCHIVES, get the archives
 # dumped into the target binary and runtime lookup will find the most
 # modern version.
+
+target_link_libraries(${VIEWER_BINARY_NAME} ll::vulkan) # <Prestige/> empty unless PRESTIGE_VULKAN
 
 target_link_libraries(${VIEWER_BINARY_NAME}
         llaudio

@@ -235,7 +235,7 @@ with the same filename but different name
   <texture name="Command_PoseStand_Icon" file_name="toolbar_icons/posestand.png" preload="true" vector_file="phosphor/person-arms-spread.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_ClassicPoser_Icon" file_name="toolbar_icons/poser.png" preload="true" vector_file="phosphor/hand-grabbing.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_PoseCreator_Icon" file_name="toolbar_icons/poser.png" preload="true" vector_file="phosphor/film-strip.svg" vector_color="IconColor" /> <!-- Prestige -->
-  <texture name="Command_Contacts_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/users.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_Contacts_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/user-check.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_NearbyChat_Icon" file_name="toolbar_icons/chat.png" preload="true" vector_file="phosphor/chat-circle.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_ConversationLog_Icon" file_name="toolbar_icons/chat.png" preload="true" vector_file="phosphor/scroll.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_Blocked_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/prohibit.svg" vector_color="IconColor" /> <!-- Prestige -->

@@ -115,9 +115,9 @@ bool check_for_card(const char* RENDERER, const char* bad_card)
     if (!strnicmp(RENDERER, bad_card, strlen(bad_card)))
     {
         std::string buffer = llformat(
-            "Your video card appears to be a %s, which Firestorm does not support.\n"
+            "Your video card appears to be a %s, which Prestige Viewer does not support.\n"
             "\n"
-            "Firestorm requires a video card with 32 Mb of memory or more, as well as\n"
+            "Prestige Viewer requires a video card with 32 Mb of memory or more, as well as\n"
             "multitexture support.  We explicitly support nVidia GeForce 2 or better, \n"
             "and ATI Radeon 8500 or better.\n"
             "\n"
@@ -126,7 +126,7 @@ bool check_for_card(const char* RENDERER, const char* bad_card)
             "Phoenix Viewer Support group in world, or visit www.firestormviewer.org\n"
             "for support.\n"
             "\n"
-            "You can try to run Firestorm, but it will probably crash or run\n"
+            "You can try to run Prestige Viewer, but it will probably crash or run\n"
             "very slowly.  Try anyway?",
             bad_card);
         S32 button = OSMessageBox(buffer.c_str(), "Unsupported video card", OSMB_YESNO);

@@ -312,7 +312,7 @@ static std::wstring get_app_name()
     //    channel.replace(channel.size() - release_suffix.size(), release_suffix.size(), L" Viewer");
     //}
     //return channel;
-    std::wstring prefix = L"Firestorm";
+    std::wstring prefix = L"PrestigeViewer";
     if (channel.starts_with(prefix))
         channel.erase(0, prefix.size());
 #ifdef OPENSIM
@@ -860,7 +860,7 @@ static void register_uninstall_info(const std::wstring& install_dir,
         RegSetValueExW(hkey, L"Publisher", 0, REG_SZ,
                       // <FS:TJ> Use Firestorm installation information
                       //(BYTE*)L"Linden Research, Inc.", 44);
-                      (BYTE*)L"The Phoenix Firestorm Project, Inc.", 72);
+                      (BYTE*)L"Prestige Viewer", 32);
                       // </FS:TJ>
         RegSetValueExW(hkey, L"UninstallString", 0, REG_SZ,
                       (BYTE*)uninstall_cmd.c_str(), (DWORD)((uninstall_cmd.size() + 1) * sizeof(wchar_t)));
@@ -975,7 +975,7 @@ static void on_first_run(void* p_user_data, const char* app_version)
 
         // <FS:TJ> Look for Firestorms settings.xml and not LL's
         //std::string user_settings_path = app_data_path + "\\SecondLife\\user_settings\\settings.xml";
-        std::string user_settings_path = app_data_path + "\\Firestorm_x64\\user_settings\\settings.xml";
+        std::string user_settings_path = app_data_path + "\\PrestigeViewer_x64\\user_settings\\settings.xml";
         // </FS:TJ>
         LLControlGroup settings("global");
         if (settings.loadFromFile(user_settings_path))

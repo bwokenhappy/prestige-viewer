@@ -7,12 +7,8 @@
 	<string name="SECOND_LIFE">
 		Second Life
 	</string>
-	<string name="APP_NAME">
-		Second Life
-	</string>
-	<string name="CAPITALIZED_APP_NAME">
-		SECOND LIFE
-	</string>
+	<string name="APP_NAME">Prestige Viewer</string>
+	<string name="CAPITALIZED_APP_NAME">PRESTIGE VIEWER</string>
 	<string name="SECOND_LIFE_GRID">
 		Second Life Ağı
 	</string>

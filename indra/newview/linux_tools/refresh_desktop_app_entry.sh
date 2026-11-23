@@ -12,8 +12,8 @@ function install_desktop_entry()
 
     local desktop_entry="\
 [Desktop Entry]\n\
-Name=Firestorm Viewer\n\
-GenericName=Firestorm Viewer\n\
+Name=Prestige Viewer\n\
+GenericName=Prestige Viewer\n\
 Comment=Client for accessing 3D virtual worlds\n\
 Path=${installation_prefix}\n\
 Exec=${installation_prefix}/firestorm\n\

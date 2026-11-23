@@ -414,7 +414,7 @@ void LLAppViewerLinux::bugsplatAddStaticAttributes(const LLSD& info)
             {"product", LLVersionInfo::instance().getChannel()},
             {"version", LLVersionInfo::instance().getVersion()},
             {"channel", LLVersionInfo::instance().getChannel()},
-            {"description", "Firestorm closed unexpectedly."},
+            {"description", "Prestige Viewer closed unexpectedly."},
             {"system", system},
             {"name", gCrashSettings.getBOOL("CrashSubmitName") && gAgentAvatarp
                          ? gAgentAvatarp->getFullname() : std::string()},

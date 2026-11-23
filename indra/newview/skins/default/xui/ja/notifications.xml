@@ -3891,12 +3891,12 @@ Webページにリンクすると、他人がこの場所に簡単にアクセ�
 	<notification name="MeshUploadErrorDetails">
 		[LABEL]をアップロードできませんでした：[MESSAGE]
 [DETAILS]
-詳しくは、Firestorm.logをご覧ください。
+詳しくは、PrestigeViewer.logをご覧ください。
 	</notification>
 	<notification name="MeshUploadError">
 		[LABEL]をアップロードできませんでした：[MESSAGE]
 
-詳しくは、Firestorm.logをご覧ください。
+詳しくは、PrestigeViewer.logをご覧ください。
 	</notification>
 	<notification name="MeshUploadPermError">
 		メッシュのアップロード許可をリクエスト時にエラーが発生しました。
@@ -5658,8 +5658,8 @@ http://opensimulator.org/wiki/inventory を使用して問題を修正できま�
 	</notification>
 	<notification name="CurrencyURIOverrideReceived">
 		このリージョンでは、サードパーティの通貨ポータルを指定することを選択しました。
-Firestorm Viewer を通じて行われる通貨の購入は、お客様（ユーザー）と通貨の提供者または販売者との間の取引であることにご注意ください。
-Firestorm Viewer、Phoenix Firestorm Viewer Project Inc.、またはそのチームは、そのような取引から直接的または間接的に生じる費用または損害について一切責任を負いません。
+Prestige Viewer を通じて行われる通貨の購入は、お客様（ユーザー）と通貨の提供者または販売者との間の取引であることにご注意ください。
+Prestige Viewer、Phoenix Firestorm Viewer Project Inc.、またはそのチームは、そのような取引から直接的または間接的に生じる費用または損害について一切責任を負いません。
 これらの利用規約に同意しない場合は、このビューアを使用して金融取引を行うことはできません。
 		<usetemplate ignoretext="リージョンが新しい通貨ヘルパーを設定するとき" yestext="ＯＫ" name="okignore"/>
 	</notification>
@@ -5847,8 +5847,8 @@ Firestorm Viewer、Phoenix Firestorm Viewer Project Inc.、またはそのチー
 		Windlightsの一括インポートが完了しました。
 	</notification>
 	<notification name="FSAOScriptedNotification">
-		Firestormアニメーションオーバーライド：[AO_MESSAGE]
-		<usetemplate ignoretext="スクリプトオブジェクトがFirestormアニメーションオーバーライダーにアクセスしたときに警告" name="notifyignore"/>
+		Prestige Viewerアニメーションオーバーライド：[AO_MESSAGE]
+		<usetemplate ignoretext="スクリプトオブジェクトがPrestige Viewerアニメーションオーバーライダーにアクセスしたときに警告" name="notifyignore"/>
 	</notification>
 	<notification name="WarnForceLoginURL">
 		ログインスプラッシュスクリーンのＵＲＬはテスト目的で上書きされます。

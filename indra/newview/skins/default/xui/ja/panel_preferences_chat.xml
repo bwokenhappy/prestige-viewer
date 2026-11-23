@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="チャット" name="chat">
-	<tab_container label="Firestorm Prefs" name="tabs">
+	<tab_container label="Prestige Viewer Prefs" name="tabs">
 		<!-- Chat: Visuals -->
 		<panel label="表示" name="ChatVisuals">
 			<text name="console_font_size">
@@ -204,7 +204,7 @@
 				チャット履歴ウィンドウでＩＭを薄く表示
 			</text>
 			<spinner tool_tip="0.25～1.0と、0.25はフェードが多くなります。1はフェードしません。" name="FSIMChatHistoryFade"/>
-			<check_box label="未読ＩＭの数をFirestormのウィンドウタイトルに表示" name="FSShowMessageCountInWindowTitle"/>
+			<check_box label="未読ＩＭの数をPrestige Viewerのウィンドウタイトルに表示" name="FSShowMessageCountInWindowTitle"/>
 			<check_box label="相手が入力を始めたら、ＩＭが来ることを事前に通知" name="FSAnnounceIncomingIM"/>
 			<check_box label="フレンドのオンラインステータスが変わったらＩＭタブを点滅" name="FSIMChatFlashOnFriendStatusChange"/>
 			<check_box label="新しい近くのチャットを受信したらチャットツールバーのボタンを点滅" tool_tip="新しい近くのチャットを受信したらチャットツールバーのボタンが点滅します。この時、近くのチャットは会話ウィンドウにドッキングしている必要があり、また、ボタンを点滅させるには会話ウィンドウが閉じている必要があります。" name="FSNotifyNearbyChatFlash"/>

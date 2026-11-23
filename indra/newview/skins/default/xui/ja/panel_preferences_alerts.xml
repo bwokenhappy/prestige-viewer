@@ -8,7 +8,7 @@
 			<check_box label="リージョンを変更中にシミュレータのバージョンが変更された場合に通知する" tool_tip="テレポートしたり、ＳＩＭをリージョンを表示をまたいで移動した場合に、シミュレーターのバージョンが異なるとその旨の通知を表示します。" name="FSShowServerVersionChangeNotice"/>
 			<check_box label="ログイン時に status.secondlifegrid.net の最新情報を取得する" name="AutoQueryGridStatus"/>
 			<check_box label="Growl通知を有効にする" name="notify_growl_checkbox"/>
-			<check_box label="Firestormが前面にあってもGrowlで通知" name="notify_growl_always_checkbox"/>
+			<check_box label="Prestige Viewerが前面にあってもGrowlで通知" name="notify_growl_always_checkbox"/>
 			<check_box label="キーワード通知の一部として既に一度表示されている場合、重複したＩＭは表示しない" name="FSFilterGrowlKeywordDuplicateIMs"/>
 		</panel>
 		<!-- People -->

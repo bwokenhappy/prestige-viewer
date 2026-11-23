@@ -7,12 +7,8 @@
 	<string name="SECOND_LIFE">
 		[CURRENT_GRID]
 	</string>
-	<string name="APP_NAME">
-		Firestorm
-	</string>
-	<string name="CAPITALIZED_APP_NAME">
-		FIRESTORM
-	</string>
+	<string name="APP_NAME">Prestige Viewer</string>
+	<string name="CAPITALIZED_APP_NAME">PRESTIGE VIEWER</string>
 	<string name="SECOND_LIFE_GRID">
 		Сеть Second Life
 	</string>

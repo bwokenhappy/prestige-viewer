@@ -166,7 +166,7 @@ LLControlVariable::LLControlVariable(const std::string& name, eControlType type,
     if ((persist != PERSIST_NO) && mComment.empty())
     {
         std::string error_string =
-            "Firestorm failed to initialize settings. Setting " + mName + " is invalid. "
+            "Prestige Viewer failed to initialize settings. Setting " + mName + " is invalid. "
             "Either settings files were supplied incorrectly or default files were corrupted."
             "\n\nPlease reinstall viewer from https://www.firestormviewer.org/downloads and "
             "contact https://www.firestormviewer.org/support if issue persists after reinstall.";

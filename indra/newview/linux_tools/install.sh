@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Firestorm Viewer Installation Script
+# Prestige Viewer Installation Script
 
 # ANSI color codes for styling
 VT102_STYLE_NORMAL='\E[0m'
@@ -85,7 +85,7 @@ prune_old_backups() {
     done
 }
 
-# Function to install Firestorm Viewer to the specified directory
+# Function to install Prestige Viewer to the specified directory
 install_to_prefix() {
     local install_prefix="$1"
 
@@ -106,7 +106,7 @@ install_to_prefix() {
         die "Cannot install into a subdirectory of the source package."
     fi
 
-    echo " - Installing Firestorm Viewer to $install_prefix"
+    echo " - Installing Prestige Viewer to $install_prefix"
 
     # Copy all files from the tarball to the installation directory
     cp -a "${tarball_path}/." "$install_prefix/" || die "Failed to complete the installation!"
@@ -116,8 +116,8 @@ install_to_prefix() {
 # Function for user-specific installation (non-root)
 homedir_install() {
     warn "You are not running as a privileged user, so you will only be able"
-    warn "to install the Firestorm Viewer in your home directory. If you"
-    warn "would like to install the Firestorm Viewer system-wide, please run"
+    warn "to install the Prestige Viewer in your home directory. If you"
+    warn "would like to install the Prestige Viewer system-wide, please run"
     warn "this script as the root user, or with the 'sudo' command."
     echo
 
@@ -215,7 +215,7 @@ parse_arguments() {
 
 # Main installation workflow
 main() {
-    echo "Starting Firestorm Viewer installation script..."
+    echo "Starting Prestige Viewer installation script..."
 
     RETAIN_BACKUPS="${DEFAULT_RETAIN_BACKUPS}"
     NON_INTERACTIVE="false"
@@ -237,7 +237,7 @@ main() {
         homedir_install
     fi
 
-    echo "Firestorm Viewer installation process completed successfully."
+    echo "Prestige Viewer installation process completed successfully."
 }
 
 # Execute the main function with all passed arguments

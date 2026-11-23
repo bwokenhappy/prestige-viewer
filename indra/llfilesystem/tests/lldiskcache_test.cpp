@@ -107,7 +107,7 @@ namespace tut
 
         void initialize(const fs::path& profile)
         {
-            cache_parent = root.path / profile / "AppData" / "Local" / "Firestorm";
+            cache_parent = root.path / profile / "AppData" / "Local" / "PrestigeViewer";
             cache = cache_parent / "assets";
             fs::create_directories(cache_parent);
             dirs.configure(cache_parent, root.path / "install");

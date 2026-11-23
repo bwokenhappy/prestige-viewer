@@ -32,7 +32,7 @@
 			<text name="ShadersPrefText4">
 				超高
 			</text>
-			<check_box label="フルスクリーンモード（要再起動）" tool_tip="Firestormをフルスクリーンモードで起動します。" name="Fullscreen Mode"/>
+			<check_box label="フルスクリーンモード（要再起動）" tool_tip="Prestige Viewerをフルスクリーンモードで起動します。" name="Fullscreen Mode"/>
 			<text name="ShadersText">
 				シェーダー：
 			</text>
@@ -88,7 +88,7 @@
 			</combo_box>
 			<!-- End of mirror settings -->
 			<!--Top of second column in General tab-->
-			<check_box label="フルスクリーンモード" tool_tip="Firestormをフルスクリーンモードで実行します。モードを変更するには再起動が必要です。" name="Fullscreen Mode"/>
+			<check_box label="フルスクリーンモード" tool_tip="Prestige Viewerをフルスクリーンモードで実行します。モードを変更するには再起動が必要です。" name="Fullscreen Mode"/>
 			<slider label="描画距離：" name="DrawDistance"/>
 			<text name="DrawDistanceMeterText2">
 				ｍ

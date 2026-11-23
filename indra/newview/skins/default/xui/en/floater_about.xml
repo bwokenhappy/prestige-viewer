@@ -33,7 +33,7 @@
         top="16"
         width="434"
         wrap="true">
-For the latest information about Firestorm, visit 
+Prestige Viewer is based on the Firestorm viewer. For the latest information about Firestorm, visit 
 https://www.firestormviewer.org
       </text>
       <text_editor
@@ -124,7 +124,7 @@ Dummy Name replaced at run time
                  top="0"
                  width="450"
                  wrap="true">
-Firestorm is a community development project to improve the SecondLife(tm) Viewer experience. We package contributions from various community developers along with code from Linden Lab and ourselves to bring you a quality, feature-rich viewer experience backed up by a large volunteer support team. Firestorm is brought to you by The Phoenix Firestorm Project, Inc., a non-profit organization.
+Prestige Viewer is built on Firestorm. Firestorm is a community development project to improve the SecondLife(tm) Viewer experience. We package contributions from various community developers along with code from Linden Lab and ourselves to bring you a quality, feature-rich viewer experience backed up by a large volunteer support team. Firestorm is brought to you by The Phoenix Firestorm Project, Inc., a non-profit organization.
 
 The Firestorm Development Team:
                 </text>

@@ -335,7 +335,7 @@ class ViewerManifest(LLManifest,FSViewerManifest):
         global CHANNEL_VENDOR_BASE
         # a standard map of strings for replacing in the templates
         #<FS:TS> tag "OS" after CHANNEL_VENDOR_BASE and before any suffix
-        channel_base = "Phoenix-" + CHANNEL_VENDOR_BASE
+        channel_base = CHANNEL_VENDOR_BASE
         if self.fs_is_opensim():
             channel_base = channel_base + "OS"
         #</FS:TS>
@@ -387,8 +387,7 @@ class ViewerManifest(LLManifest,FSViewerManifest):
 
     # <FS:Ansariel> FIRE-30446: Set FriendlyAppName for protocol registrations
     def friendly_app_name(self):
-        global CHANNEL_VENDOR_BASE
-        return CHANNEL_VENDOR_BASE
+        return "Prestige Viewer"
     # </FS:Ansariel>
 
     def icon_path(self):

@@ -24,6 +24,8 @@ Prestige is a third-party viewer for Second Life with a clean, professional char
   - **People:** nearby-avatar radar, Contacts with contact sets, area search, teleport history.
   - **Avatar:** a poser, and an animation overrider.
   - **Interface:** pie menus, quick preferences, legacy profiles.
+- **Your look, your colours.** Choose the charcoal-and-orange **Prestige** skin or **Prestige Pink** (pink, lavender and deep purple), or change any interface colour yourself in **Preferences → Skins → Customize colors**.
+- **Smooth load-in.** Objects and avatars fade in gently while they load.
 - **Privacy first.** Prestige collects no usage data and sends nothing about you anywhere.
 
 ## Requirements

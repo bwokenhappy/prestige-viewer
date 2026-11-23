@@ -329,6 +329,8 @@ RenderReflectionProbeCount  1   256
 //
 // Ultra graphics (REALLY PURTY!)
 //
+// <Prestige> sharper reflections (jewelry, metal) on high-end cards
+RenderReflectionProbeResolution 1 256
 list Ultra
 RenderAnisotropicLevel			1	4
 RenderAvatarLODFactor		1	1.0
@@ -368,6 +370,8 @@ RenderReflectionProbeCount  1   256
 //
 // Class Unknown Hardware (unknown)
 //
+// <Prestige> sharper reflections (jewelry, metal) on high-end cards
+RenderReflectionProbeResolution 1 256
 list Unknown
 RenderShadowDetail			1	0
 RenderDeferredSSAO			1	0

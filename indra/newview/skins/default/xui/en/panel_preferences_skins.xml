@@ -107,6 +107,21 @@
     <button.commit_callback
      function="Pref.ImportFirestormSkin" />
   </button>
+  <!-- <Prestige> the UI colour editor (was only in Develop > XUI / Colors) -->
+  <button
+   follows="left|top"
+   height="19"
+   label="Customize colors..."
+   layout="topleft"
+   left="40"
+   name="customize_colors"
+   tool_tip="Change any interface colour: text, buttons, highlights, windows, chat. Pick a colour, set its transparency, or reset it. Changes apply right away and stay with your settings."
+   top_pad="4"
+   width="170">
+    <button.commit_callback
+     function="Floater.Show"
+     parameter="settings_color" />
+  </button>
   <check_box
    follows="left|top"
    height="16"

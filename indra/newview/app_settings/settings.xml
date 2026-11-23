@@ -17608,7 +17608,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>20.0</real>
+    <real>60.0</real>
   </map>
   <key>WeatherWetSurfaces</key>
   <map>
@@ -39775,7 +39775,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>8</integer>
   </map>
   <key>SLRezFXOutEffect</key>
   <map>
@@ -39786,7 +39786,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>9</integer>
   </map>
   <key>SLRezFXDuration</key>
   <map>
@@ -39797,7 +39797,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>0.6</real>
+      <real>0.8</real>
   </map>
   <key>SLRezFXOnlyLoading</key>
   <map>

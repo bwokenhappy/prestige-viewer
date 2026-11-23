@@ -296,7 +296,7 @@ bool writeMp4(const std::string& path, const std::vector<uint8_t>& sps, const st
     avc1.u32(0x00480000); avc1.u32(0x00480000); avc1.u32(0); avc1.u16(1);
     {
         uint8_t name[32] = {};
-        const char* n = "Slipstream";
+        const char* n = "Prestige";
         name[0] = (uint8_t)std::strlen(n);
         std::memcpy(name + 1, n, name[0]);
         avc1.bytes(name, 32);
@@ -327,7 +327,7 @@ bool writeMp4(const std::string& path, const std::vector<uint8_t>& sps, const st
     vmhd.full(0, 1); vmhd.zeros(8);
     minf.child("vmhd", vmhd); dinfBox(minf); minf.child("stbl", stbl);
     mdhd.full(0, 0); mdhd.u32(0); mdhd.u32(0); mdhd.u32(kTs); mdhd.u32((uint32_t)total); mdhd.u16(0x55C4); mdhd.u16(0);
-    mdia.child("mdhd", mdhd); hdlrBox(mdia, "vide", "Slipstream replay"); mdia.child("minf", minf);
+    mdia.child("mdhd", mdhd); hdlrBox(mdia, "vide", "Prestige replay"); mdia.child("minf", minf);
     tkhdBox(trak, 1, durMs, false, width, height);
     trak.child("mdia", mdia);
 
@@ -360,7 +360,7 @@ bool writeMp4(const std::string& path, const std::vector<uint8_t>& sps, const st
         smhd.full(0, 0); smhd.u16(0); smhd.u16(0);
         aminf.child("smhd", smhd); dinfBox(aminf); aminf.child("stbl", astbl);
         amdhd.full(0, 0); amdhd.u32(0); amdhd.u32(0); amdhd.u32(kAr); amdhd.u32((uint32_t)samples); amdhd.u16(0x55C4); amdhd.u16(0);
-        amdia.child("mdhd", amdhd); hdlrBox(amdia, "soun", "Slipstream replay audio"); amdia.child("minf", aminf);
+        amdia.child("mdhd", amdhd); hdlrBox(amdia, "soun", "Prestige replay audio"); amdia.child("minf", aminf);
         elst.full(0, 0); elst.u32(leadMs ? 2 : 1);
         if (leadMs) { elst.u32(leadMs); elst.u32(0xFFFFFFFFu); elst.u32(0x00010000); }   // empty edit: silence first
         elst.u32(playMs); elst.u32(skip); elst.u32(0x00010000);

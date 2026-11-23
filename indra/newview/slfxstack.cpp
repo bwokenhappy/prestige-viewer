@@ -1061,9 +1061,9 @@ void SLFxStack::updateSafety()
         {
             LL_WARNS("FX") << "other post-processing loaded into the viewer: " << inj << LL_ENDL;
             LLNotificationsUtil::add("GenericAlert", LLSD().with("MESSAGE",
-                "Slipstream's built-in effects are on and keep working. Another post-processing tool is also "
-                "loaded into the viewer: " + inj + ". Its effects are drawn on top of Slipstream's, so if the "
-                "picture looks doubled or too strong, turn one of them off (for ReShade: remove Slipstream from "
+                "Prestige's built-in effects are on and keep working. Another post-processing tool is also "
+                "loaded into the viewer: " + inj + ". Its effects are drawn on top of Prestige's, so if the "
+                "picture looks doubled or too strong, turn one of them off (for ReShade: remove Prestige from "
                 "ReShade's setup, or delete its files from the viewer's folder)."));
         }
     }

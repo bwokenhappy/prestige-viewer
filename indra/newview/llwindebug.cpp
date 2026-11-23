@@ -640,10 +640,10 @@ void LLWinDebug::generateMinidump(struct _EXCEPTION_POINTERS *exception_infop, u
         ExInfo.ThreadId = thread_id ? (DWORD)thread_id : ::GetCurrentThreadId();   // the faulting thread
         ExInfo.ExceptionPointers = exception_infop;
         ExInfo.ClientPointers = NULL;
-        writeDumpToFile(type, &ExInfo, "Slipstream.dmp");
+        writeDumpToFile(type, &ExInfo, "Prestige.dmp");
     }
     else
     {
-        writeDumpToFile(type, nullptr, "Slipstream.dmp");   // terminate: no exception record
+        writeDumpToFile(type, nullptr, "Prestige.dmp");   // terminate: no exception record
     }
 }

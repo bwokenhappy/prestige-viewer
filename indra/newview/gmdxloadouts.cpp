@@ -1320,7 +1320,7 @@ void GMDXLoadouts::shareLoadout(const LLUUID& loadout_id)
         auto it = loadout.slots.find(cat);
         text += cat + ": " + (it != loadout.slots.end() ? it->second.name : std::string("(empty)")) + "\n";
     }
-    text += "\nTo add it in Slipstream (CombatFX on) or GunMetal-DX, drop this notecard on the Loadouts window (Combat > Loadouts).\n";
+    text += "\nTo add it in Prestige (CombatFX on) or GunMetal-DX, drop this notecard on the Loadouts window (Combat > Loadouts).\n";
 
     LLNotecard nc(LLNotecard::MAX_SIZE);
     nc.setText(text);

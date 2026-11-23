@@ -322,7 +322,7 @@ bool vrStartup(bool second_instance, bool forced)
         doOnIdleOneTime([]()
         {
             LLSD args;
-            args["MESSAGE"] = "Slipstream closed while starting VR last time; started on the desktop. "
+            args["MESSAGE"] = "Prestige closed while starting VR last time; started on the desktop. "
                               "Use Start in VR to try again.";
             LLNotificationsUtil::add("GenericAlert", args);
         });

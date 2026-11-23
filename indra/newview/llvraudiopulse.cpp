@@ -215,7 +215,7 @@ public:
     {
         mLoop = s_pa.mainloop_new();
         if (!mLoop) return;
-        mContext = s_pa.context_new(s_pa.mainloop_get_api(mLoop), "Slipstream VR audio");
+        mContext = s_pa.context_new(s_pa.mainloop_get_api(mLoop), "Prestige VR audio");
         if (!mContext) return;
         if (s_pa.context_connect(mContext, nullptr, PA_CONTEXT_NOAUTOSPAWN, nullptr) < 0) return;
         while (true)

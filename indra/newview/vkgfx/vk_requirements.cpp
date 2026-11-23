@@ -509,7 +509,7 @@ void vkEvaluateDevices(VkInstance instance, bool wantSwapchain, VkRequirementsRe
         if (forcedRefusal)
             *forcedRefusal = fi < 0 ? std::string("the GPU the OpenXR runtime requires is not one of this Vulkan instance's devices")
                                     : "the GPU the OpenXR runtime requires (" + out.gpus[fi].name +
-                                      ") does not meet Slipstream's requirements (" +
+                                      ") does not meet Prestige's requirements (" +
                                       (out.gpus[fi].missing.empty() ? std::string("unknown") : out.gpus[fi].missing.front()) + ")";
     }
     // #277: the GPU chosen in Preferences / login wins when it qualifies.
@@ -528,12 +528,12 @@ void vkEvaluateDevices(VkInstance instance, bool wantSwapchain, VkRequirementsRe
         {
             if (pref < 0)
                 out.preferenceNote = "The graphics card chosen in the settings is not available (device " + gPreferredDevice +
-                                     "). Slipstream is using Automatic selection instead; your choice is kept for when it is back.";
+                                     "). Prestige is using Automatic selection instead; your choice is kept for when it is back.";
             else
                 out.preferenceNote = "The graphics card chosen in the settings (" + out.gpus[pref].name +
-                                     ") does not meet Slipstream's requirements (" +
+                                     ") does not meet Prestige's requirements (" +
                                      (out.gpus[pref].missing.empty() ? std::string("unknown") : out.gpus[pref].missing.front()) +
-                                     "). Slipstream is using Automatic selection instead.";
+                                     "). Prestige is using Automatic selection instead.";
             gPendingPreferenceNote = out.preferenceNote;
         }
     }
@@ -612,7 +612,7 @@ std::vector<std::string> vkRequirementsLogLines(const VkRequirementsReport& r)
     if (r.best >= 0)
         out.push_back("Vulkan requirements: chose " + r.bestWhy);
     else if (r.instanceOk)
-        out.push_back("Vulkan requirements: NO device meets Slipstream's minimum (Vulkan 1.3, or 1.2 with the extensions listed above, plus the required features)");
+        out.push_back("Vulkan requirements: NO device meets Prestige's minimum (Vulkan 1.3, or 1.2 with the extensions listed above, plus the required features)");
     if (!r.failure.empty())
         out.push_back("Vulkan requirements: bring-up failed: " + r.failure);
     return out;
@@ -620,7 +620,7 @@ std::vector<std::string> vkRequirementsLogLines(const VkRequirementsReport& r)
 
 const char* vkRequirementsUserTitle()
 {
-    return "Slipstream can't start: graphics not supported";
+    return "Prestige can't start: graphics not supported";
 }
 
 std::string vkRequirementsUserMessage(const VkRequirementsReport& r)
@@ -628,22 +628,22 @@ std::string vkRequirementsUserMessage(const VkRequirementsReport& r)
     std::string s;
     if (!r.instanceOk)
     {
-        s = "Slipstream needs a graphics driver with Vulkan support (Vulkan 1.3, or Vulkan 1.2 with dynamic rendering), but no working Vulkan driver was found";
+        s = "Prestige needs a graphics driver with Vulkan support (Vulkan 1.3, or Vulkan 1.2 with dynamic rendering), but no working Vulkan driver was found";
         s += std::string(" (") + vkResultString(r.instanceResult) + ").\n";
     }
     else if (r.gpus.empty())
     {
-        s = "Slipstream needs a graphics card with Vulkan support (Vulkan 1.3, or Vulkan 1.2 with dynamic rendering), but the Vulkan driver reported no graphics "
+        s = "Prestige needs a graphics card with Vulkan support (Vulkan 1.3, or Vulkan 1.2 with dynamic rendering), but the Vulkan driver reported no graphics "
             "devices.\n";
     }
     else if (r.best < 0)
     {
-        s = "Slipstream needs a graphics card and driver with Vulkan 1.3 support (or Vulkan 1.2 with the VK_KHR_dynamic_rendering extension). None of the graphics devices on "
+        s = "Prestige needs a graphics card and driver with Vulkan 1.3 support (or Vulkan 1.2 with the VK_KHR_dynamic_rendering extension). None of the graphics devices on "
             "this computer meets that yet.\n";
     }
     else
     {
-        s = "Slipstream could not start the graphics device";
+        s = "Prestige could not start the graphics device";
         s += r.failure.empty() ? std::string(".\n") : " (" + r.failure + ").\n";
     }
 

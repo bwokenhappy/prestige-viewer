@@ -92,7 +92,7 @@ bool LLXrLoader::load(const std::string& viewerLibDir, std::string& why)
     }
     if (!sLib)
     {
-        why = std::string("this Slipstream install is incomplete: its OpenXR loader (") + name +
+        why = std::string("this Prestige install is incomplete: its OpenXR loader (") + name +
               ") could not be loaded (" + errs + "). Reinstall the viewer";
         LL_WARNS("VR") << "OpenXR loader not loaded: " << errs << LL_ENDL;
         return false;

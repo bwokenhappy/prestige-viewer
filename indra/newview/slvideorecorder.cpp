@@ -76,7 +76,7 @@ std::string outputBase()
     const std::time_t tt = std::time(nullptr);
     char stamp[64];
     std::strftime(stamp, sizeof(stamp), "%Y-%m-%d %H-%M-%S", std::localtime(&tt));
-    return dir + gDirUtilp->getDirDelimiter() + "Slipstream Video " + stamp;
+    return dir + gDirUtilp->getDirDelimiter() + "Prestige Video " + stamp;
 }
 
 // A bitrate for the picture height (H.264 Main, VBR where the driver has it).

@@ -1057,7 +1057,7 @@ Built build()
         add(b, Act::Replay, SLVideoStudio::ROW_TOGGLE, "Instant replay", on ? "On" : "Off").on = on;
         add(b, Act::None, SLVideoStudio::ROW_NOTE,
             "While on, the last 30 seconds of the window (the interface and the viewer's sound included) are kept in a "
-            "fixed amount of memory; Save Replay writes them to an MP4 in Videos/Slipstream.");
+            "fixed amount of memory; Save Replay writes them to an MP4 in Videos/Prestige.");
         add(b, Act::ReplayButtons, SLVideoStudio::ROW_BUTTONS, "").buttons = { "Save replay (Alt+F10)", "Open folder" };
         if (!LLInstantReplay::encoderAvailable())
             add(b, Act::None, SLVideoStudio::ROW_NOTE, "This GPU / driver can't encode H.264 video: instant replay isn't available.");

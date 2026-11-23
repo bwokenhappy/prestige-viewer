@@ -545,16 +545,16 @@ WorkQueue gMainloopWork("mainloop", 1024*1024);
 // Internal globals... that should be removed.
 static std::string gArgs;
 const int MAX_MARKER_LENGTH = 1024;
-const std::string MARKER_FILE_NAME("Slipstream.exec_marker");
-const std::string START_MARKER_FILE_NAME("Slipstream.start_marker");
+const std::string MARKER_FILE_NAME("Prestige.exec_marker");
+const std::string START_MARKER_FILE_NAME("Prestige.start_marker");
 // --vr was on this command line (the VR start guard never overrides it).
 static bool sVrOnCommandLine = false;
-const std::string ERROR_MARKER_FILE_NAME("Slipstream.error_marker");
-const std::string LOGOUT_MARKER_FILE_NAME("Slipstream.logout_marker");
+const std::string ERROR_MARKER_FILE_NAME("Prestige.error_marker");
+const std::string LOGOUT_MARKER_FILE_NAME("Prestige.logout_marker");
 static std::string gLaunchFileOnQuit;
 
 // Used on Win32 for other apps to identify our window (eg, win_setup)
-const char* const VIEWER_WINDOW_CLASSNAME = "Slipstream Viewer";
+const char* const VIEWER_WINDOW_CLASSNAME = "Prestige Viewer";
 
 //----------------------------------------------------------------------------
 
@@ -4548,11 +4548,11 @@ void gpuLostAppState()   // sGpuLostMutex held
 // background, and a box owned by it can stay hidden behind other windows.
 bool gpuLostAskRestart()
 {
-    const std::string title = "Slipstream: the graphics driver stopped responding";
+    const std::string title = "Prestige: the graphics driver stopped responding";
     const std::string text =
-        "Slipstream lost contact with the graphics card: the graphics driver stopped responding "
+        "Prestige lost contact with the graphics card: the graphics driver stopped responding "
         "or was reset (on Windows: \"Display driver stopped responding and has recovered\").\n\n"
-        "Slipstream cannot draw anything more in this session, so it will log out and close.\n\n"
+        "Prestige cannot draw anything more in this session, so it will log out and close.\n\n"
         "Likely causes, and what usually helps:\n"
         "- An out-of-date or faulty graphics driver: install the latest driver from NVIDIA, AMD or Intel.\n"
         "- Settings too heavy for the graphics card: lower the graphics quality, turn off ray tracing "
@@ -4569,7 +4569,7 @@ bool gpuLostAskRestart()
         win->beforeDialog();
     }
     const SDL_MessageBoxButtonData buttons[2] = {
-        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Restart Slipstream"},
+        {SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 1, "Restart Prestige"},
         {SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 0, "Quit"}};
     SDL_MessageBoxData data{};
     data.flags = SDL_MESSAGEBOX_ERROR;
@@ -4583,7 +4583,7 @@ bool gpuLostAskRestart()
     if (win) win->afterDialog();
     if (!shown)
     {
-        OSMessageBox(text + "\n\nSlipstream will now close.", title, OSMB_OK);
+        OSMessageBox(text + "\n\nPrestige will now close.", title, OSMB_OK);
         return false;
     }
     return id == 1;
@@ -4676,7 +4676,7 @@ void onGpuLostSafeSettings(const LLSD& notification, const LLSD& response)
     LL_INFOS("Vulkan") << "Previous session's graphics device loss: safer settings applied:" << list << LL_ENDL;
     LLSD args;
     args["CHANGES"] = list.empty() ? std::string("\n(nothing needed changing)") : list;
-    args["RESTART"] = restart ? std::string("Restart Slipstream for ray tracing / the async compute queue to change.")
+    args["RESTART"] = restart ? std::string("Restart Prestige for ray tracing / the async compute queue to change.")
                               : std::string("");
     LLNotificationsUtil::add("VKGpuLostSafeSettingsApplied", args);
 }
@@ -4820,8 +4820,8 @@ static std::atomic<bool> sVkOomExitStarted{false};
                        << ":" << line << " (" << (main_thread ? "main" : "worker")
                        << " thread); closing with a message (clean exit, not a crash)" << LL_ENDL;
     if (app) app->createErrorMarker(LAST_EXEC_BAD_ALLOC);
-    const std::string title = "Slipstream: out of graphics memory";
-    std::string text = std::string("Slipstream ran out of ") + (host ? "memory" : "graphics memory (VRAM)") +
+    const std::string title = "Prestige: out of graphics memory";
+    std::string text = std::string("Prestige ran out of ") + (host ? "memory" : "graphics memory (VRAM)") +
         " and has to close.\n\n"
         "What usually helps:\n"
         "- Close other programs that use the graphics card: games, video or streaming tools, "
@@ -9869,7 +9869,7 @@ void displayVulkanUI()
             {
                 LLSD args;
                 args["MESSAGE"] = llformat("The graphics driver ran out of memory while preparing shaders (%u could not "
-                                           "be built). Slipstream kept running, but some visual effects or surfaces may "
+                                           "be built). Prestige kept running, but some visual effects or surfaces may "
                                            "be missing this session.\n\nRestarting the viewer usually fixes this: the "
                                            "shaders built so far are kept. Closing other memory-hungry programs helps.",
                                            pipe_failed);
@@ -11239,7 +11239,7 @@ static void keepCrashLog(const std::string& old_log)
 #endif
     char stamp[32];
     strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &tmv);
-    const std::string name = std::string("Slipstream-crash-") + stamp + ".log";
+    const std::string name = std::string("Prestige-crash-") + stamp + ".log";
     const std::string dest = gDirUtilp->getExpandedFilename(LL_PATH_LOGS, name);
     if (!LLFile::isfile(dest) && !LLFile::copy(old_log, dest))
     {
@@ -11250,7 +11250,7 @@ static void keepCrashLog(const std::string& old_log)
                            << (gLastExecDeviceLost ? ", graphics device lost" : "")
                            << "): its log is kept as " << name << LL_ENDL;
     std::vector<std::string> kept;   // names sort by time
-    LLDirIterator iter(gDirUtilp->getExpandedFilename(LL_PATH_LOGS, ""), "Slipstream-crash-*.log");
+    LLDirIterator iter(gDirUtilp->getExpandedFilename(LL_PATH_LOGS, ""), "Prestige-crash-*.log");
     std::string found;
     while (iter.next(found)) kept.push_back(found);
     std::sort(kept.begin(), kept.end());
@@ -11442,7 +11442,7 @@ void LLAppViewer::acquireInstanceSlot()
     mInstanceSlot = 0;
     for (S32 slot = 2; slot <= MAX_INSTANCE_SLOTS; ++slot)
     {
-        const std::string name = gDirUtilp->getExpandedFilename(LL_PATH_LOGS, llformat("Slipstream-%d.instance_lock", slot));
+        const std::string name = gDirUtilp->getExpandedFilename(LL_PATH_LOGS, llformat("Prestige-%d.instance_lock", slot));
         if (mInstanceSlotFile.open(name, LL_APR_WB) != APR_SUCCESS || !mInstanceSlotFile.getFileHandle())
         {
             mInstanceSlotFile.close();

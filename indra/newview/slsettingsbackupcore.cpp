@@ -387,7 +387,7 @@ bool isAllowedPath(const std::string& path, std::string& why)
             }
             return true;
         }
-        why = "not a file Slipstream backs up";
+        why = "not a file Prestige backs up";
         return false;
     }
     if (root == "account")
@@ -397,7 +397,7 @@ bool isAllowedPath(const std::string& path, std::string& why)
         {
             return true;
         }
-        why = "not a file Slipstream backs up";
+        why = "not a file Prestige backs up";
         return false;
     }
     if (root == "chat_logs")
@@ -624,7 +624,7 @@ bool parseManifest(const std::string& text, Manifest& m, std::string& error)
     }
     if (kv["format"] != FORMAT_ID)
     {
-        error = "not a Slipstream settings backup";
+        error = "not a Prestige settings backup";
         return false;
     }
     const std::string& v = kv["version"];
@@ -641,7 +641,7 @@ bool parseManifest(const std::string& text, Manifest& m, std::string& error)
     }
     if (m.version > FORMAT_VERSION)
     {
-        error = "the backup was made by a newer Slipstream (format " + v + "); update Slipstream to restore it";
+        error = "the backup was made by a newer Prestige (format " + v + "); update Prestige to restore it";
         return false;
     }
     m.created = kv["created"];
@@ -1080,7 +1080,7 @@ bool readBackup(const fs::path& zip, const fs::path& dest, const Limits& limits,
     }
     if (!have_manifest)
     {
-        error = "not a Slipstream settings backup (no " + std::string(MANIFEST_NAME) + ")";
+        error = "not a Prestige settings backup (no " + std::string(MANIFEST_NAME) + ")";
         return false;
     }
     if (!parseManifest(manifest_text, result.manifest, error)) return false;
@@ -1221,7 +1221,7 @@ bool readBackup(const fs::path& zip, const fs::path& dest, const Limits& limits,
     }
     if (result.files.empty())
     {
-        error = "the backup holds nothing Slipstream can restore";
+        error = "the backup holds nothing Prestige can restore";
         return false;
     }
     return true;

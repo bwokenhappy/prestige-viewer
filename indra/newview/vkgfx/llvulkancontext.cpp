@@ -7386,7 +7386,7 @@ private:
         {
             const char* t = SDL_GetWindowTitle(mWindow);
             mOldTitle = t ? t : "";
-            SDL_SetWindowTitle(mWindow, ("Slipstream - " + msg).c_str());
+            SDL_SetWindowTitle(mWindow, ("Prestige - " + msg).c_str());
         }
 #if LL_WINDOWS
         if (mWindow && (mBits & 4u))

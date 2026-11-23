@@ -1422,7 +1422,7 @@ bool ExportJob::writeFile()
     }
     gx::Scene scene;
     scene.name = mRootName.empty() ? std::string("Second Life object") : mRootName;
-    scene.generator = "Slipstream Viewer glTF export";
+    scene.generator = "Prestige Viewer glTF export";
     ImageCache images;
     images.scene = &scene;
     images.textures = &mTextures;

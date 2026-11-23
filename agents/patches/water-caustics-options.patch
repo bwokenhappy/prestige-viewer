@@ -1,0 +1,29 @@
+--- a/indra/newview/skins/default/xui/en/floater_water_options.xml
++++ b/indra/newview/skins/default/xui/en/floater_water_options.xml
+@@ -5,7 +5,7 @@
+  can_close="true"
+  can_minimize="false"
+  can_resize="false"
+- height="350"
++ height="374"
+  layout="topleft"
+  name="water_options"
+  save_rect="true"
+@@ -166,6 +166,17 @@
+    tool_tip="Small splashes where raindrops hit the ground, roofs and water near you. Off spawns none. Small GPU cost during rain."
+    top_pad="4"
+    width="356" />
++  <check_box
++   control_name="RenderVKWaterCaustics"
++   follows="left|top"
++   height="16"
++   label="Underwater sun and moon caustics"
++   layout="topleft"
++   left="12"
++   name="water_caustics"
++   tool_tip="Moving light patterns on submerged opaque surfaces. Follows the waves and water detail; fades in shade and deep water. Needs transparent water and sun/moon shadows. Off skips the caustic work."
++   top_pad="8"
++   width="356" />
+   <text
+    follows="left|top"
+    height="30"

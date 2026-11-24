@@ -248,6 +248,7 @@
 
 #include "llfloatersidepanelcontainer.h"
 #include "llmemorygovernor.h"
+#include "prestigenotificationhistory.h" // <Prestige/> Notification Center
 
 #if LL_WINDOWS
 #include "lldxhardware.h"
@@ -1181,6 +1182,10 @@ bool idle_startup()
             LLPersistentNotificationStorage::getInstance()->reset();
             LLDoNotDisturbNotificationStorage::getInstance()->reset();
         }
+
+        // <Prestige> Notification Center: start recording and load this account's saved history
+        PrestigeNotificationHistory::getInstance()->onAccountReady();
+        // </Prestige>
 
         // Set PerAccountSettingsFile to the default value.
         std::string settings_per_account = gDirUtilp->getExpandedFilename(LL_PATH_PER_SL_ACCOUNT, LLAppViewer::instance()->getSettingsFilename("Default", "PerAccount"));

@@ -241,6 +241,7 @@ with the same filename but different name
   <texture name="Command_ConversationLog_Icon" file_name="toolbar_icons/chat.png" preload="true" vector_file="phosphor/scroll.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_Blocked_Icon" file_name="toolbar_icons/people.png" preload="true" vector_file="phosphor/prohibit.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_Notifications_Icon" file_name="toolbar_icons/howto.png" preload="true" vector_file="phosphor/bell.svg" vector_color="IconColor" /> <!-- Prestige -->
+  <texture name="Command_NotificationCenter_Icon" file_name="toolbar_icons/notification_center.png" preload="true" vector_file="phosphor/tray.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_RegionInfo_Icon" file_name="toolbar_icons/land.png" preload="true" vector_file="phosphor/mountains.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_Beacons_Icon" file_name="toolbar_icons/highlighting.png" preload="true" vector_file="phosphor/lightbulb.svg" vector_color="IconColor" /> <!-- Prestige -->
   <texture name="Command_HoverHeight_Icon" file_name="toolbar_icons/move.png" preload="true" vector_file="phosphor/arrows-out-line-vertical.svg" vector_color="IconColor" /> <!-- Prestige -->

@@ -708,6 +708,8 @@ set(viewer_SOURCE_FILES
     llnotificationscripthandler.cpp
     llnotificationstorage.cpp
     llnotificationtiphandler.cpp
+    prestigefloaternotificationcenter.cpp # <Prestige> Notification Center
+    prestigenotificationhistory.cpp
     lloutfitgallery.cpp
     lloutfitslist.cpp
     lloutfitobserver.cpp
@@ -1744,6 +1746,8 @@ set(viewer_HEADER_FILES
     llnotificationlistview.h
     llnotificationmanager.h
     llnotificationstorage.h
+    prestigefloaternotificationcenter.h # <Prestige> Notification Center
+    prestigenotificationhistory.h
     lloutfitgallery.h
     lloutfitslist.h
     lloutfitobserver.h

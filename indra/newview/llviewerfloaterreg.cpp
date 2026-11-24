@@ -157,6 +157,7 @@
 #include "llfloaternewfeaturenotification.h"
 #include "llfloaternotificationsconsole.h"
 #include "llfloaternotificationstabbed.h"
+#include "prestigefloaternotificationcenter.h" // <Prestige/> Notification Center
 #include "llfloaterobjectweights.h"
 #include "llfloateropenobject.h"
 #include "llfloatersimplesnapshot.h"
@@ -530,6 +531,7 @@ void LLViewerFloaterReg::registerFloaters()
     {
         LLFloaterReg::add("legacy_notification_well_window", "floater_legacy_sys_well.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLLegacyNotificationWellWindow>);
     }
+    LLFloaterReg::add("notification_center", "floater_prestige_notification_center.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterNotificationCenter>); // <Prestige/> Notification Center
 
     LLFloaterReg::add("object_weights", "floater_object_weights.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterObjectWeights>);
     LLFloaterReg::add("openobject", "floater_openobject.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterOpenObject>);

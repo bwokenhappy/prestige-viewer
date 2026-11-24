@@ -236,6 +236,16 @@
    tool_tip="Show the status bar clock as 00-23 instead of AM/PM"
    top_pad="2"
    width="350" />
+  <check_box
+   control_name="PrestigeStatusBarLocalTime"
+   height="16"
+   layout="topleft"
+   label="Show my local time on the status bar clock (instead of SLT)"
+   left="30"
+   name="local_clock_check"
+   tool_tip="The clock shows your computer's time and its offset from UTC, like 10:51 PM UTC-5, instead of Second Life Time"
+   top_pad="2"
+   width="400" />
   <text
     type="string"
     length="1"
@@ -293,13 +303,36 @@
      name="show_my_name_checkbox1"
 	 top_pad="2"
      width="100" />
+    <!-- Prestige: show or hide friends' and other residents' name tags separately -->
+    <check_box
+     enabled_control="AvatarNameTagMode"
+     control_name="PrestigeNameTagShowFriendTags"
+     height="16"
+     label="Friends"
+     layout="topleft"
+     left_pad="0"
+     name="show_friend_tags_checkbox"
+     tool_tip="Show your friends' name tags"
+     top_delta="0"
+     width="80" />
+    <check_box
+     enabled_control="AvatarNameTagMode"
+     control_name="PrestigeNameTagShowOtherTags"
+     height="16"
+     label="Others"
+     layout="topleft"
+     left_pad="0"
+     name="show_other_tags_checkbox"
+     tool_tip="Show the name tags of residents who aren't your friends"
+     top_delta="0"
+     width="80" />
    <check_box
      control_name="NameTagShowUsernames"
 	 enabled_control="AvatarNameTagMode"
      height="16"
      label="Usernames"
      layout="topleft"
-     left_pad="50"
+     left_pad="20"
      name="show_slids"
      tool_tip="Show username, like bobsmith123"
      top_delta="0" />

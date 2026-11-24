@@ -1993,7 +1993,9 @@ bool LLFloater::handleDoubleClick(S32 x, S32 y, MASK mask)
         setMinimized(false);
         return true;
     }
-    else if ( (mHeaderHeight > 0) && (mDragHandle) && (mButtons[BUTTON_COLLAPSE]) && (mButtons[BUTTON_COLLAPSE]->getVisible()) && (mButtons[BUTTON_COLLAPSE]->getEnabled()) &&
+    // <Prestige> double-clicking the title collapses any collapsible window into its title bar,
+    // with or without the collapse button shown (ShowFloaterCollapseButton)
+    else if ( (mHeaderHeight > 0) && (mDragHandle) && isCollapsible() && !isDocked() && !getHost() &&
               ( ((!mDragOnLeft) && (mDragHandle->getRect().mTop >= y) && (mDragHandle->getRect().mTop - mHeaderHeight <= y)) ||
                 ((mDragOnLeft) && (mDragHandle->getRect().pointInRect(x,y)))) )
     {

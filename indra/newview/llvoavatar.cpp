@@ -3474,6 +3474,17 @@ void LLVOAvatar::idleUpdateNameTag(const LLVector3& root_pos_last)
             && !gAgentCamera.isHidingAvatarForFirstPerson()
             && (visible_chat || (render_name_show_self && name_tag_mode));
     }
+    else if (render_name && !visible_chat && !isControlAvatar())
+    {
+        // <Prestige> friends' and other residents' name tags can be hidden separately
+        static LLCachedControl<bool> show_friend_tags(gSavedSettings, "PrestigeNameTagShowFriendTags", true);
+        static LLCachedControl<bool> show_other_tags(gSavedSettings, "PrestigeNameTagShowOtherTags", true);
+        if (!show_friend_tags || !show_other_tags)
+        {
+            render_name = isBuddy() ? (bool)show_friend_tags : (bool)show_other_tags;
+        }
+        // </Prestige>
+    }
 
     if ( !render_name )
     {

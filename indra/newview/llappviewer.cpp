@@ -11599,6 +11599,24 @@ static LLNotificationFunctorRegistration finish_quit_reg("ConfirmQuit", finish_q
 static LLNotificationFunctorRegistration finish_quit_copies_reg("SLConfirmQuitInventoryCopies", finish_quit);
 static LLNotificationFunctorRegistration finish_quit_uploads_reg("SLConfirmQuitUploads", finish_quit);
 
+// <Prestige> Quit / Log out / Cancel when closing the viewer in-world. "Log out" quits and starts
+// the viewer again, which opens at the login screen (the same restart path as Start in VR).
+static bool finish_quit_or_logout(const LLSD& notification, const LLSD& response)
+{
+    const S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+    if (option == 0)
+    {
+        LLAppViewer::instance()->requestQuit();
+    }
+    else if (option == 1)
+    {
+        LLAppViewer::instance()->requestRelaunch({}, "at the login screen (Log out)", false);
+    }
+    return false;
+}
+static LLNotificationFunctorRegistration finish_quit_or_logout_reg("PrestigeQuitOrLogout", finish_quit_or_logout);
+// </Prestige>
+
 void LLAppViewer::userQuit()
 {
     LL_INFOS() << "User requested quit" << LL_ENDL;
@@ -11622,6 +11640,10 @@ void LLAppViewer::userQuit()
         LLSD args;
         args["COUNT"] = uploads;
         LLNotificationsUtil::add("SLConfirmQuitUploads", args);
+    }
+    else if (gSavedSettings.getBOOL("PrestigeAskQuitOrLogout")) // <Prestige/>
+    {
+        LLNotificationsUtil::add("PrestigeQuitOrLogout");
     }
     else
     {

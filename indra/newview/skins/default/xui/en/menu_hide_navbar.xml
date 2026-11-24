@@ -53,6 +53,17 @@
              parameter="SlipstreamSLTClockSeconds" />
     </menu_item_check>
     <menu_item_check
+         label="Clock: My Local Time"
+         layout="topleft"
+         name="PrestigeStatusBarLocalTime">
+           <on_click
+             function="ToggleControl"
+             parameter="PrestigeStatusBarLocalTime" />
+             <on_check
+             function="CheckControl"
+             parameter="PrestigeStatusBarLocalTime" />
+    </menu_item_check>
+    <menu_item_check
          label="Clock: 24-Hour Format"
          layout="topleft"
          name="SlipstreamSLTClock24Hour">

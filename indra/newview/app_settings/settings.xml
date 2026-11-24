@@ -25900,6 +25900,50 @@
       <key>Value</key>
       <real>1.0</real>
     </map>
+    <key>PrestigeNameTagShowFriendTags</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: show your friends' name tags (Preferences &gt; General &gt; Name tags).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeNameTagShowOtherTags</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: show the name tags of residents who are not your friends.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeStatusBarLocalTime</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: the clock in the top bar shows your computer's local time and time zone instead of Second Life time (SLT).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeAskQuitOrLogout</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: closing the viewer while logged in asks Quit, Log out (back to the login screen) or Cancel.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>RenderNameShowSelf</key>
     <map>
       <key>Comment</key>

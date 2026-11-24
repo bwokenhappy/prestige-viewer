@@ -7343,6 +7343,31 @@ When you add a person to an existing conversation, a new conversation will be cr
  
   <notification
    icon="alertmodal.tga"
+   name="PrestigeQuitOrLogout"
+   type="alertmodal">
+    <unique/>
+Quit Prestige, or log out and go back to the login screen?
+    <tag>confirm</tag>
+    <form name="form">
+      <button
+       default="true"
+       index="0"
+       name="Quit"
+       text="Quit"/>
+      <button
+       index="1"
+       name="Logout"
+       text="Log out"/>
+      <button
+       index="2"
+       name="Cancel"
+       text="Cancel"/>
+      <ignore text="Ask whether to quit or log out when I close the viewer"/>
+    </form>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="ConfirmQuit"
    type="alertmodal">
     <unique/>

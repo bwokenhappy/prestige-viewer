@@ -322,6 +322,8 @@ void LLStatusBar::refresh()
     {
         static LLCachedControl<bool> clock_seconds(gSavedSettings, "SlipstreamSLTClockSeconds", false);
         static LLCachedControl<bool> clock_24h(gSavedSettings, "SlipstreamSLTClock24Hour", false);
+        static LLCachedControl<bool> clock_local(gSavedSettings, "PrestigeStatusBarLocalTime", false); // <Prestige/>
+        static bool sLastClockLocal = false;
 
         // Get current UTC time, adjusted for the user's clock being off.
         const time_t utc_time = time_corrected();
@@ -329,24 +331,45 @@ void LLStatusBar::refresh()
         const bool use_24h = clock_24h;
         const time_t granularity_time = show_seconds ? utc_time : (utc_time / 60);
 
+        const bool use_local = clock_local; // <Prestige/>
         if (granularity_time != mLastClockTime
             || show_seconds != mLastClockSeconds
-            || use_24h != mLastClock24h)
+            || use_24h != mLastClock24h
+            || use_local != sLastClockLocal)
         {
             mLastClockTime = granularity_time;
             mLastClockSeconds = show_seconds;
             mLastClock24h = use_24h;
+            sLastClockLocal = use_local;
 
             std::string timeStr = getString(use_24h
                 ? (show_seconds ? "time24_seconds" : "time24")
                 : (show_seconds ? "time_seconds" : "time"));
+            std::string dtStr = getString("timeTooltip");
+            std::string zone;
+            if (use_local)
+            {
+                // <Prestige> your computer's local time, with its offset from UTC as the zone
+                LLStringUtil::replaceString(timeStr, ", slt]", ", local]");
+                LLStringUtil::replaceString(dtStr, ", slt]", ", local]");
+                const S32 offset_min = -(S32)(LLStringOps::getLocalTimeOffset() / 60);
+                const S32 abs_min = offset_min < 0 ? -offset_min : offset_min;
+                zone = (abs_min % 60)
+                    ? llformat("UTC%c%d:%02d", offset_min < 0 ? '-' : '+', abs_min / 60, abs_min % 60)
+                    : llformat("UTC%c%d", offset_min < 0 ? '-' : '+', abs_min / 60);
+                // </Prestige>
+            }
             LLSD substitution;
             substitution["datetime"] = (S32) utc_time;
             LLStringUtil::format (timeStr, substitution);
+            if (!zone.empty())
+            {
+                LLStringUtil::trim(timeStr);
+                timeStr += " " + zone;
+            }
             mTextTime->setText(timeStr);
 
             // set the tooltip to have the date
-            std::string dtStr = getString("timeTooltip");
             LLStringUtil::format (dtStr, substitution);
             mTextTime->setToolTip (dtStr);
         }

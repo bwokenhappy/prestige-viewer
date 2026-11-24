@@ -218,6 +218,7 @@ bool LLToolBarView::loadToolbars(bool force_default)
 {
     LLToolBarView::ToolbarSet toolbar_set;
     bool err = false;
+    bool prestige_show_labels = false;  // <Prestige> layout 5: switch saved bars to Icons and labels
 
     // Load the toolbars.xml file
     std::string toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_PER_SL_ACCOUNT, "toolbars.xml");
@@ -234,13 +235,27 @@ bool LLToolBarView::loadToolbars(bool force_default)
     {
         // Prestige: when a newer default layout ships (new buttons such as Places on the
         // bottom bar), give each account the new layout once; later changes are kept.
-        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 4;   // 4: Firestorm layout + ReShade, Weather (firestorm-feel)
-        if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout")
-            && gSavedPerAccountSettings.getU32("PrestigeToolbarLayout") < PRESTIGE_TOOLBAR_LAYOUT)
+        // 4: Firestorm layout + ReShade, Weather (firestorm-feel)
+        // 5: names beside the icons (Icons and labels) on every bar
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 5;
+        if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout"))
         {
-            LL_INFOS() << "Prestige toolbar layout updated -> using the new default toolbars" << LL_ENDL;
-            toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "toolbars.xml");
-            gSavedPerAccountSettings.setU32("PrestigeToolbarLayout", PRESTIGE_TOOLBAR_LAYOUT);
+            const U32 had = gSavedPerAccountSettings.getU32("PrestigeToolbarLayout");
+            if (had < 4)
+            {
+                LL_INFOS() << "Prestige toolbar layout updated -> using the new default toolbars" << LL_ENDL;
+                toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "toolbars.xml");
+            }
+            else if (had < PRESTIGE_TOOLBAR_LAYOUT)
+            {
+                // <Prestige> keep this account's own buttons, show their names beside the icons
+                prestige_show_labels = true;
+                // </Prestige>
+            }
+            if (had < PRESTIGE_TOOLBAR_LAYOUT)
+            {
+                gSavedPerAccountSettings.setU32("PrestigeToolbarLayout", PRESTIGE_TOOLBAR_LAYOUT);
+            }
         }
     }
 
@@ -402,6 +417,19 @@ bool LLToolBarView::loadToolbars(bool force_default)
             }
         }
     }
+
+    // <Prestige> layout 5: names beside the icons, once, on bars saved before it
+    if (prestige_show_labels)
+    {
+        for (S32 i = LLToolBarEnums::TOOLBAR_FIRST; i <= LLToolBarEnums::TOOLBAR_LAST; i++)
+        {
+            if (mToolbars[i])
+            {
+                mToolbars[i]->setButtonType(LLToolBarEnums::BTNTYPE_ICONS_WITH_TEXT);
+            }
+        }
+    }
+    // </Prestige>
 
     mToolbarsLoaded = true;
     return true;

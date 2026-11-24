@@ -46,6 +46,14 @@ public:
     void onClickCloseBtn(bool app_quitting = false) override;
     void onUnsavedChangesCallback(const LLSD& notification, const LLSD& response, bool can_save);
 
+    // <Prestige> Give by dropping: the whole window takes a dropped item
+    bool handleDragAndDrop(S32 x, S32 y, MASK mask, bool drop,
+                           EDragAndDropType cargo_type,
+                           void* cargo_data,
+                           EAcceptance* accept,
+                           std::string& tooltip_msg) override;
+    // </Prestige>
+
     void createPick(const LLPickData &data);
     void showPick(const LLUUID& pick_id = LLUUID::null);
     bool isPickTabSelected();

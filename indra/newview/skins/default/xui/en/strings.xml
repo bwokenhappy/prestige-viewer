@@ -276,6 +276,10 @@ If you feel this is an error, please contact support@secondlife.com</string>
 	<string name="TooltipFlagNoScripts">No Scripts</string>
 	<string name="TooltipLand">Land:</string>
 	<string name="TooltipMustSingleDrop">Only a single item can be dragged here</string>
+	<!-- <Prestige> Give by dropping: drag tooltip over an avatar, a profile or a one-to-one IM -->
+	<string name="PrestigeTooltipGiveTo">Give to [NAME]</string>
+	<string name="PrestigeTooltipGive">Give to this person</string>
+	<!-- </Prestige> -->
 	<string name="TooltipTooManyWearables">You can't wear a folder containing more than [AMOUNT] items.  You can change this limit in Advanced > Show Debug Settings > WearFolderLimit.</string>
 	<string name="TooltipPrice" value="L$[AMOUNT]: "/>
 	<!-- #1259: advanced object hover tips (FSAdvancedTooltips) -->

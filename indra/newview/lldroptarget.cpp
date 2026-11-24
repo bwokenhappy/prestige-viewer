@@ -48,10 +48,15 @@ bool LLDropTarget::handleDragAndDrop(S32 x, S32 y, MASK mask, bool drop,
                                      EAcceptance* accept,
                                      std::string& tooltip_msg)
 {
-    if(getParent())
+    //if(getParent())
+    // <Prestige> Give by dropping: PrestigeDropToGive turns profile drops off (this is the
+    // legacy profile's whole-window drop area); "Give to <name>" while over it.
+    if (getParent() && mAgentID.notNull() && LLToolDragAndDrop::dropToGiveEnabled())
+    // </Prestige>
     {
         LLToolDragAndDrop::handleGiveDragAndDrop(mAgentID, LLUUID::null, drop,
                                                  cargo_type, cargo_data, accept);
+        LLToolDragAndDrop::setGiveToolTip(mAgentID, *accept, tooltip_msg);   // <Prestige>
 
         return true;
     }

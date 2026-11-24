@@ -500,7 +500,10 @@ bool LLPanelProfileSecondLife::handleDragAndDrop(S32 x, S32 y, MASK mask, bool d
     }
 
     // No point sharing with own profile
-    if (getSelfProfile())
+    //if (getSelfProfile())
+    // <Prestige> Give by dropping: PrestigeDropToGive turns profile drops off
+    if (getSelfProfile() || !LLToolDragAndDrop::dropToGiveEnabled())
+    // </Prestige>
     {
         return false;
     }
@@ -527,6 +530,7 @@ bool LLPanelProfileSecondLife::handleDragAndDrop(S32 x, S32 y, MASK mask, bool d
                                              cargo_type,
                                              cargo_data,
                                              accept);
+    LLToolDragAndDrop::setGiveToolTip(getAvatarId(), *accept, tooltip_msg);   // <Prestige> Give by dropping
     return true;
 }
 

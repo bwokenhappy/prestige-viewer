@@ -1486,10 +1486,16 @@ bool LLFloaterIMSession::handleDragAndDrop(S32 x, S32 y, MASK mask, bool drop,
             *accept = ACCEPT_NO;
         }
     }
-    else if (mDialog == IM_NOTHING_SPECIAL)
+    // <Prestige> Give by dropping: anywhere on a one-to-one IM (history, input, header)
+    // offers the item to the other person, with the usual confirmation; group and
+    // conference IMs take no items. PrestigeDropToGive turns it off.
+    //else if (mDialog == IM_NOTHING_SPECIAL)
+    else if (mDialog == IM_NOTHING_SPECIAL && mOtherParticipantUUID.notNull() && LLToolDragAndDrop::dropToGiveEnabled())
+    // </Prestige>
     {
         LLToolDragAndDrop::handleGiveDragAndDrop(mOtherParticipantUUID, mSessionID, drop,
                 cargo_type, cargo_data, accept);
+        LLToolDragAndDrop::setGiveToolTip(mOtherParticipantUUID, *accept, tooltip_msg);   // <Prestige>
     }
 
     return true;

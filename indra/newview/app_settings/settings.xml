@@ -33902,6 +33902,28 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
+  <key>PrestigeInventoryColoredIcons</key>
+  <map>
+    <key>Comment</key>
+    <string>Draw inventory item icons in a colour by item type (textures, objects, scripts, notecards...). The colours are PrestigeInvIcon* in colors.xml.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>PrestigeInventoryFolderColorLabels</key>
+  <map>
+    <key>Comment</key>
+    <string>Draw the names of folders you gave a colour (right-click a folder, Folder Colour) in that colour too, not only their icons.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
   <key>InventoryFavoritesColorText</key>
   <map>
     <key>Comment</key>

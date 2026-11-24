@@ -30,6 +30,7 @@
 
 #include "gmdxloadouts.h" // <GMDX> Equipment / Loadouts / Outdated shown as system folders (CombatFX)
 #include "gmdxtoolbarpins.h" // <GMDX> Pin to Toolbar (CombatFX)
+#include "prestigefoldercolors.h" // <Prestige/> folder colours
 #include "slcombatfx.h"
 
 // external projects
@@ -2169,6 +2170,20 @@ LLUIImagePtr LLItemBridge::getIconOverlay() const
     return NULL;
 }
 
+// <Prestige> item icons coloured by type: off unless PrestigeInventoryColoredIcons is set
+// virtual
+bool LLItemBridge::getPrestigeIconColor(LLColor4& color) const
+{
+    static LLCachedControl<bool> colored_icons(gSavedSettings, "PrestigeInventoryColoredIcons", false);
+    if (!colored_icons)
+    {
+        return false;
+    }
+    const LLViewerInventoryItem* item = getItem();
+    return item && PrestigeFolderColors::getItemTypeColor(item->getType(), color);
+}
+// </Prestige>
+
 // virtual
 PermissionMask LLItemBridge::getPermissionMask() const
 {
@@ -3865,6 +3880,26 @@ void LLInventoryCopyAndWearObserver::changed(U32 mask)
 
 void LLFolderBridge::performAction(LLInventoryModel* model, std::string action)
 {
+    // <Prestige> folder colours (right-click > Folder Colour)
+    if (PrestigeFolderColors::isMenuAction(action))
+    {
+        uuid_vec_t selection;
+        if (mRoot)
+        {
+            for (LLFolderViewItem* view_item : mRoot->getSelectionList())
+            {
+                LLFolderViewModelItemInventory* vmi = view_item ? dynamic_cast<LLFolderViewModelItemInventory*>(view_item->getViewModelItem()) : nullptr;
+                if (vmi && gInventory.getCategory(vmi->getUUID()))
+                {
+                    selection.push_back(vmi->getUUID());
+                }
+            }
+            std::sort(selection.begin(), selection.end());
+        }
+        PrestigeFolderColors::doMenuAction(action, mUUID, selection);
+        return;
+    }
+    // </Prestige>
     if ("open" == action)
     {
         LLFolderViewFolder *f = dynamic_cast<LLFolderViewFolder   *>(mInventoryPanel.get()->getItemByID(mUUID));
@@ -4288,6 +4323,21 @@ LLUIImagePtr LLFolderBridge::getIconOverlay() const
     }
     return NULL;
 }
+
+// <Prestige> folder colours, seen by you only
+// virtual
+bool LLFolderBridge::getPrestigeIconColor(LLColor4& color) const
+{
+    return PrestigeFolderColors::getColor(mUUID, color);
+}
+
+// virtual
+bool LLFolderBridge::getPrestigeLabelColor(LLColor4& color) const
+{
+    static LLCachedControl<bool> color_labels(gSavedSettings, "PrestigeInventoryFolderColorLabels", false);
+    return color_labels && PrestigeFolderColors::getColor(mUUID, color);
+}
+// </Prestige>
 
 bool LLFolderBridge::renameItem(const std::string& new_name)
 {
@@ -5097,6 +5147,18 @@ void LLFolderBridge::buildContextMenuOptions(U32 flags, menuentry_vec_t&   items
         items.push_back(std::string("Pin to Toolbar"));
     }
     // </GMDX>
+
+    // <Prestige> folder colours: your own folders (not system folders, the trash or the
+    // marketplace), stored locally only
+    if (isAgentInventory() && (trash_id != mUUID) && !isItemInTrash() && !isMarketplaceListingsFolder())
+    {
+        const LLViewerInventoryCategory* color_cat = getCategory();
+        if (color_cat && !LLFolderType::lookupIsProtectedType(color_cat->getPreferredType()))
+        {
+            items.push_back(std::string("Prestige Folder Colour"));
+        }
+    }
+    // </Prestige>
 
 
 

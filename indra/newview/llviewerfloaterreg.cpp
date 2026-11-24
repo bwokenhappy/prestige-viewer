@@ -95,6 +95,7 @@
 #include "llfloatercamera.h"
 #include "llfloatercamerapresets.h"
 #include "llfloaterchangeitemthumbnail.h"
+#include "prestigefoldercolors.h" // <Prestige/> folder colours
 #include "llfloaterchatmentionpicker.h"
 #include "llfloaterchatimage.h"
 #include "llfloaterchatvoicevolume.h"
@@ -412,6 +413,7 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("chat_image_preview", "floater_chat_image_preview.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterChatImage>);
     LLFloaterReg::add("chat_voice", "floater_voice_chat_volume.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterChatVoiceVolume>);
     LLFloaterReg::add("change_item_thumbnail", "floater_change_item_thumbnail.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterChangeItemThumbnail>);
+    LLFloaterReg::add("prestige_folder_color", "floater_prestige_folder_color.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterFolderColor>); // <Prestige/> folder colours
     LLFloaterReg::add("nearby_chat", "floater_im_session.xml", (LLFloaterBuildFunc)&LLFloaterIMNearbyChat::buildFloater);
     LLFloaterReg::add("chat_mention_picker", "floater_chat_mention_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterChatMentionPicker>);
     LLFloaterReg::add("classified", "floater_classified.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterClassified>);

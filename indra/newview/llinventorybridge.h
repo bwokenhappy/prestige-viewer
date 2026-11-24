@@ -261,6 +261,9 @@ public:
     virtual bool hasChildren() const { return false; }
     virtual bool isUpToDate() const { return true; }
     virtual LLUIImagePtr getIconOverlay() const;
+    // <Prestige> item icons coloured by type (PrestigeInventoryColoredIcons)
+    virtual bool getPrestigeIconColor(LLColor4& color) const;
+    // </Prestige>
 
     LLViewerInventoryItem* getItem() const;
     virtual const LLUUID& getThumbnailUUID() const;
@@ -308,6 +311,10 @@ public:
     virtual LLFontGL::StyleFlags getLabelStyle() const;
     virtual const LLUUID& getThumbnailUUID() const;
     virtual bool isFavorite() const;
+    // <Prestige> folder colours, seen by you only (prestigefoldercolors.h)
+    virtual bool getPrestigeIconColor(LLColor4& color) const;
+    virtual bool getPrestigeLabelColor(LLColor4& color) const;
+    // </Prestige>
 
     void setShowDescendantsCount(bool show_count) {mShowDescendantsCount = show_count;}
 

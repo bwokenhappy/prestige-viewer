@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- <Prestige> folder colours: right-click a folder > Folder Colour > Custom... (prestigefoldercolors.cpp) -->
+<floater
+ positioning="cascading"
+ save_rect="true"
+ can_resize="false"
+ height="130"
+ width="300"
+ layout="topleft"
+ name="prestige_folder_color"
+ single_instance="true"
+ title="Folder colour">
+    <string name="multiple_folders">[COUNT] folders</string>
+    <text
+     follows="left|top|right"
+     font="SansSerifBold"
+     height="16"
+     layout="topleft"
+     left="10"
+     name="folder_name"
+     top="26"
+     use_ellipses="true"
+     width="280">
+        Folder
+    </text>
+    <color_swatch
+     can_apply_immediately="true"
+     follows="left|top"
+     height="40"
+     label_height="0"
+     layout="topleft"
+     left="10"
+     name="color_swatch"
+     tool_tip="Click to choose a colour"
+     top_pad="6"
+     width="60" />
+    <text
+     follows="left|top|right"
+     height="40"
+     layout="topleft"
+     left_pad="10"
+     name="hint_text"
+     top_delta="0"
+     width="210"
+     wrap="true">
+        Click the swatch to choose a colour. Folder colours are saved on this computer and only you see them.
+    </text>
+    <button
+     follows="left|bottom"
+     height="22"
+     label="Clear colour"
+     layout="topleft"
+     left="10"
+     name="clear_btn"
+     tool_tip="Remove the colour from this folder"
+     top_pad="12"
+     width="110" />
+    <button
+     follows="right|bottom"
+     height="22"
+     label="Close"
+     layout="topleft"
+     left="210"
+     name="close_btn"
+     top_delta="0"
+     width="80" />
+</floater>

@@ -1049,13 +1049,35 @@ void LLFolderViewItem::draw()
     //
     const S32 icon_x = mIndentation + mArrowSize + mTextPad;
     const S32 rect_height = getRect().getHeight();
+    // <Prestige> folder colours: a coloured row draws its icon's shape in that colour
+    LLColor4 prestige_icon_color;
+    const bool prestige_colored_icon = getViewModelItem()->getPrestigeIconColor(prestige_icon_color);
+    // </Prestige>
     if (!mIconOpen.isNull() && (llabs(mControlLabelRotation) > 80)) // For open folders
     {
-        mIconOpen->draw(icon_x, rect_height - mIconOpen->getHeight() - sTopPad + 1);
+        // <Prestige>
+        if (prestige_colored_icon)
+        {
+            mIconOpen->drawSolid(icon_x, rect_height - mIconOpen->getHeight() - sTopPad + 1, prestige_icon_color);
+        }
+        else
+        {
+            mIconOpen->draw(icon_x, rect_height - mIconOpen->getHeight() - sTopPad + 1);
+        }
+        // </Prestige>
     }
     else if (mIcon)
     {
-        mIcon->draw(icon_x, rect_height - mIcon->getHeight() - sTopPad + 1);
+        // <Prestige>
+        if (prestige_colored_icon)
+        {
+            mIcon->drawSolid(icon_x, rect_height - mIcon->getHeight() - sTopPad + 1, prestige_icon_color);
+        }
+        else
+        {
+            mIcon->draw(icon_x, rect_height - mIcon->getHeight() - sTopPad + 1);
+        }
+        // </Prestige>
     }
 
     if (mIconOverlay && getRoot()->showItemLinkOverlays())
@@ -1118,6 +1140,12 @@ void LLFolderViewItem::draw()
     {
         color = mFontHighlightColor;
     }
+    // <Prestige> folder colours: the label too, when the user asked for that
+    else if (getViewModelItem()->getPrestigeLabelColor(color))
+    {
+        // color was set by the call
+    }
+    // </Prestige>
     else if (mIsFavorite && highlight_color)
     {
         color = sFavoriteColor;

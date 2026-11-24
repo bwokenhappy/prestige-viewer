@@ -112,6 +112,11 @@ public:
     // The camera pad's knob while it is held: its pull, -1..1 each way (x right, y up). False when
     // it is not held (SLCameraMode::draw() moves the camera, prestigecamerapad.h).
     static bool padDeflection(F32& x, F32& y);
+    // The room the overlay's own parts leave for a panel of another camera document (the Filters
+    // panel, its picker): `width` dp wide, `fromEdge` dp from the left or right edge; `top` and
+    // `bottom` in dp from the window's top and bottom edges. `overHints`: clear of the hint row too.
+    // False while the overlay is not laid out.
+    static bool prestigeSideRoom(bool left, F32 fromEdge, F32 width, bool overHints, F32& top, F32& bottom);
     // </Prestige>
 };
 

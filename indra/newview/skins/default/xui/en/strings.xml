@@ -5503,7 +5503,7 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <!-- </Prestige> -->
   <string name="CameraModeLockMark">AF-L</string>
   <!-- <Prestige> camera mode focus & exposure: faces, group focus, AE-L, the two-stage Enter -->
-  <string name="CameraModeKeyExposureLock">lock the exposure (AE-L)</string>
+  <string name="CameraModeKeyExposureLock">lock the exposure</string><!-- <Prestige> layout: fits its third of the help card </Prestige> -->
   <string name="CameraModeMouseShiftClick">Shift + click</string>
   <string name="CameraModeHelpShiftClick">On people: focus on all of them at once, everyone's eyes sharp (again: take one out; a plain click: one subject)</string>
   <string name="CameraModeStatusExposureLocked">AE-L</string>
@@ -5637,7 +5637,10 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="PrestigeCameraDisplay2">Display: picture only</string>
   <string name="PrestigeCameraPictureHint">Picture only · [KEY] or the top-left corner brings the overlay back</string>
   <string name="PrestigeCameraPictureHintNoKey">Picture only · the top-left corner brings the overlay back</string>
-  <string name="PrestigeCameraKeyDisplay">everything / essentials / picture</string>
+  <string name="PrestigeCameraKeyDisplay">what the frame shows</string><!-- <Prestige> layout: fits its third of the help card </Prestige> -->
+  <!-- <Prestige> camera layout: the help card's line on Esc -->
+  <string name="PrestigeCameraHelpEsc">[KEY] backs out one step at a time: an open menu, card or filter picker first, then picking subjects, then a half-pressed shutter, then camera mode.</string>
+  <!-- </Prestige> -->
   <string name="PrestigeCameraRingZoom">Zoom</string>
   <string name="PrestigeCameraRingAperture">Aperture</string>
   <string name="PrestigeCameraRingExposure">Exposure</string>

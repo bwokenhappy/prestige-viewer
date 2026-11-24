@@ -78,7 +78,8 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 #fsplitknob { position: absolute; left: -8dp; top: 50%; margin-top: -14dp; width: 28dp; height: 28dp; pointer-events: auto;
               decorator: radial-gradient(circle closest-side, $finderStrong 62%, $finderClear 100%); }
 #fsplithit:hover #fsplitknob { decorator: radial-gradient(circle closest-side, $accent 62%, $accent00 100%); }
-.fside { position: absolute; top: 24dp; padding: 2dp 8dp; background-color: $bar; border-radius: $radius; font-size: $fontCaption; white-space: nowrap; }
+/* <Prestige> camera layout: Before / After just above the knob, clear of the chips at the top </Prestige> */
+.fside { position: absolute; top: 50%; margin-top: -48dp; padding: 2dp 8dp; background-color: $bar; border-radius: $radius; font-size: $fontCaption; white-space: nowrap; }
 #fbefore { right: 10dp; } #fafter { left: 10dp; }
 #fpick { position: absolute; top: 70dp; bottom: 100dp; right: 352dp; width: 300dp; box-sizing: border-box; pointer-events: auto; }
 #fpick.left { right: auto; left: 352dp; }
@@ -87,6 +88,8 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 #fpicklist { position: absolute; left: 8dp; right: 8dp; top: 32dp; bottom: 8dp; overflow-y: auto; }
 #fpick .opt.dim { opacity: 0.45; }
 #fpick .gtitle { margin: 8dp 4dp 2dp 4dp; }
+/* <Prestige> camera layout: the panel's and the picker's top and bottom are set from C++ (placePanel), between
+   the camera overlay's parts </Prestige> */
 </style></head><body><div data-model="camfilters" data-class-top="barTop">
 <div id="fsplitwrap" data-if="splitShown" data-style-left="splitLeft">
   <div id="fsplit"></div>
@@ -444,6 +447,25 @@ void placeSplit()
     set(v.splitLeft, llformat("%.1fdp", PCF::split() * (float)v.rootW / llmax(v.k, 0.01f)), "splitLeft");
 }
 
+// <Prestige> camera layout: the panel and the picker between the camera overlay's own parts (its
+// chips, light panel, rings, camera pad, bar, strip), as SLCameraView::prestigeSideRoom says.
+void placePanel(const char* id, F32 fromEdge, F32 width, bool overHints)
+{
+    View& v = gView;
+    Rml::Element* e = v.document ? v.document->GetElementById(id) : nullptr;
+    F32 top = 0.f, bottom = 0.f;
+    if (!e || !SLCameraView::prestigeSideRoom(v.left, fromEdge, width, overHints, top, bottom))
+        return;
+    const std::string placed = llformat("%.1f|%.1f", top, bottom);
+    if (e->GetAttribute<Rml::String>("pl-room", "") == placed)
+        return;
+    e->SetAttribute("pl-room", placed);
+    e->SetProperty("top", llformat("%.1fdp", top));
+    e->SetProperty("bottom", llformat("%.1fdp", bottom));
+    markChanged();
+}
+// </Prestige>
+
 Rml::ElementDocument* loadDocument(Rml::Context* context)
 {
     gView.theme = gSavedSettings.getU32("UIKitTheme") == 1 ? 1u : 0u;
@@ -758,6 +780,12 @@ bool sync(float density)
     if (LLTimer::getTotalSeconds() >= v.nextRefresh)
         refresh();
     placeSplit();
+    // <Prestige> camera layout
+    if (v.visible)
+        placePanel("fpanel", 24.f, 320.f, false);
+    if (v.visible && v.picking)
+        placePanel("fpick", 352.f, 300.f, true);
+    // </Prestige>
     const bool changed = v.changed;
     v.changed = false;
     return changed;

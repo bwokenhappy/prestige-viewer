@@ -26,7 +26,7 @@ if (PRESTIGE_VULKAN)
   if (Vulkan_FOUND)
     set(_prestige_vk_loader "${Vulkan_LIBRARY}")
   else ()
-    find_library( _prestige_vk_loader NAMES vulkan-1 vulkan
+    find_library( _prestige_vk_loader NAMES vulkan-1 vulkan libvulkan.so.1
                   HINTS "$ENV{VULKAN_SDK}/Lib" "$ENV{VULKAN_SDK}/lib" )
   endif ()
   if (NOT _prestige_vk_loader)

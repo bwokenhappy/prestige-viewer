@@ -20,8 +20,8 @@ include(GLIB)
 include(DragDrop)
 if (USE_DISCORD)
   include(Discord)
-include(PrestigeVulkan) # <Prestige/> Vulkan renderer port
 endif ()
+include(PrestigeVulkan) # <Prestige/> Vulkan renderer port
 include(EXPAT)
 include(FMODSTUDIO)
 include(GLOD) # <FS:Beq/> restore GLOD

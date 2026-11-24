@@ -471,6 +471,7 @@ void LLToolDragAndDrop::onMouseCaptureLost()
     mSourceID.setNull();
     mObjectID.setNull();
     mCustomMsg.clear();
+    mGiveToolTipMsg.clear();   // <Prestige> Give by dropping
 }
 
 bool LLToolDragAndDrop::handleMouseUp( S32 x, S32 y, MASK mask )
@@ -776,6 +777,13 @@ void LLToolDragAndDrop::dragOrDrop( S32 x, S32 y, MASK mask, bool drop,
         }
     }
 
+    // <Prestige> Give by dropping: over a window, not an avatar in-world
+    if (handled)
+    {
+        mGiveToolTipMsg.clear();
+    }
+    // </Prestige>
+
     if (!handled)
     {
         // Disallow drag and drop to 3D from the marketplace
@@ -812,6 +820,12 @@ void LLToolDragAndDrop::dragOrDrop3D( S32 x, S32 y, MASK mask, bool drop, EAccep
     }
 
     *acceptance = mLastAccept;
+    // <Prestige> Give by dropping: keep "Give to <name>" up between the (async) hover picks
+    if (!mGiveToolTipMsg.empty())
+    {
+        mToolTipMsg = mGiveToolTipMsg;
+    }
+    // </Prestige>
 }
 
 void LLToolDragAndDrop::pickCallback(const LLPickInfo& pick_info)
@@ -830,6 +844,7 @@ void LLToolDragAndDrop::pick(const LLPickInfo& pick_info)
     LLViewerObject* hit_obj = pick_info.getObject();
     LLSelectMgr::getInstance()->unhighlightAll();
     bool highlight_object = false;
+    mGiveToolTipMsg.clear();   // <Prestige> Give by dropping
     // Treat attachments as part of the avatar they are attached to.
     if (hit_obj != NULL)
     {
@@ -915,6 +930,18 @@ void LLToolDragAndDrop::pick(const LLPickInfo& pick_info)
             mLastAccept = ACCEPT_NO;
         }
     }
+
+    // <Prestige> Give by dropping: "Give to <name>" while over someone's avatar (the pick
+    // resolves worn attachments and rigged mesh bodies to their wearer above)
+    if (target == DT_AVATAR && hit_obj && !mDrop)
+    {
+        setGiveToolTip(hit_obj->getID(), mLastAccept, mGiveToolTipMsg);
+        if (!mGiveToolTipMsg.empty())
+        {
+            mToolTipMsg = mGiveToolTipMsg;
+        }
+    }
+    // </Prestige>
 
     if (highlight_object && mLastAccept > ACCEPT_NO_LOCKED)
     {
@@ -1998,6 +2025,13 @@ static void show_object_sharing_confirmation(const std::string name,
     }
     LLSD substitutions;
     substitutions["RESIDENTS"] = name;
+    // <Prestige> Give by dropping: an in-world drop names the avatar here, so keep @shownames
+    if (RlvActions::isRlvEnabled() && !RlvActions::canShowName(RlvActions::SNC_DEFAULT, dest_agent))
+    {
+        LLAvatarName av_name;
+        substitutions["RESIDENTS"] = LLAvatarNameCache::get(dest_agent, &av_name) ? RlvStrings::getAnonym(av_name) : RlvStrings::getAnonym(name);
+    }
+    // </Prestige>
     substitutions["ITEMS"] = inv_item->getName();
     LLSD payload;
     payload["agent_id"] = dest_agent;
@@ -2019,6 +2053,67 @@ static void get_name_cb(const LLUUID& id,
                                      id,
                                      LLUUID::null);
 }
+
+// <Prestige> Give by dropping: an item or folder dropped on an avatar in-world asks first
+// (ShareItemsConfirmation, as a drop on a profile or an IM does), then goes through
+// LLGiveInventory in give_inventory_cb. The item is looked up again by id when the name arrives.
+static void prestige_confirm_give_name_cb(const LLUUID& dest_agent, const LLAvatarName& av_name, const LLUUID& obj_id)
+{
+    LLInventoryObject* inv_obj = gInventory.getObject(obj_id);
+    if (inv_obj)
+    {
+        show_object_sharing_confirmation(av_name.getUserName(), inv_obj, LLSD(), dest_agent, LLUUID::null);
+    }
+}
+
+static void prestige_confirm_give(const LLUUID& dest_agent, LLInventoryObject* inv_obj)
+{
+    if (!inv_obj || dest_agent.isNull())
+    {
+        return;
+    }
+    LLAvatarName av_name;
+    if (LLAvatarNameCache::get(dest_agent, &av_name))
+    {
+        show_object_sharing_confirmation(av_name.getUserName(), inv_obj, LLSD(), dest_agent, LLUUID::null);
+    }
+    else
+    {
+        LLAvatarNameCache::get(dest_agent, boost::bind(&prestige_confirm_give_name_cb, _1, _2, inv_obj->getUUID()));
+    }
+}
+
+// static
+bool LLToolDragAndDrop::dropToGiveEnabled()
+{
+    static LLCachedControl<bool> drop_to_give(gSavedSettings, "PrestigeDropToGive", true);
+    return drop_to_give;
+}
+
+// static
+void LLToolDragAndDrop::setGiveToolTip(const LLUUID& dest_agent, EAcceptance accept, std::string& tooltip_msg)
+{
+    if (dest_agent.isNull() || (U32)accept < ACCEPT_YES_COPY_SINGLE)
+    {
+        return;
+    }
+    LLAvatarName av_name;
+    if (!LLAvatarNameCache::get(dest_agent, &av_name))
+    {
+        // Not known yet: the request is out, the next hover names them.
+        tooltip_msg = LLTrans::getString("PrestigeTooltipGive");
+        return;
+    }
+    std::string name = av_name.getCompleteName();
+    if (RlvActions::isRlvEnabled() && !RlvActions::canShowName(RlvActions::SNC_DEFAULT, dest_agent))
+    {
+        name = RlvStrings::getAnonym(av_name);
+    }
+    LLStringUtil::format_map_t args;
+    args["[NAME]"] = name;
+    tooltip_msg = LLTrans::getString("PrestigeTooltipGiveTo", args);
+}
+// </Prestige>
 
 // function used as drag-and-drop handler for simple agent give inventory requests
 //static
@@ -2988,7 +3083,10 @@ EAcceptance LLToolDragAndDrop::dad3dGiveInventoryObject(
 // [/RLVa:KB]
         if(drop)
         {
-            LLGiveInventory::doGiveInventoryItem(obj->getID(), item );
+            // <Prestige> Give by dropping: ask first, then LLGiveInventory gives it
+            //LLGiveInventory::doGiveInventoryItem(obj->getID(), item );
+            prestige_confirm_give(obj->getID(), item);
+            // </Prestige>
         }
         // *TODO: deal with all the issues surrounding multi-object
         // inventory transfers.
@@ -3020,7 +3118,10 @@ EAcceptance LLToolDragAndDrop::dad3dGiveInventory(
 // [/RLVa:KB]
     if (drop && obj)
     {
-        LLGiveInventory::doGiveInventoryItem(obj->getID(), item);
+        // <Prestige> Give by dropping: ask first, then LLGiveInventory gives it
+        //LLGiveInventory::doGiveInventoryItem(obj->getID(), item);
+        prestige_confirm_give(obj->getID(), item);
+        // </Prestige>
     }
     // *TODO: deal with all the issues surrounding multi-object
     // inventory transfers.
@@ -3043,7 +3144,10 @@ EAcceptance LLToolDragAndDrop::dad3dGiveInventoryCategory(
         LLViewerInventoryCategory* cat;
         locateInventory(item, cat);
         if(!cat) return ACCEPT_NO;
-        LLGiveInventory::doGiveInventoryCategory(obj->getID(), cat);
+        // <Prestige> Give by dropping: ask first, then LLGiveInventory gives it
+        //LLGiveInventory::doGiveInventoryCategory(obj->getID(), cat);
+        prestige_confirm_give(obj->getID(), cat);
+        // </Prestige>
     }
     // *TODO: deal with all the issues surrounding multi-object
     // inventory transfers.

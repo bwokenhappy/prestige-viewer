@@ -151,6 +151,7 @@ protected:
     S32             mCurItemIndex;
     std::string     mToolTipMsg;
     std::string     mCustomMsg;
+    std::string     mGiveToolTipMsg;    // <Prestige> "Give to <name>" while over an avatar in-world
 
     enddrag_signal_t    mEndDragSignal;
 
@@ -297,6 +298,12 @@ public:
                                       void* cargo_data,
                                       EAcceptance* accept,
                                       const LLSD& dest = LLSD());
+
+    // <Prestige> Give by dropping: PrestigeDropToGive (profile / IM drops; the in-world
+    // avatar drop is LL's and always on), and the "Give to <name>" drag tooltip.
+    static bool dropToGiveEnabled();
+    static void setGiveToolTip(const LLUUID& dest_agent, EAcceptance accept, std::string& tooltip_msg);
+    // </Prestige>
 
     // Classes used for determining 3d drag and drop types.
 private:

@@ -8265,6 +8265,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeDropToGive</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: an inventory item or folder dropped on someone's profile window or on a one-to-one IM with them is offered to them (with the usual confirmation). Dropping on an avatar in-world always works.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeNotificationCenterLogAlerts</key>
     <map>
       <key>Comment</key>

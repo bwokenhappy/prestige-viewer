@@ -32,6 +32,11 @@
 #include "llnotificationsutil.h"
 #include "llpanelavatar.h"
 #include "llpanelprofile.h"
+// <Prestige> Give by dropping
+#include "lllineeditor.h"
+#include "lltexteditor.h"
+#include "lltooldraganddrop.h"
+// </Prestige>
 
 static const std::string PANEL_PROFILE_VIEW = "panel_profile_view";
 
@@ -160,6 +165,48 @@ void LLFloaterProfile::createClassified()
 {
     mPanelProfile->createClassified();
 }
+
+// <Prestige> Give by dropping: an item or folder dropped anywhere on someone else's profile
+// window (any tab, the title bar, the empty space) is offered to them with the usual
+// confirmation. What a child takes itself (the Second Life tab gives the same way) wins;
+// a text field you can type in (your private notes about them) takes no gift.
+static bool prestige_editable_text_at(LLView* root, S32 x, S32 y)
+{
+    for (LLView* view = root->childFromPoint(x, y, true); view && view != root; view = view->getParent())
+    {
+        if (LLTextBase* text = dynamic_cast<LLTextBase*>(view))
+        {
+            return text->getEnabled() && !text->getReadOnly();
+        }
+        if (dynamic_cast<LLLineEditor*>(view))
+        {
+            return view->getEnabled();
+        }
+    }
+    return false;
+}
+
+bool LLFloaterProfile::handleDragAndDrop(S32 x, S32 y, MASK mask, bool drop,
+                                         EDragAndDropType cargo_type,
+                                         void* cargo_data,
+                                         EAcceptance* accept,
+                                         std::string& tooltip_msg)
+{
+    if (LLFloater::handleDragAndDrop(x, y, mask, drop, cargo_type, cargo_data, accept, tooltip_msg)
+        && *accept != ACCEPT_NO)
+    {
+        return true;
+    }
+    if (mAvatarId.isNull() || mAvatarId == gAgentID || !LLToolDragAndDrop::dropToGiveEnabled()
+        || prestige_editable_text_at(this, x, y))
+    {
+        return false;
+    }
+    LLToolDragAndDrop::handleGiveDragAndDrop(mAvatarId, LLUUID::null, drop, cargo_type, cargo_data, accept);
+    LLToolDragAndDrop::setGiveToolTip(mAvatarId, *accept, tooltip_msg);
+    return true;
+}
+// </Prestige>
 
 void LLFloaterProfile::onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name)
 {

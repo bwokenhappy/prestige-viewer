@@ -161,6 +161,8 @@
 #include "llfloaternotificationsconsole.h"
 #include "llfloaternotificationstabbed.h"
 #include "prestigefloaternotificationcenter.h" // <Prestige/> Notification Center
+#include "prestigefloatershortcuts.h" // <Prestige/> Help > Keyboard shortcuts
+#include "prestigefloaterwelcome.h" // <Prestige/> Help > Where is everything?
 #include "llfloaterobjectweights.h"
 #include "llfloateropenobject.h"
 #include "llfloatersimplesnapshot.h"
@@ -549,6 +551,10 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("sl_speaker_setup", "floater_sl_speaker_setup.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterSpeakerSetup>);
     LLFloaterReg::add("sl_weather", "floater_sl_weather.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterWeather>);
     LLFloaterReg::add("prestige_reshade", "floater_prestige_reshade.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloater>); // <Prestige/> ReShade window (hosts sl_panel_fx_effects)
+    // <Prestige> Help > Keyboard shortcuts, Help > Where is everything?
+    LLFloaterReg::add("prestige_shortcuts", "floater_prestige_shortcuts.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterShortcuts>);
+    LLFloaterReg::add("prestige_welcome", "floater_prestige_welcome.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterWelcome>);
+    // </Prestige>
     LLFloaterReg::add("area_search", "floater_fs_area_search.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSAreaSearch>);
     LLFloaterReg::add("fs_sound_emitter_blacklist", "floater_fs_sound_emitter_blacklist.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<FSFloaterSoundEmitterBlacklist>); // GunMetal-DX
     LLFloaterReg::add("pathfinding_characters", "floater_pathfinding_characters.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<LLFloaterPathfindingCharacters>);

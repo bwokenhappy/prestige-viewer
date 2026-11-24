@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Prestige: Help > Keyboard shortcuts (prestigefloatershortcuts.cpp). The list is read from the
+     live key bindings each time the window opens; the strings below only name the headings, move
+     some menu items to another heading, and add the mouse gestures and held keys no table holds. -->
+<floater
+ positioning="centered"
+ save_rect="true"
+ can_resize="true"
+ height="520"
+ width="560"
+ min_height="260"
+ min_width="420"
+ layout="topleft"
+ name="prestige_shortcuts"
+ single_instance="true"
+ title="Keyboard shortcuts">
+    <string name="section_movement">Movement</string>
+    <string name="section_camera">Camera</string>
+    <string name="section_build">Build</string>
+    <string name="section_chat">Chat, voice and media</string>
+    <string name="section_windows">Windows and menus</string>
+    <string name="section_camera_mode">Camera mode</string>
+    <string name="section_prestige">Prestige</string>
+    <string name="section_fixed">Always the same</string>
+    <string name="status_all">[COUNT] shortcuts. Change any of them in Preferences &gt; Controls.</string>
+    <string name="status_some">[COUNT] shortcuts match.</string>
+    <string name="status_none">No shortcut matches. Try another word, or a key such as "ctrl+p".</string>
+
+    <!-- Menu items (by item name in menu_viewer.xml) listed under another heading than their menu's -->
+    <string name="menu_items_prestige">Quick Library, Photo Studio, Take Snapshot, Video Studio, Save Replay, Freeze World, Place on Surface, Prestige Shortcuts</string>
+    <string name="menu_items_camera">Mouselook, Camera Controls, Reset View, Look at Last Chatter, Zoom Out, Zoom Default, Zoom In, VR Recenter</string>
+    <string name="menu_items_movement">Sit stand, Fly land, Always Run, Fly Override, Stop Animating My Avatar</string>
+
+    <!-- Mouse gestures and held keys that no binding table holds: section|keys|what it does|tool tip (optional).
+         Sections: movement, camera, build, chat, windows, camera_mode, prestige. -->
+    <string name="extra_1">camera|Alt+click|Focus the camera on what you click, then drag to orbit around it</string>
+    <string name="extra_2">camera|Ctrl+Alt+drag|Orbit the camera around its focus point</string>
+    <string name="extra_3">camera|Ctrl+Alt+Shift+drag|Pan the camera</string>
+    <string name="extra_4">camera|Mouse wheel|Zoom the camera in and out</string>
+    <string name="extra_5">build|Shift+drag an arrow|Copy the selected object and move the copy</string>
+    <string name="extra_6">build|Hold Ctrl|Rotate the selection instead of moving it</string>
+    <string name="extra_7">build|Hold Ctrl+Shift|Stretch the selection instead of moving it</string>
+    <string name="extra_8">build|Shift+click|Add an object to the selection, or take it out</string>
+    <string name="extra_9">prestige|Hold P|Place on Surface: see where the selection would land, release to place it</string>
+    <string name="extra_10">windows|Right-click a toolbar|Add or remove buttons, show names beside icons or icons only</string>
+    <string name="extra_11">camera_mode|Click|Focus where you click</string>
+    <string name="extra_12">camera_mode|Double-click|Take the picture</string>
+
+    <filter_editor
+     follows="left|top|right"
+     height="23"
+     layout="topleft"
+     left="8"
+     label="Find a shortcut (a word, or a key such as ctrl+p)"
+     max_length_chars="64"
+     name="filter"
+     tool_tip="Shows the shortcuts whose keys, action or heading contain every word you type"
+     top="24"
+     right="-8" />
+    <scroll_list
+     follows="all"
+     layout="topleft"
+     left="8"
+     right="-8"
+     top_pad="6"
+     bottom="-34"
+     column_padding="0"
+     draw_heading="true"
+     multi_select="false"
+     name="shortcut_list">
+        <scroll_list.columns
+         name="keys"
+         label="Keys"
+         width="170" />
+        <scroll_list.columns
+         name="action"
+         label="What it does"
+         dynamic_width="true" />
+    </scroll_list>
+    <text
+     follows="left|right|bottom"
+     height="16"
+     layout="topleft"
+     left="10"
+     right="-150"
+     bottom="-10"
+     name="status"
+     use_ellipses="true">
+    </text>
+    <button
+     follows="right|bottom"
+     height="22"
+     label="Change shortcuts..."
+     layout="topleft"
+     name="change_btn"
+     tool_tip="Open Preferences &gt; Controls, where every shortcut can be changed"
+     right="-8"
+     bottom="-6"
+     width="134" />
+</floater>

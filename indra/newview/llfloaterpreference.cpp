@@ -622,6 +622,12 @@ bool LLFloaterPreference::postBuild()
     {
         gSavedSettings.getControl(control)->getSignal()->connect(boost::bind(&LLFloaterIMSessionTab::processChatHistoryStyleUpdate, false));
     }
+    // <Prestige> readable chat: names, colours and highlights show at once in open conversations
+    for (const char* control : { "PrestigeChatPlainNames", "PrestigeChatNameColors", "PrestigeChatHighlightMyName" })
+    {
+        gSavedSettings.getControl(control)->getSignal()->connect(boost::bind(&LLFloaterIMSessionTab::processChatHistoryStyleUpdate, false));
+    }
+    // </Prestige>
     // </FS>
 
     gSavedSettings.getControl("ChatBubbleOpacity")->getSignal()->connect(boost::bind(&LLFloaterPreference::onNameTagOpacityChange, this, _2));

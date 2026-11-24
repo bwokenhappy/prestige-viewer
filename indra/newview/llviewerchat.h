@@ -31,6 +31,8 @@
 #include "llfontgl.h"
 #include "lluicolor.h"
 
+class LLAvatarName; // <Prestige/> readable chat
+
 class LLViewerChat
 {
 public:
@@ -62,6 +64,31 @@ public:
     static bool isQuietObjectChat(const LLChat& chat);
     // Either of the above: nearby chat history only, no pop-up and no ping.
     static bool isCalmChat(const LLChat& chat) { return isOwnScriptErrorInChat(chat) || isQuietObjectChat(chat); }
+    // </Prestige>
+
+    // <Prestige> readable chat (nearby chat and IM windows)
+    // PrestigeChatNameColors: names take the colour of who is speaking, other residents' text
+    // the chat text colour.
+    static bool useNameColors();
+    // The colour of a sender's name: UserChatColor, FriendChatColor (or contact set),
+    // AgentChatColor, LindenChatColor, MutedChatColor, ObjectChatColor, llOwnerSayChatColor, ...
+    static LLUIColor getChatNameColor(const LLChat& chat);
+    // The colour of the message text with name colours on (ChatHistoryTextColor for other
+    // residents unless a keyword alert colours it); kind_color: getChatColor()'s colour.
+    static LLUIColor getChatTextColor(const LLChat& chat, const LLUIColor& kind_color);
+    // System, region and estate lines: shown in italics.
+    static bool isSystemLine(const LLChat& chat);
+    // A message from someone else that names the user as a whole word (PrestigeChatHighlightMyName).
+    static bool mentionsAgent(const LLChat& chat);
+    // A resident's name as chat headers show it, after PrestigeChatPlainNames (0 as is, 1 fancy
+    // letters folded and the username in brackets, 2 the username only).
+    // with_username: the complete name ("Display (username)") rather than the display name.
+    static std::string getReadableName(const LLAvatarName& av_name, bool with_username);
+    // The same for a name given as text (transcripts, "Display (username)" or a legacy name).
+    static std::string getReadableName(const std::string& from_name);
+    // PrestigeChatPlainNames is 1 and this display name has fancy letters: the username shows
+    // after it, whatever the username settings.
+    static bool forceUsernameSuffix(const LLAvatarName& av_name);
     // </Prestige>
 
     static boost::signals2::connection setFontChangedCallback(const font_change_signal_t::slot_type& cb);

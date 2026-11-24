@@ -275,9 +275,10 @@
     <color
      name="AccordionHeaderTextColor"
      reference="AlchemyText" />
+    <!-- <Prestige> readable chat: other residents' names, sand #E8C07A (their text: ChatHistoryTextColor) -->
     <color
      name="AgentChatColor"
-     value="0.96 0.96 0.96 1" />
+     value="0.910 0.753 0.478 1" />
     <color
      name="AlertBoxColor"
      reference="SlipstreamRaised" />
@@ -356,6 +357,10 @@
     <color
      name="ChatHistoryTextColor"
      reference="AlchemyWhite" />
+    <!-- <Prestige> readable chat: the tint behind every other speaker (PrestigeChatAltRows) -->
+    <color
+     name="ChatAltRowColor"
+     value="1 1 1 0.035" />
     <color
      name="ChicletFlashColor"
      reference="EmphasisColor" />
@@ -763,9 +768,10 @@
     <color
      name="ObjectBubbleColor"
      reference="DkGray_66" />
+    <!-- <Prestige> readable chat: objects, muted sage #9DB8B1 (was the success green, too close to friends) -->
     <color
      name="ObjectChatColor"
-     reference="AlSuccessGreen" />
+     value="0.616 0.722 0.694 1" />
     <color
      name="OverdrivenColor"
      reference="Red" />
@@ -913,9 +919,10 @@
     <color
      name="SpeakingColor"
      reference="EmphasisColor" />
+    <!-- <Prestige> readable chat: system and region lines (in italics), grey #A8A9AE -->
     <color
      name="SystemChatColor"
-     reference="LtGray" />
+     reference="SlipstreamTextDim" />
     <color
      name="TextBgFocusColor"
      reference="SlipstreamBgDeep" /> <!-- example: LSL Editor -->
@@ -970,12 +977,14 @@
     <color
      name="InspectorTipTextColor"
      reference="AlchemyText" />
+    <!-- <Prestige> readable chat: your name and text, sky blue #8FD0FF -->
     <color
      name="UserChatColor"
-     value="1 1 1 1" />
+     value="0.561 0.816 1.000 1" />
+    <!-- <Prestige> readable chat: llOwnerSay, orchid #D9A6F2 (amber was too close to residents' names) -->
     <color
      name="llOwnerSayChatColor"
-     value="0.957 0.745 0.286 1" />
+     value="0.851 0.651 0.949 1" />
 
     <!-- New Colors -->
     <color
@@ -993,9 +1002,10 @@
     <color
      name="ChatTeleportSeparatorColor"
      reference="AlDarkBlue" />
+    <!-- <Prestige> readable chat: timestamps dim grey #8D8E94, not the text colour -->
     <color
      name="ChatTimestampColor"
-     reference="AlchemyText" />
+     reference="SlipstreamTextMuted" />
     <color
       name="MenuBarBetaBgColor"
       reference="SlipstreamBar" />
@@ -1139,9 +1149,10 @@
   <color
    name="ChatHeaderDisplayNameColor"
    reference="AlchemyText" />
+  <!-- <Prestige> readable chat: header timestamps dim grey too (was the accent) -->
   <color
    name="ChatHeaderTimestampColor"
-   reference="SlipstreamBlue" />
+   reference="SlipstreamTextMuted" />
   <color
    name="ChatHeaderUserNameColor"
    reference="LtGray" />
@@ -1169,9 +1180,10 @@
   <color
    name="ProfileOnlineIndicatorColor"
    reference="Green" />
+  <!-- <Prestige> readable chat: friends' names, soft green #7DDB8B -->
   <color
    name="FriendChatColor"
-   reference="White" />
+   value="0.490 0.859 0.545 1" />
   <color
     name="SearchableControlHighlightColor" 
     reference="AlDangerRed"/>

@@ -6032,7 +6032,8 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <!-- <Prestige> readable chat: a torn-off conversation's participant list starts collapsed, the text gets the width (was 1) -->
+      <integer>0</integer>
     </map>
     <key>IgnoreFOVZoomForLODs</key>
     <map>
@@ -8264,6 +8265,61 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>PrestigeChatPlainNames</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: how display names show in nearby chat and IM name headers. 0 = as they are, 1 = fancy letters (script, double-struck, circled, fullwidth, small caps, decorative Greek/Cyrillic) folded to plain letters, with the username in brackets, 2 = the username only. Profiles and name tags are not changed.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeChatNameColors</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: names in chat take the colour of who is speaking (you, friends, others, objects; Preferences, Colors, Chat) and other residents' message text is shown in the chat text colour (ChatHistoryTextColor). Off: names in link colour and the message text in the speaker's colour, as before.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeChatAltRows</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: a very light tint (ChatAltRowColor) behind every other speaker's lines in nearby chat and IMs.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeChatHighlightMyName</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: messages from others that mention your name (display name, username or first name, as a whole word) are highlighted (ChatSelfMentionHighlight).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeChatLineSpacing</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: extra pixels between lines in nearby chat and IM windows (0 = as tight as before).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>2</integer>
     </map>
     <key>PrestigeNotificationCenterAutoRemoveScripts</key>
     <map>

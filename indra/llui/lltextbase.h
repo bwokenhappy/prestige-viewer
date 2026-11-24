@@ -509,6 +509,9 @@ public:
     S32                     getHPad() const { return mHPad; }
     F32                     getLineSpacingMult() const { return mLineSpacingMult; }
     S32                     getLineSpacingPixels() const { return mLineSpacingPixels; } // only for multiline
+    // <Prestige> readable chat: chat windows follow PrestigeChatLineSpacing while open
+    void                    setLineSpacingPixels(S32 pixels) { if (pixels != mLineSpacingPixels) { mLineSpacingPixels = pixels; needsReflow(); } }
+    // </Prestige>
 
     S32                     getDocIndexFromLocalCoord( S32 local_x, S32 local_y, bool round, bool hit_past_end_of_line = true) const;
     LLRect                  getLocalRectFromDocIndex(S32 pos) const;

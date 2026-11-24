@@ -8110,6 +8110,37 @@ The string [STRING_NAME] is missing from strings.xml
   <tag>fail</tag>
   </notification>
 
+  <!-- <Prestige> Build > Place on Surface (P) -->
+  <notification
+   icon="notifytip.tga"
+   name="PrestigePlaceOnSurfaceAim"
+   type="notifytip">
+Click where the selection should go. Esc or a right click cancels.
+Next time, hold P instead: the box follows the mouse and the selection goes there when you let go.
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="PrestigePlaceOnSurfaceNoSurface"
+   type="notifytip">
+Point the mouse at the ground or at an object to put the selection on, not at the selection itself.
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="PrestigePlaceOnSurfaceTooFar"
+   type="notifytip">
+That spot is too far away. The Build tool moves things at most [DISTANCE] m in one go (Limit Drag Distance).
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="PrestigePlaceOnSurfaceNoAlign"
+   type="notifytip">
+The selection was placed without turning it: Turn to face the surface works on whole linked objects, not on parts picked with Edit Linked.
+  </notification>
+  <!-- </Prestige> -->
+
   <notification
    icon="notifytip.tga"
    name="SystemMessageTip"

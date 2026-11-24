@@ -28834,6 +28834,72 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigePlaceOnSurfaceAlign</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: Place on Surface (Build menu, P) also turns the selection so the side chosen in PrestigePlaceOnSurfaceSide faces the surface. Whole linksets only.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigePlaceOnSurfaceOffset</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: Place on Surface (Build menu, P) leaves this gap, in metres, between the surface and the selection (negative sinks it in).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.0</real>
+    </map>
+    <key>PrestigePlaceOnSurfacePreview</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: while P is held for Place on Surface, show where the selection will go as a see-through box that follows the mouse; it is placed when P is released.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigePlaceOnSurfaceSide</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: with PrestigePlaceOnSurfaceAlign, the side of the selection that goes against the surface: 0 bottom (-Z), 1 top (+Z), 2 back (-X), 3 front (+X), 4 right (-Y), 5 left (+Y).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeSnapToObjects</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: when moving the selection with the Build arrows, stop it flush against other objects in the way and snap to them when close (bounding boxes only).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeSnapToObjectsDistance</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: with PrestigeSnapToObjects, how close, in metres, the selection must come to another object to snap against it.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.25</real>
+    </map>
     <key>SnapMargin</key>
     <map>
       <key>Comment</key>

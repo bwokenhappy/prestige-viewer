@@ -60,6 +60,9 @@
 #include "llui.h"
 #include "pipeline.h"
 #include "lltrans.h"
+// <Prestige> Snap to Objects
+#include "prestigebuildplacement.h"
+// </Prestige>
 // [RLVa:KB] - Checked: 2010-03-23 (RLVa-1.2.0a)
 #include "rlvhandler.h"
 
@@ -389,6 +392,17 @@ bool LLManipTranslate::handleMouseDownOnPart( S32 x, S32 y, MASK mask )
     mDragSelectionStartGlobal = object_start_global;
     mCopyMadeThisDrag = false;
 
+    // <Prestige> Snap to Objects: the boxes around the selection, for the move arrows
+    if (mManipPart >= LL_X_ARROW && mManipPart <= LL_Z_ARROW)
+    {
+        PrestigeObjectSnap::beginDrag();
+    }
+    else
+    {
+        PrestigeObjectSnap::endDrag();
+    }
+    // </Prestige>
+
     // Route future Mouse messages here preemptively.  (Release on mouse up.)
     setMouseCapture( true );
 
@@ -635,6 +649,13 @@ bool LLManipTranslate::handleHover(S32 x, S32 y, MASK mask)
     {
         mInSnapRegime = false;
     }
+
+    // <Prestige> Snap to Objects: stop flush against objects along the arrow, never into them
+    if (axis_exists && mManipPart >= LL_X_ARROW && mManipPart <= LL_Z_ARROW)
+    {
+        axis_magnitude = PrestigeObjectSnap::adjust(axis_f, axis_magnitude);
+    }
+    // </Prestige>
 
     // Clamp to arrow direction
     // *FIX: does this apply anymore?
@@ -1048,6 +1069,9 @@ bool LLManipTranslate::handleMouseUp(S32 x, S32 y, MASK mask)
 
         mInSnapRegime = false;
         LLSelectMgr::getInstance()->saveSelectedObjectTransform(SELECT_ACTION_TYPE_PICK);
+        // <Prestige> Snap to Objects
+        PrestigeObjectSnap::endDrag();
+        // </Prestige>
         //gAgent.setObjectTracking(gSavedSettings.getBOOL("TrackFocusObject"));
     }
 

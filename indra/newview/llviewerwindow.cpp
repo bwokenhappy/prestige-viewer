@@ -257,6 +257,9 @@
 #include "rlveffects.h"
 #include "rlvhandler.h"
 // [/RLVa:KB]
+// <Prestige> Place on Surface preview
+#include "prestigebuildplacement.h"
+// </Prestige>
 
 #if LL_WINDOWS
 #include <tchar.h> // For Unicode conversion methods
@@ -5482,6 +5485,13 @@ void LLViewerWindow::renderSelections( bool for_gl_pick, bool pick_parcel_walls,
                 }
             }
         }
+
+        // <Prestige> Place on Surface (P): the box showing where the selection will go
+        if (!for_hud)
+        {
+            PrestigePlaceOnSurface::renderPreview();
+        }
+        // </Prestige>
 
         // un-setup HUD render
         if (selection->getSelectType() == SELECT_TYPE_HUD && selection->getObjectCount())

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater
  legacy_header_height="18"
- height="170"
+ height="318"
  layout="topleft"
  name="build options floater"
  help_topic="build_options_floater"
@@ -78,4 +78,141 @@
      show_text="false"
      top_pad="0"
      width="210" />
+    <!-- <Prestige> Snap to Objects and Place on Surface (Build menu, P) -->
+    <view_border
+     bevel_style="none"
+     follows="left|top"
+     height="0"
+     layout="topleft"
+     left="10"
+     name="placing_border"
+     top_pad="8"
+     width="244" />
+    <text
+     type="string"
+     length="1"
+     follows="left|top"
+     font="SansSerifBold"
+     height="16"
+     layout="topleft"
+     left="10"
+     name="placing_label"
+     top_pad="6"
+     width="244">
+        Placing objects
+    </text>
+    <check_box
+     control_name="PrestigeSnapToObjects"
+     height="16"
+     label="Snap to objects"
+     layout="topleft"
+     left="10"
+     name="PrestigeSnapToObjects"
+     tool_tip="When you drag the move arrows, the selection stops flush against objects in its way and snaps against them when it comes close. Uses the objects' bounding boxes, not their exact shape."
+     top_pad="2"
+     width="244" />
+    <spinner
+     control_name="PrestigeSnapToObjectsDistance"
+     decimal_digits="2"
+     enabled_control="PrestigeSnapToObjects"
+     follows="left|top"
+     height="23"
+     increment="0.05"
+     initial_value="0.25"
+     label="Snap distance (m)"
+     label_width="130"
+     layout="topleft"
+     left="10"
+     max_val="5"
+     min_val="0"
+     name="PrestigeSnapToObjectsDistance"
+     tool_tip="How close the selection must come to another object to snap against it."
+     top_pad="2"
+     width="200" />
+    <spinner
+     control_name="PrestigePlaceOnSurfaceOffset"
+     decimal_digits="3"
+     follows="left|top"
+     height="23"
+     increment="0.01"
+     initial_value="0"
+     label="Gap when placing (m)"
+     label_width="130"
+     layout="topleft"
+     left="10"
+     max_val="10"
+     min_val="-10"
+     name="PrestigePlaceOnSurfaceOffset"
+     tool_tip="Build &gt; Place on Surface (P) leaves this gap between the surface and the selection. A negative gap sinks it into the surface."
+     top_pad="2"
+     width="200" />
+    <check_box
+     control_name="PrestigePlaceOnSurfaceAlign"
+     height="16"
+     label="Turn to face the surface"
+     layout="topleft"
+     left="10"
+     name="PrestigePlaceOnSurfaceAlign"
+     tool_tip="Place on Surface also turns the selection so the side chosen below lies against the surface (whole linksets only)."
+     top_pad="2"
+     width="244" />
+    <text
+     type="string"
+     length="1"
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left="28"
+     name="place_side_label"
+     top_pad="6"
+     width="102">
+        Side against it:
+    </text>
+    <combo_box
+     control_name="PrestigePlaceOnSurfaceSide"
+     enabled_control="PrestigePlaceOnSurfaceAlign"
+     follows="left|top"
+     height="23"
+     layout="topleft"
+     left_pad="0"
+     name="PrestigePlaceOnSurfaceSide"
+     tool_tip="The side of the selection (as its root prim faces) that goes against the surface."
+     top_delta="-4"
+     width="110">
+        <combo_box.item
+         label="Bottom (-Z)"
+         name="bottom"
+         value="0" />
+        <combo_box.item
+         label="Top (+Z)"
+         name="top"
+         value="1" />
+        <combo_box.item
+         label="Back (-X)"
+         name="back"
+         value="2" />
+        <combo_box.item
+         label="Front (+X)"
+         name="front"
+         value="3" />
+        <combo_box.item
+         label="Right (-Y)"
+         name="right"
+         value="4" />
+        <combo_box.item
+         label="Left (+Y)"
+         name="left"
+         value="5" />
+    </combo_box>
+    <check_box
+     control_name="PrestigePlaceOnSurfacePreview"
+     height="16"
+     label="Preview while P is held"
+     layout="topleft"
+     left="10"
+     name="PrestigePlaceOnSurfacePreview"
+     tool_tip="Hold P to see where the selection will go; release P to put it there. When off, P places it at once."
+     top_pad="4"
+     width="244" />
+    <!-- </Prestige> -->
 </floater>

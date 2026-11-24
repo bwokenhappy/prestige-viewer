@@ -205,6 +205,7 @@ set(viewer_SOURCE_FILES
     slcurvemodel.cpp
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
+    prestigebuildplacement.cpp        # <Prestige> Place on Surface (P), Snap to Objects
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1242,6 +1243,7 @@ set(viewer_HEADER_FILES
     slcurvemodel.h
     sldaycyclelandmarks.h
     sldiscordpresence.h
+    prestigebuildplacement.h          # <Prestige> Place on Surface (P), Snap to Objects
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

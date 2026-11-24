@@ -48,6 +48,7 @@ class SLPanelGestureSetsPulldown;
 class LLPanelNearByMedia;
 class LLIconCtrl;
 class LLSearchEditor;
+class PrestigeMenuBarLocation; // <Prestige/> Firestorm-style location in the menu bar row
 
 namespace ll
 {
@@ -166,6 +167,7 @@ private:
     LLPanelVolumePulldown* mPanelVolumePulldown;
     SLPanelGestureSetsPulldown* mPanelGestureSetsPulldown;
     LLPanelNearByMedia* mPanelNearByMedia;
+    std::unique_ptr<PrestigeMenuBarLocation> mMenuBarLocation; // <Prestige/>
 };
 
 // *HACK: Status bar owns your cached money balance. JC

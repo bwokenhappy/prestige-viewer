@@ -65,6 +65,7 @@
 
 #include "llfavoritesbar.h"
 #include "llagentui.h"
+#include "llsearchhistory.h" // <Prestige/> navigation bar search box
 
 #include <boost/regex.hpp>
 
@@ -331,6 +332,16 @@ bool LLNavigationBar::postBuild()
 
     mBtnLandmarks->setClickedCallback(boost::bind(&LLNavigationBar::onLandmarksButtonClicked, this));
 
+    // <Prestige> Firestorm's search box at the right of the navigation bar: Enter or the
+    // magnifier opens Search with the text; earlier searches drop down under it.
+    mSearchComboBox = findChild<LLSearchComboBox>("search_combo_box");
+    if (mSearchComboBox)
+    {
+        fillSearchComboBox();
+        mSearchComboBox->setCommitCallback(boost::bind(&LLNavigationBar::onSearchCommit, this));
+    }
+    // </Prestige>
+
     mCmbLocation->setCommitCallback(boost::bind(&LLNavigationBar::onLocationSelection, this));
 
     mTeleportFinishConnection = LLViewerParcelMgr::getInstance()->
@@ -418,8 +429,22 @@ void LLNavigationBar::updateFavoritesLayout()
         const S32 row_h = mFavoritesRowPanel->getRect().getHeight();
         const S32 left_pad = 10;
         const S32 gap = 0;
-        LLRect btn(left_pad, row_h - 3, left_pad + mLandmarksBtnStackRect.getWidth(),
+        // <Prestige> Firestorm-style: the row starts with "Favorites" (the landmarks button with
+        // its name beside the icon)
+        S32 btn_width = mLandmarksBtnStackRect.getWidth();
+        if (hasString("favorites_row_label"))
+        {
+            const std::string label = getString("favorites_row_label");
+            mBtnLandmarks->setLabel(LLStringExplicit(label));
+            mBtnLandmarks->setImageOverlay(std::string("Landmarks_overlay"), LLFontGL::LEFT);
+            if (const LLFontGL* font = mBtnLandmarks->getFont())
+            {
+                btn_width += font->getWidth(label) + 6;
+            }
+        }
+        LLRect btn(left_pad, row_h - 3, left_pad + btn_width,
                    row_h - 3 - mLandmarksBtnStackRect.getHeight());
+        // </Prestige>
         mBtnLandmarks->setShape(btn, true);
         const S32 bar_left = btn.mRight + gap;
         LLRect fav(bar_left, row_h - 4, llmax(bar_left, row_w - left_pad), row_h - 4 - mFavoritesBarStackRect.getHeight());
@@ -427,6 +452,10 @@ void LLNavigationBar::updateFavoritesLayout()
     }
     else
     {
+        // <Prestige> back to the plain icon beside the location field
+        mBtnLandmarks->setLabel(LLStringExplicit(LLStringUtil::null));
+        mBtnLandmarks->setImageOverlay(std::string("Landmarks_overlay"), LLFontGL::HCENTER);
+        // </Prestige>
         mBtnLandmarks->setShape(mLandmarksBtnStackRect, true);
         mFavoritesBar->setShape(mFavoritesBarStackRect, true);
         resizeLayoutPanel();
@@ -470,6 +499,7 @@ void LLNavigationBar::setVisible(bool visible)
 
 void LLNavigationBar::draw()
 {
+    updateSearchLayout(); // <Prestige/>
     if (isBackgroundVisible())
     {
         static LLUIColor color_drop_shadow = LLUIColorTable::instance().getColor("ColorDropShadow");
@@ -891,6 +921,59 @@ void LLNavigationBar::invokeSearch(std::string search_text)
     LLFloaterReg::showInstance("search", LLSD().with("category", "standard").with("query", LLSD(search_text)));
 }
 
+// <Prestige> Firestorm's navigation bar search box
+void LLNavigationBar::fillSearchComboBox()
+{
+    if (!mSearchComboBox)
+    {
+        return;
+    }
+    LLSearchHistory::getInstance()->load();
+    for (const LLSearchHistory::LLSearchHistoryItem& item : LLSearchHistory::getInstance()->getSearchHistoryList())
+    {
+        mSearchComboBox->add(item.search_query);
+    }
+}
+
+void LLNavigationBar::onSearchCommit()
+{
+    std::string search_query = mSearchComboBox->getSimple();
+    LLStringUtil::trim(search_query);
+    if (!search_query.empty())
+    {
+        LLSearchHistory::getInstance()->addEntry(search_query);
+    }
+    invokeSearch(search_query);
+}
+
+// Shown with PrestigeNavBarSearch while the location field keeps a usable width beside it; the
+// location field ends left of it, or at the panel's edge without it. Cheap: runs every draw.
+void LLNavigationBar::updateSearchLayout()
+{
+    if (!mSearchComboBox || !mCmbLocation)
+    {
+        return;
+    }
+    static LLCachedControl<bool> show_search(gSavedSettings, "PrestigeNavBarSearch", true);
+    const S32 MIN_LOCATION_WIDTH = 160;
+    const S32 GAP = 7;
+    const LLView* panel = mCmbLocation->getParent();
+    const LLRect search_rect = mSearchComboBox->getRect();
+    const bool want = show_search && (search_rect.mLeft - GAP - mCmbLocation->getRect().mLeft >= MIN_LOCATION_WIDTH);
+    if (mSearchComboBox->getVisible() != want)
+    {
+        mSearchComboBox->setVisible(want);
+    }
+    LLRect loc = mCmbLocation->getRect();
+    const S32 right = want ? search_rect.mLeft - GAP : panel->getRect().getWidth() - mLocationRightPad;
+    if (loc.mRight != right && right > loc.mLeft)
+    {
+        loc.mRight = right;
+        mCmbLocation->setShape(loc);
+    }
+}
+// </Prestige>
+
 void LLNavigationBar::clearHistoryCache()
 {
     mCmbLocation->removeall();
@@ -898,6 +981,14 @@ void LLNavigationBar::clearHistoryCache()
     lh->removeItems();
     lh->save();
     LLTeleportHistory::getInstance()->purgeItems();
+    // <Prestige> the navigation bar search box's earlier searches too
+    if (mSearchComboBox)
+    {
+        mSearchComboBox->clearHistory();
+        LLSearchHistory::getInstance()->clearHistory();
+        LLSearchHistory::getInstance()->save();
+    }
+    // </Prestige>
 }
 
 int LLNavigationBar::getDefNavBarHeight()

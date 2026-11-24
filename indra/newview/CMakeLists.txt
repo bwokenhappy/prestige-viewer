@@ -206,6 +206,7 @@ set(viewer_SOURCE_FILES
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
     prestigebuildplacement.cpp        # <Prestige> Place on Surface (P), Snap to Objects
+    prestigefirestormbars.cpp         # <Prestige> Firestorm-style top and bottom bars
     prestigechatlinehistory.cpp       # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.cpp         # <Prestige> camera mode: Isolate your subject
     prestigecamerafocus.cpp           # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
@@ -1254,6 +1255,7 @@ set(viewer_HEADER_FILES
     sldaycyclelandmarks.h
     sldiscordpresence.h
     prestigebuildplacement.h          # <Prestige> Place on Surface (P), Snap to Objects
+    prestigefirestormbars.h           # <Prestige> Firestorm-style top and bottom bars
     prestigechatlinehistory.h         # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.h           # <Prestige> camera mode: Isolate your subject
     prestigecamerafocus.h             # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L

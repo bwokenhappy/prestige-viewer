@@ -86,6 +86,7 @@
 #include "llinstantmessage.h"    // IM mode
 #include "llslurl.h"             // IM mode
 #include "prestigechatlinehistory.h" // <Prestige/> sent lines per conversation
+#include "prestigefirestormbars.h" // <Prestige/> the bar in the bottom toolbar row
 
 class SLChatBarGestureObserver final : public LLGestureManagerObserver
 {
@@ -784,6 +785,32 @@ void SLChatBar::draw()
         setCanResize(!owned);
         if (LLView* grip = findChild<LLView>("drag")) grip->setVisible(!owned);
     }
+    // <Prestige> Firestorm-style: while the bar is kept visible it sits at the left of the bottom
+    // toolbar row, beside the "Nearby Chat" button (panel_toolbar_view.xml "chat_bar_dock"),
+    // and is neither dragged nor resized there (the row's edge resizes it).
+    LLRect row_rect;
+    const bool in_row = !owned && gFloaterView && getParent() == gFloaterView && !isMinimized()
+        && PrestigeFirestormBars::chatBarDockRect(gFloaterView, row_rect);
+    if (in_row != mInToolbarRow)
+    {
+        mInToolbarRow = in_row;
+        setCanDrag(!in_row && !owned);
+        setCanResize(!in_row && !owned);
+        if (LLView* grip = findChild<LLView>("drag")) grip->setVisible(!in_row && !owned);
+        if (!in_row && !owned && gFloaterView && getParent() == gFloaterView)
+        {
+            // out of the row (option off, toolbars hidden): back above the toolbars
+            const LLRect area = gFloaterView->getSnapRect();
+            if (getRect().mBottom < area.mBottom) setOrigin(getRect().mLeft, area.mBottom);
+        }
+    }
+    if (in_row)
+    {
+        if (row_rect != getRect()) setShape(row_rect);
+        LLFloater::draw();
+        return;
+    }
+    // </Prestige>
     LLRect docked;
     const bool dock = owned && !isMinimized() && GMDXChatLog::dockedBarRect(gFloaterView, docked);
     if (dock && docked != getRect()) setShape(docked);

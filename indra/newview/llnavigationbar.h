@@ -125,6 +125,11 @@ private:
     void showTeleportHistoryPopup(LLUICtrl* btn_ctrl, bool capture_mouse);
     // </Prestige>
     void invokeSearch(std::string search_text);
+    // <Prestige> Firestorm's navigation bar search box (PrestigeNavBarSearch)
+    void fillSearchComboBox();
+    void onSearchCommit();
+    void updateSearchLayout();
+    // </Prestige>
     void resizeLayoutPanel();
     // callbacks
     void onTeleportHistoryMenuItemClicked(const LLSD& userdata);
@@ -171,6 +176,10 @@ private:
     LLRect                      mFavoritesBarStackRect;
     LLRect                      mLandmarksBtnStackRect;
     bool                        mFavoritesInRow = false;
+    // <Prestige> Firestorm's search box, and the location field's right edge without it
+    LLSearchComboBox*           mSearchComboBox = nullptr;
+    S32                         mLocationRightPad = 3;
+    // </Prestige>
     boost::signals2::connection mTeleportFailedConnection;
     boost::signals2::connection mTeleportFinishConnection;
     boost::signals2::connection mHistoryMenuConnection;

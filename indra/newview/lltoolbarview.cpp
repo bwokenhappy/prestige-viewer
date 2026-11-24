@@ -46,6 +46,7 @@
 #include "llviewercontrol.h"  // HACK for destinations guide on startup
 #include "llinventorymodel.h" // HACK to disable starter avatars button for NUX
 #include "gmdxtoolbarpins.h" // <GMDX> inventory items and folders pinned on the toolbars (CombatFX)
+#include "prestigefirestormbars.h" // <Prestige/> Firestorm's bottom row (chat bar + toolbar)
 
 LLToolBarView* gToolBarView = NULL;
 
@@ -111,6 +112,7 @@ bool LLToolBarView::postBuild()
     mToolbars[LLToolBarEnums::TOOLBAR_TOP]->getCenterLayoutPanel()->setLocationId(LLToolBarEnums::TOOLBAR_TOP);
 
     mBottomToolbarPanel = getChild<LLView>("bottom_toolbar_panel");
+    PrestigeFirestormBars::initBottomRow(this); // <Prestige/> the chat bar part of the bottom row
 
     for (int i = LLToolBarEnums::TOOLBAR_FIRST; i <= LLToolBarEnums::TOOLBAR_LAST; i++)
     {
@@ -237,11 +239,14 @@ bool LLToolBarView::loadToolbars(bool force_default)
         // bottom bar), give each account the new layout once; later changes are kept.
         // 4: Firestorm layout + ReShade, Weather (firestorm-feel)
         // 5: names beside the icons (Icons and labels) on every bar
-        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 5;
+        // 6: <Prestige> Firestorm 7's default buttons and order (bottom: How to ... Quick
+        //    Preferences, then ReShade, Weather; left: Destinations), names beside the icons
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 6;
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT_FIRESTORM = 6;
         if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout"))
         {
             const U32 had = gSavedPerAccountSettings.getU32("PrestigeToolbarLayout");
-            if (had < 4)
+            if (had < 4 || had < PRESTIGE_TOOLBAR_LAYOUT_FIRESTORM) // <Prestige/> 6: Firestorm's buttons once
             {
                 LL_INFOS() << "Prestige toolbar layout updated -> using the new default toolbars" << LL_ENDL;
                 toolbar_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "toolbars.xml");
@@ -647,6 +652,15 @@ bool LLToolBarView::updateForDraw(LLRect (&toolbar_rects)[LLToolBarEnums::TOOLBA
 
             if (orientation == LLLayoutStack::HORIZONTAL)
             {
+                // <Prestige> the bottom toolbar beside the chat bar (Firestorm's row): the row's
+                // height is set below (PrestigeFirestormBars::layoutBottomRow) and the toolbar's
+                // layout panel takes it from the row's stack
+                if (i == LLToolBarEnums::TOOLBAR_BOTTOM && mToolbars[i]->getParent() != mBottomToolbarPanel)
+                {
+                    mToolbars[i]->localRectToOtherView(mToolbars[i]->getLocalRect(), &toolbar_rects[i], this);
+                    continue;
+                }
+                // </Prestige>
                 mToolbars[i]->getParent()->reshape(mToolbars[i]->getParent()->getRect().getWidth(), mToolbars[i]->getRect().getHeight());
             }
             else
@@ -687,6 +701,9 @@ bool LLToolBarView::updateForDraw(LLRect (&toolbar_rects)[LLToolBarEnums::TOOLBA
                                             || isToolDragged()
                                             || (pin_drag && near_edge(i)))); // <GMDX>
     }
+    // <Prestige> Firestorm's bottom row: the nearby chat bar at the left of the toolbar
+    PrestigeFirestormBars::layoutBottomRow(this, mBottomToolbarPanel, mToolbars[LLToolBarEnums::TOOLBAR_BOTTOM], mShowToolbars);
+    // </Prestige>
 
     // Draw drop zones if drop of a tool is active
     return isToolDragged() || GMDXToolbarPins::isPinDrag();

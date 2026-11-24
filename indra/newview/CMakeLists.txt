@@ -211,6 +211,9 @@ set(viewer_SOURCE_FILES
     prestigecamerafocus.cpp           # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
     prestigecamerashot.cpp            # <Prestige> camera mode: setting up the shot (HUDs, poser, light, sky, presets' place)
     prestigecamerapad.cpp             # <Prestige> camera mode: the on-screen camera pad
+    prestigecamerafilters.cpp         # <Prestige> camera mode's live filter stack
+    prestigecamerafiltersview.cpp     # <Prestige> camera mode's Filters panel, before / after line
+    prestigecubelut.cpp               # <Prestige> .cube LUT import for the camera filters
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1259,6 +1262,9 @@ set(viewer_HEADER_FILES
     prestigecamerafocus.h             # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
     prestigecamerashot.h              # <Prestige> camera mode: setting up the shot
     prestigecamerapad.h               # <Prestige> camera mode: the on-screen camera pad
+    prestigecamerafilters.h           # <Prestige> camera mode's live filter stack
+    prestigecamerafiltersview.h       # <Prestige> camera mode's Filters panel, before / after line
+    prestigecubelut.h                 # <Prestige> .cube LUT import for the camera filters
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

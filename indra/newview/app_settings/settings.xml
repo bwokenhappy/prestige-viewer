@@ -8321,6 +8321,52 @@
       <key>Value</key>
       <integer>2</integer>
     </map>
+    <!-- <Prestige> camera mode's live filters -->
+    <key>PrestigeCameraFilters</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: camera mode's filter stack (up to six), in order: an array of maps with technique (an effects technique id, Name@File.fx), on (boolean) and strength (0..1). The filters' own sliders are their effects' values (saved with the effects).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>LLSD</string>
+      <key>Value</key>
+      <array />
+    </map>
+    <key>PrestigeCameraFiltersOpen</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: camera mode's Filters panel is open (the Filters chip beside Photo Studio).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeCameraFiltersCompare</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: camera mode's before / after line across the viewfinder: left of it the picture without the filter stack, right of it with (never in a shot).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeCameraFiltersSplit</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: where camera mode's before / after line is, as a share of the window width (0.02..0.98).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.5</real>
+    </map>
+    <!-- </Prestige> -->
     <key>PrestigeNotificationCenterAutoRemoveScripts</key>
     <map>
       <key>Comment</key>

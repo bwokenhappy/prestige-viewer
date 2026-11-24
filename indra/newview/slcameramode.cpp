@@ -33,6 +33,7 @@
 #include "slcamerareview.h"
 #include "slcameraview.h"
 #include "prestigecamerashot.h" // <Prestige> setting up the shot: HUDs, poser, light, sky, presets' place
+#include "prestigecamerafilters.h" // <Prestige> camera filters </Prestige>
 #include "slkeycommands.h"
 #include "slvideostudio.h"
 #include "prestigecameraisolate.h"   // <Prestige> isolate your subject: picking
@@ -209,6 +210,7 @@ void SLCameraMode::start()
     // back), the personal environment and Freeze World as found
     PrestigeCameraShot::begin();
     // </Prestige>
+    PrestigeCameraFilters::activate(); // <Prestige> the camera's filter stack runs over the viewfinder </Prestige>
 }
 
 void SLCameraMode::stop()
@@ -226,6 +228,7 @@ void SLCameraMode::stop()
         gViewerWindow->showCursor();   // an orbit in progress gives the cursor back
     }
     sState.leftDown = sState.rightDown = sState.orbiting = false;
+    PrestigeCameraFilters::deactivate(); // <Prestige> camera filters off with camera mode </Prestige>
     SCM::end();
     SLCameraView::forgetShots(); // RmlUi lets go of their textures first
     SLCameraReview::clear();   // the session's shots are freed (the files stay)

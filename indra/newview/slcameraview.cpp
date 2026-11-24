@@ -46,6 +46,7 @@
 #include "llfocusmgr.h"
 #include "pipeline.h"
 // </Prestige>
+#include "prestigecamerafiltersview.h" // <Prestige> camera filters </Prestige>
 
 #include "llfile.h"
 #include "llfloaterpreference.h"
@@ -357,6 +358,8 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div id="isochip" class="cbtn" data-class-on="isoMode != 0" data-event-click="pop('iso')">{{isoChip}}<span class="chev" data-class-down="popup != 'iso'"></span></div>
   <!-- <Prestige> AE-L -->
   <div id="aelchip" class="cbtn" data-class-on="aeLocked" data-event-click="ael()">{{aelLabel}}</div>
+  <!-- <Prestige> camera filters: the Filters panel (prestigecamerafiltersview.cpp) -->
+  <div id="filterchip" class="cbtn" data-class-on="filtersOn" data-event-click="filters()">{{filtersLabel}}</div>
   <!-- </Prestige> -->
 </div>
 <div id="gridpop" class="popover toggled" data-class-shown="popup == 'grid'">
@@ -649,6 +652,7 @@ struct View
     std::vector<Choice>    grids;
     std::string            gridTitle, levelLabel, studioLabel;
     bool                   levelOn = true, studioOn = false, tilting = false, flashOn = true;
+    bool                   filtersOn = false; std::string filtersLabel; // <Prestige> camera filters chip </Prestige>
     Finder                 finder;
     std::vector<StripCell> qcells;
     std::vector<KeyText>   qhints;
@@ -1251,6 +1255,7 @@ void refreshControls()
     }
     set(v.levelOn, SLCameraModel::level(), "levelOn");
     set(v.studioOn, SLCameraRail::open(), "studioOn");
+    set(v.filtersOn, PrestigeCameraFiltersView::panelOpen(), "filtersOn"); // <Prestige> camera filters </Prestige>
     set(v.flashOn, SLCameraModel::flashOn(), "flashOn");
     // <Prestige> AE-L
     set(v.aeLocked, SLCameraModel::exposureLocked(), "aeLocked");
@@ -2957,6 +2962,15 @@ bool createDocument(Rml::Context* context)
                                 SLCameraRail::setOpen(!SLCameraRail::open());
                                 refreshControls();
                             });
+        // <Prestige> camera filters: the chip opens / closes the Filters panel
+        m.Bind("filtersOn", &v.filtersOn);
+        m.Bind("filtersLabel", &v.filtersLabel);
+        m.BindEventCallback("filters", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraFiltersView::togglePanel();
+                                refreshControls();
+                            });
+        // </Prestige>
         if (auto t = m.RegisterStruct<Thumb>())
         {
             t.RegisterMember("src", &Thumb::src);
@@ -3542,6 +3556,7 @@ bool SLCameraView::start(Rml::Context* context)
     v.cardOpen = v.cardMore = v.savedShown = false;
     LLRmlUiAtlas::instance().setExternalSource("llext:camshot/", &shotTexture);
     v.studioLabel   = str("PhotoStudio");
+    v.filtersLabel  = LLTrans::getString("PrestigeCameraFiltersChip"); // <Prestige> camera filters </Prestige>
     v.tilting       = false;
     v.finder        = Finder();
     refreshControls();
@@ -3560,6 +3575,7 @@ bool SLCameraView::start(Rml::Context* context)
     v.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
     v.shown   = true;
     v.changed = true;
+    PrestigeCameraFiltersView::start(v.context); // <Prestige> camera filters: their panel, behind this document </Prestige>
     return true;
 }
 
@@ -3578,6 +3594,7 @@ void setTextInput(bool on)
 void SLCameraView::stop()
 {
     prestigeStop(); // <Prestige> the scopes' sampling and any drag let go
+    PrestigeCameraFiltersView::stop(); // <Prestige> camera filters </Prestige>
     setTextInput(false);
     if (gView.document && gView.shown)
         gView.document->Hide();
@@ -3589,6 +3606,7 @@ void SLCameraView::stop()
 
 void SLCameraView::release()
 {
+    PrestigeCameraFiltersView::release(); // <Prestige> camera filters </Prestige>
     LLRmlUiAtlas::instance().setExternalSource("llext:camshot/", {});
     gView = View();
     // <Prestige>
@@ -4007,7 +4025,8 @@ bool SLCameraView::sync(float density)
             buildHints();
         }
     }
-    const bool changed = v.changed;
+    const bool filtersChanged = PrestigeCameraFiltersView::sync(density); // <Prestige> camera filters </Prestige>
+    const bool changed = v.changed || filtersChanged; // <Prestige> || filtersChanged </Prestige>
     v.changed          = false;
     return changed;
 }
@@ -4027,6 +4046,13 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
     View& v = gView;
     if (!v.shown)
         return false;
+    // <Prestige> camera filters: their panel, picker and split line have first refusal
+    if (!v.pressedInDoc && PrestigeCameraFiltersView::handleMouse(x, y, mask, click, down))
+    {
+        markChanged();
+        return true;
+    }
+    // </Prestige>
     const bool over = toRml(x, y, mask);
     Rml::Element* hover = v.context->GetHoverElement();
     if (click != CLICK_LEFT && click != CLICK_DOUBLELEFT)
@@ -4139,6 +4165,11 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
 
 bool SLCameraView::handleWheel(S32 x, S32 y, S32 clicks, MASK mask)
 {
+    if (PrestigeCameraFiltersView::handleWheel(x, y, clicks, mask)) // <Prestige> camera filters </Prestige>
+    {
+        markChanged();
+        return true;
+    }
     if (!toRml(x, y, mask))
         return false;
     if (prestigeWheel(gView.context->GetHoverElement(), clicks, mask)) // <Prestige> a lens ring, the camera pad
@@ -4172,7 +4203,7 @@ bool SLCameraView::handleWheel(S32 x, S32 y, S32 clicks, MASK mask)
 
 bool SLCameraView::overDocument(S32 x, S32 y)
 {
-    return toRml(x, y, MASK_NONE);
+    return toRml(x, y, MASK_NONE) || PrestigeCameraFiltersView::over(x, y); // <Prestige> || camera filters </Prestige>
 }
 
 void SLCameraView::toggleBar()
@@ -4361,18 +4392,22 @@ bool SLCameraView::handleChar(llwchar uni_char)
 
 bool SLCameraView::popupOpen()
 {
-    return gView.shown && (gView.helpOpen || !gView.popup.empty() || gView.cardOpen || gView.sendOpen);
+    return gView.shown && (gView.helpOpen || !gView.popup.empty() || gView.cardOpen || gView.sendOpen
+                           || PrestigeCameraFiltersView::popupOpen()); // <Prestige> the filter picker </Prestige>
 }
 
 bool SLCameraView::menuOpen()
 {
     return gView.shown && (gView.helpOpen || !gView.popup.empty() || gView.cardMore || gView.sendOpen
-                           || gPrestige.rollConfirm); // <Prestige> the delete question
+                           || gPrestige.rollConfirm // <Prestige> the delete question
+                           || PrestigeCameraFiltersView::popupOpen()); // <Prestige> the filter picker </Prestige>
 }
 
 void SLCameraView::closePopup()
 {
     View& v = gView;
+    if (PrestigeCameraFiltersView::closePopup()) // <Prestige> the filter picker first </Prestige>
+        return;
     if (v.cardMore)
     {
         set(v.cardMore, false, "cardMore"); // the innermost first

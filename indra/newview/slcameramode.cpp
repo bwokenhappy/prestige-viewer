@@ -32,6 +32,7 @@
 #include "slcamerarestore.h"
 #include "slcamerareview.h"
 #include "slcameraview.h"
+#include "prestigecamerafilters.h" // <Prestige> camera filters </Prestige>
 #include "slkeycommands.h"
 #include "slvideostudio.h"
 #include "llviewermenu.h" // gMenuBarView: the menu shortcuts camera mode swallows
@@ -195,6 +196,7 @@ void SLCameraMode::start()
     // Before anything changes: every setting camera mode can touch, to be put back on exit.
     SLCameraRestore::capture();
     sActive = true;
+    PrestigeCameraFilters::activate(); // <Prestige> the camera's filter stack runs over the viewfinder </Prestige>
 }
 
 void SLCameraMode::stop()
@@ -212,6 +214,7 @@ void SLCameraMode::stop()
         gViewerWindow->showCursor();   // an orbit in progress gives the cursor back
     }
     sState.leftDown = sState.rightDown = sState.orbiting = false;
+    PrestigeCameraFilters::deactivate(); // <Prestige> camera filters off with camera mode </Prestige>
     SCM::end();
     SLCameraView::forgetShots(); // RmlUi lets go of their textures first
     SLCameraReview::clear();   // the session's shots are freed (the files stay)

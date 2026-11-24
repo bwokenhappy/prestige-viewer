@@ -139,11 +139,12 @@ void SLFxStack::initSingleton()
     checkStartupMarkers();   // #546: after a GPU loss / dead session, FX off + quarantine
     if (LLControlVariable* c = gSavedSettings.getControl("SLFxEnabled"))
         mEnabledConn = c->getSignal()->connect([this](LLControlVariable*, const LLSD&, const LLSD&) {
-            LLFxRuntimeVK::instance().setEnabled(isEnabled());
+            LLFxRuntimeVK::instance().setEnabled(runtimeOn());   // <Prestige> + camera filter layer </Prestige>
             if (isEnabled()) { rescan(); requestAllMetadata(); }
+            pushPlan();   // <Prestige> the user's techniques join / leave a running layer </Prestige>
             fireChanged();
         });
-    LLFxRuntimeVK::instance().setEnabled(isEnabled());
+    LLFxRuntimeVK::instance().setEnabled(runtimeOn());   // <Prestige> + camera filter layer </Prestige>
     if (isEnabled()) rescan();
     pushPlan();
     gIdleCallbacks.addFunction(&SLFxStack::onIdle, this);
@@ -264,7 +265,7 @@ void SLFxStack::rescan()
     scanDirs();
     syncTechniqueList();
     mMetaRequested = false;
-    if (isEnabled()) requestAllMetadata();
+    if (runtimeOn()) requestAllMetadata();   // <Prestige> + camera filter layer </Prestige>
     pushPlan();
     fireChanged();
 }
@@ -664,6 +665,52 @@ std::string SLFxStack::getLastSnapshotNote() const
     return LLFxRuntimeVK::instance().lastSnapshotNote();
 }
 
+// <Prestige> camera filters
+bool SLFxStack::runtimeOn() const
+{
+    return (gSavedSettings.getBOOL("SLFxEnabled") || !mLayer.empty()) && !gSavedSettings.getBOOL("SLFxNoFx");
+}
+
+void SLFxStack::setLayer(const std::vector<LayerTech>& techs)
+{
+    const bool wasOn = runtimeOn();
+    mLayer = techs;
+    LLFxRuntimeVK::instance().setEnabled(runtimeOn());
+    if (!wasOn && runtimeOn())
+    {
+        if (!mScanned) scanDirs();
+        syncTechniqueList();
+        requestAllMetadata();
+    }
+    pushPlan();
+}
+
+void SLFxStack::setCompareSplit(F32 x01)
+{
+    LLFxRuntimeVK::instance().setCompareSplit(x01);
+}
+
+void SLFxStack::reloadEffect(const std::string& effect_path)
+{
+    const std::string path = resolveEffect(effect_path);
+    if (path.empty()) return;
+    LLFxRuntimeVK::instance().reloadEffect(path);
+    mMetaRequested = false;
+    requestAllMetadata();
+    pushPlan();
+}
+
+SLFxCaptureScope::SLFxCaptureScope()
+{
+    LLFxRuntimeVK::instance().pushCapture();
+}
+
+SLFxCaptureScope::~SLFxCaptureScope()
+{
+    LLFxRuntimeVK::instance().popCapture();
+}
+// </Prestige>
+
 SLFxSuppressScope::SLFxSuppressScope(const char* what)
 {
     LLFxRuntimeVK::instance().pushSuppress();
@@ -698,9 +745,20 @@ void SLFxStack::pushPlan()
     LLFxRuntimeVK& rt = LLFxRuntimeVK::instance();
     std::vector<LLFxRuntimeVK::PlanTech> plan;
     std::map<std::string, LLFxRuntimeVK::EffectConfig> cfgs;
+    // <Prestige> camera filter layer: its techniques run after the user's (once: a technique in
+    // both runs where the layer puts it, with the layer's strength); with FX off, only the layer.
+    std::vector<std::string> layerIds;
+    for (const LayerTech& lt : mLayer)
+    {
+        const std::vector<std::string> ids = resolveTechnique(lt.technique);
+        layerIds.push_back(ids.empty() ? std::string() : ids.front());
+    }
+    const bool userOn = isEnabled();
+    // </Prestige>
     for (const std::string& id : mOrder)
     {
         if (!mEnabledTechs.count(id)) continue;
+        if (!userOn || std::find(layerIds.begin(), layerIds.end(), id) != layerIds.end()) continue;   // <Prestige> </Prestige>
         const size_t at = id.find('@');
         const Effect* e = findEffect(id.substr(at + 1));
         if (!e || e->quarantined) continue;
@@ -719,6 +777,33 @@ void SLFxStack::pushPlan()
         }
         c.point = (uint8_t)e->point;
     }
+    // <Prestige> the camera filter layer, in its order, with its strengths
+    for (size_t li = 0; li < mLayer.size(); ++li)
+    {
+        const std::string& id = layerIds[li];
+        const size_t at = id.find('@');
+        if (at == std::string::npos) continue;
+        const Effect* e = findEffect(id.substr(at + 1));
+        if (!e || e->quarantined) continue;
+        LLFxRuntimeVK::PlanTech t;
+        t.effect = e->path;
+        t.technique = id.substr(0, at);
+        t.scope = (uint8_t)e->scope;
+        t.feather = (uint8_t)e->feather;
+        t.strength = llclamp(mLayer[li].strength, 0.f, 1.f);
+        t.compare = true;
+        plan.push_back(t);
+        if (cfgs.count(e->path)) continue;
+        LLFxRuntimeVK::EffectConfig& c = cfgs[e->path];
+        c.defines = mGlobalDefines;
+        for (const auto& d : e->defines)
+        {
+            auto it = std::find_if(c.defines.begin(), c.defines.end(), [&](const auto& x) { return x.first == d.first; });
+            if (it != c.defines.end()) it->second = d.second; else c.defines.push_back(d);
+        }
+        c.point = (uint8_t)e->point;
+    }
+    // </Prestige>
     // Configs for every known effect (the UI's reflection compiles use them too).
     for (const auto& kv : mEffects)
         if (!cfgs.count(kv.first))
@@ -1072,12 +1157,23 @@ void SLFxStack::updateSafety()
     static LLCachedControl<U32> s_frames(gSavedSettings, "SLFxProvisionalFrames", 300);
     std::set<std::string> prov;
     std::vector<std::string> active;
-    if (isEnabled())
+    if (runtimeOn())   // <Prestige> the camera filter layer counts too </Prestige>
     {
         active = rt.activeEffects();
-        for (const std::string& id : mOrder)
+        // <Prestige> the layer's techniques are as provisional as the user's
+        std::vector<std::string> ids;
+        if (isEnabled())
+            for (const std::string& id : mOrder)
+                if (mEnabledTechs.count(id)) ids.push_back(id);
+        for (const LayerTech& lt : mLayer)
         {
-            if (!mEnabledTechs.count(id)) continue;
+            const std::vector<std::string> r = resolveTechnique(lt.technique);
+            if (!r.empty()) ids.push_back(r.front());
+        }
+        for (const std::string& id : ids)
+        {
+            if (id.find('@') == std::string::npos) continue;
+        // </Prestige>
             const Effect* e = findEffect(id.substr(id.find('@') + 1));
             if (!e || e->quarantined) continue;
             const LLFxRuntimeVK::EffectStatus st = rt.status(e->path);

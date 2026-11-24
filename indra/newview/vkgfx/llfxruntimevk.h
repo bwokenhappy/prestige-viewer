@@ -142,6 +142,12 @@ public:
         std::string technique;   // technique name
         uint8_t scope = SCOPE_ALL;
         uint8_t feather = 1;     // scope feather radius, display pixels (0..8)
+        // <Prestige> camera filters: how much of the technique's result is kept (0..1; the
+        // image before it is kept and blended back, as for the scope), and whether it is one
+        // of the techniques the before / after split compares against the image before them.
+        float strength = 1.f;
+        bool compare = false;
+        // </Prestige>
     };
     struct EffectConfig
     {
@@ -202,6 +208,20 @@ public:
     void popSuppress() { if (mSuppress > 0) --mSuppress; }
     // Snapshot floater size changed: compile that size ahead of the shot.
     void warmSize(uint32_t w, uint32_t h);
+    // <Prestige> BEFORE / AFTER (camera filters): live frames show the image from before the
+    // plan's `compare` techniques left of x (0..1 of the display width) and their result
+    // right of it; < 0 = off. Never on a snapshot: offscreen frames and frames inside a
+    // capture scope (pushCapture) ignore it.
+    void setCompareSplit(float x01) { mCompareSplit = x01; }
+    float compareSplit() const { return mCompareSplit; }
+    // A user snapshot is being rendered from live frames (LLViewerWindow::rawSnapshot; RAII
+    // LLFxCaptureScope): no split, and the time-driven uniform sources (timer, frametime,
+    // framecount, random, pingpong) hold still, so a shot accumulated from many jittered
+    // frames keeps one grain / noise pattern instead of averaging it away.
+    void pushCapture();
+    void popCapture();
+    bool capturing() const { return mCapture > 0; }
+    // </Prestige>
 
     // ---- runtime -> SLFxStack ----
     EffectStatus status(const std::string& effect) const;
@@ -277,7 +297,11 @@ private:
     bool runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point, Shared& s);
     void resolveInputs(VkCommandBuffer cmd, const Frame& f, Shared& s, uint32_t needMask);
     void recordTechnique(VkCommandBuffer cmd, const Frame& f, Perm& p, Shared& s, size_t techIndex,
-                         uint8_t scope, uint8_t feather);
+                         uint8_t scope, uint8_t feather, float strength = 1.f);   // <Prestige> strength </Prestige>
+    // <Prestige> the blend / compare targets and sets of one Shared (made on first use)
+    bool ensureBlendTargets(Shared& s, bool compare);
+    void recordCompareSplit(VkCommandBuffer cmd, Shared& s);
+    // </Prestige>
     void writeUniforms(Perm& p, const Frame& f, Shared& s);
     void readTimers(uint32_t slot);
     void frameStart(VkCommandBuffer cmd, const Frame& f);
@@ -296,6 +320,13 @@ private:
     std::atomic<uint64_t> mMetaGen{1};
     Inputs mInputs;
     std::string mSnapNote;
+    // <Prestige> before / after split and capture scope (see setCompareSplit / pushCapture)
+    float mCompareSplit = -1.f;
+    int mCapture = 0;
+    uint32_t mCaptureSeed = 0;          // random sources: one value per uniform for the whole capture
+    float mCaptureTimerMs = -1.f;       // timer source frozen at the capture's first frame
+    uint64_t mCaptureFrameNumber = 0;   // framecount source frozen
+    // </Prestige>
 
     // Plan
     std::vector<PlanTech> mPlan;
@@ -342,6 +373,17 @@ private:
     std::unordered_map<std::string, float> mGpuMs;                     // "effect\ntechnique" -> smoothed ms
     float mTimestampPeriod = 0.f;
 };
+
+// <Prestige> RAII: a user snapshot is rendered inside this scope (no before / after split, time
+// sources held still; LLFxRuntimeVK::pushCapture).
+struct LLFxCaptureScope
+{
+    LLFxCaptureScope() { LLFxRuntimeVK::instance().pushCapture(); }
+    ~LLFxCaptureScope() { LLFxRuntimeVK::instance().popCapture(); }
+    LLFxCaptureScope(const LLFxCaptureScope&) = delete;
+    LLFxCaptureScope& operator=(const LLFxCaptureScope&) = delete;
+};
+// </Prestige>
 
 // RAII: no FX for the recordings in this scope (360 capture: seams; see #547).
 struct LLFxSuppressScope

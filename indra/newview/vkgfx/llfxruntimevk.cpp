@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>   // <Prestige> std::tolower </Prestige>
 #include <cmath>
 #include <condition_variable>
 #include <cstring>
@@ -377,6 +378,12 @@ struct LLFxRuntimeVK::Shared
     VkDescriptorPool pool = VK_NULL_HANDLE;
     VkDescriptorSet blitSet = VK_NULL_HANDLE;
     VkDescriptorSet scopeSet = VK_NULL_HANDLE;
+    // <Prestige> strength-only blend (scopeSave, bbTex, a dummy mask) and the before / after split
+    // (compareSave = the image before the compared techniques, bbTex, a dummy mask)
+    GpuImage compareSave;
+    VkDescriptorSet blendSet = VK_NULL_HANDLE, compareSet = VK_NULL_HANDLE;
+    bool blendSetWritten = false, compareSetWritten = false;
+    // </Prestige>
     VkDescriptorSet resolveSet[IN_COUNT][kRingMax] = {};
     VkDescriptorSet hdrInSet[kRingMax] = {};
     VkDescriptorSet hdrOutSet[kRingMax] = {};
@@ -453,7 +460,12 @@ bool loadSourceTexture(const std::vector<std::string>& dirs, const std::string& 
     const U8* src = raw->getData();
     for (size_t i = 0, n = (size_t)w * h; i < n; ++i)
     {
-        const U8* s = src + i * c;
+        // <Prestige> LLImageRaw rows run bottom-up (every LL decoder flips them for GL); ReShade
+        // textures are top-down (texcoord 0,0 = the file's top-left): read the rows flipped, or
+        // lens dirt / spirals / LUT strips come out upside down.
+        const size_t row = i / w, col = i % w;
+        const U8* s = src + (((size_t)h - 1 - row) * w + col) * c;
+        // </Prestige>
         U8* d = &out[i * 4];
         if (c == 1) { d[0] = d[1] = d[2] = s[0]; d[3] = 255; }
         else if (c == 2) { d[0] = d[1] = d[2] = s[0]; d[3] = s[1]; }
@@ -1416,7 +1428,7 @@ void LLFxRuntimeVK::destroyShared(Shared& s)
     VkDevice dev = mCtx->device();
     if (s.bbRTSrgb) mCtx->destroyView(s.bbRTSrgb);
     if (s.bbTexSrgb) mCtx->destroyView(s.bbTexSrgb);
-    for (GpuImage* g : {&s.bbRT, &s.bbTex, &s.scopeSave, &s.stencil})
+    for (GpuImage* g : {&s.bbRT, &s.bbTex, &s.scopeSave, &s.stencil, &s.compareSave})   // <Prestige> compareSave </Prestige>
         if (g->image) mCtx->destroyImage(*g);
     for (GpuImage& g : s.input) if (g.image) mCtx->destroyImage(g);
     if (s.pool) vkDestroyDescriptorPool(dev, s.pool, nullptr);
@@ -1712,6 +1724,7 @@ LLFxRuntimeVK::Shared* LLFxRuntimeVK::ensureShared(uint32_t w, uint32_t h, uint8
     for (uint32_t r = 0; r < kRingMax; ++r)
         ok = ok && alloc(mHost->hdrDsl, &s->hdrInSet[r]) && alloc(mHost->hdrDsl, &s->hdrOutSet[r]);
     ok = ok && alloc(mHost->scopeDsl, &s->scopeSet);
+    ok = ok && alloc(mHost->scopeDsl, &s->blendSet) && alloc(mHost->scopeDsl, &s->compareSet);   // <Prestige>
     if (!ok)
     {
         destroyShared(*s);
@@ -2146,6 +2159,21 @@ void LLFxRuntimeVK::applyPressure(const Frame& f)
 // ============================================================================
 // Uniforms
 // ============================================================================
+// <Prestige>
+namespace
+{
+// A uniform measured in display pixels (a blur radius, a grain size): annotation
+// prestige_scale = "resolution", or ui_units naming pixels (" px", "pixels").
+bool scalesWithResolution(const reshadefx::uniform& u)
+{
+    if (slfx::annotationString(u.annotations, "prestige_scale") == "resolution") return true;
+    std::string units = slfx::annotationString(u.annotations, "ui_units");
+    std::transform(units.begin(), units.end(), units.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+    return units.find("px") != std::string::npos || units.find("pixel") != std::string::npos;
+}
+}
+// </Prestige>
+
 void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
 {
     if (p.uboFrame == mFrameCounter) return;
@@ -2167,8 +2195,22 @@ void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
         tPrev = now;
         tFrame = mFrameCounter;
     }
-    const float timerMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();
+    float timerMs = std::chrono::duration<float, std::milli>(std::chrono::steady_clock::now() - t0).count();   // <Prestige> not const </Prestige>
     static std::mt19937 rng(1234u);
+    // <Prestige> A capture scope holds the time sources still (one grain / noise pattern for
+    // every frame of an accumulated shot), and an offscreen snapshot at another size than the
+    // live view scales uniforms measured in pixels by output height / live height (the
+    // snapshot keeps the vertical field of view), so a blur radius or grain size covers the
+    // same part of the picture as in the viewfinder.
+    const bool frozen = mCapture > 0;
+    if (frozen)
+    {
+        if (mCaptureTimerMs < 0.f) mCaptureTimerMs = timerMs;
+        if (mCaptureFrameNumber == 0) mCaptureFrameNumber = f.frameNumber | 1u;
+        timerMs = mCaptureTimerMs;
+    }
+    const float resScale = (f.offscreen && mMainH > 0 && p.h > 0 && p.h != mMainH) ? (float)p.h / (float)mMainH : 1.f;
+    // </Prestige>
 
     for (size_t ui = 0; ui < m.uniforms.size(); ++ui)
     {
@@ -2205,13 +2247,22 @@ void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
                 if (v.isArray()) for (uint32_t c = 0; c < (uint32_t)v.size(); ++c) put(c, v[(S32)c].asReal());
                 else put(0, v.isBoolean() ? (v.asBoolean() ? 1.0 : 0.0) : v.asReal());
             }
+            // <Prestige> pixel-measured values follow the snapshot's size (see resScale)
+            if (resScale != 1.f && !isBool && !u.type.is_array() && scalesWithResolution(u))
+                for (uint32_t c = 0; c < comps && (c + 1) * 4 <= u.size; ++c)
+                {
+                    if (isFloat) { float x = 0.f; std::memcpy(&x, dst + c * 4, 4); put(c, (double)x * resScale); }
+                    else if (u.type.is_signed()) { int32_t x = 0; std::memcpy(&x, dst + c * 4, 4); put(c, std::round((double)x * resScale)); }
+                    else { uint32_t x = 0; std::memcpy(&x, dst + c * 4, 4); put(c, std::round((double)x * resScale)); }
+                }
+            // </Prestige>
             continue;
         }
         const float mn = slfx::annotationFloat(u.annotations, "min", 0.f);
         const float mx = slfx::annotationFloat(u.annotations, "max", 1.f);
         if (source == "timer") put(0, timerMs);
         else if (source == "frametime") put(0, frameMs);
-        else if (source == "framecount") put(0, (double)(f.frameNumber & 0x7FFFFFFF));
+        else if (source == "framecount") put(0, (double)((frozen ? mCaptureFrameNumber : f.frameNumber) & 0x7FFFFFFF));   // <Prestige> frozen </Prestige>
         else if (source == "date")
         {
             const std::time_t tt = std::time(nullptr);
@@ -2228,6 +2279,14 @@ void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
         {
             const int lo = slfx::annotationInt(u.annotations, "min", 0), hi = slfx::annotationInt(u.annotations, "max", 32767);
             std::uniform_int_distribution<int> dist(std::min(lo, hi), std::max(lo, hi));
+            // <Prestige> capture scope: the same value for every frame of the shot
+            if (frozen)
+            {
+                std::mt19937 held(mCaptureSeed ^ (uint32_t)(ui * 2654435761u) ^ (uint32_t)std::hash<std::string>()(p.effect));
+                put(0, dist(held));
+            }
+            else
+            // </Prestige>
             put(0, dist(rng));
         }
         else if (source == "pingpong")
@@ -2235,7 +2294,7 @@ void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
             float& v = p.pingpong[ui * 2];
             float& dir = p.pingpong[ui * 2 + 1];
             const float step = slfx::annotationFloat(u.annotations, "step", 1.f);
-            v += dir * step * frameMs * 0.001f;
+            v += dir * step * (frozen ? 0.f : frameMs) * 0.001f;   // <Prestige> frozen </Prestige>
             if (v >= mx) { v = mx; dir = -1.f; }
             else if (v <= mn) { v = mn; dir = 1.f; }
             put(0, v); put(1, dir);
@@ -2272,7 +2331,7 @@ void LLFxRuntimeVK::writeUniforms(Perm& p, const Frame& f, Shared& s)
             put(0, v); put(1, mInputs.wheelDelta);
         }
         else if (source == "bufready_depth") put(0, 1.0);
-        else if (source == "screenshot") put(0, f.captureFrame ? 1.0 : 0.0);
+        else if (source == "screenshot") put(0, (f.captureFrame || frozen) ? 1.0 : 0.0);   // <Prestige> + capture scope </Prestige>
         // overlay_open / overlay_active / overlay_hovered / mousedelta / others: 0
     }
     std::memcpy((uint8_t*)p.ubo.mapped + (size_t)std::min(f.ringSlot, kRingMax - 1) * p.uboStride, d.data(), d.size());
@@ -2389,7 +2448,7 @@ void LLFxRuntimeVK::readTimers(uint32_t slot)
 }
 
 void LLFxRuntimeVK::recordTechnique(VkCommandBuffer cmd, const Frame& f, Perm& p, Shared& s, size_t techIndex,
-                                    uint8_t scope, uint8_t feather)
+                                    uint8_t scope, uint8_t feather, float strength)
 {
     const reshadefx::effect_module& m = p.cr->module;
     const reshadefx::technique& t = m.techniques[techIndex];
@@ -2398,7 +2457,12 @@ void LLFxRuntimeVK::recordTechnique(VkCommandBuffer cmd, const Frame& f, Perm& p
     // Per-effect scope (#548): keep the image before the technique, blend it back by the
     // avatar mask after (runPoint made scopeSave, the mask and the set).
     VkPipeline scopePipe = VK_NULL_HANDLE;
-    if (scope != SCOPE_ALL && s.scopeSave.image && s.scopeSetWritten)
+    // <Prestige> per-effect strength (camera filters): the same keep-and-blend-back, by strength
+    // alone (mode 0, no mask) or times the scope's mask weight.
+    const bool masked = scope != SCOPE_ALL && s.scopeSave.image && s.scopeSetWritten;
+    const bool weak = strength < 0.999f && s.scopeSave.image && (masked || s.blendSetWritten);
+    if (masked || weak)
+    // </Prestige>
         scopePipe = cachedPipe(mHost->scopePipes, s.bbFormat, [&] {
             return hostGraphicsPipe(dev, mHost->vs, mHost->scopeFs, mHost->scopeLayout, s.bbFormat);
         });
@@ -2512,19 +2576,93 @@ void LLFxRuntimeVK::recordTechnique(VkCommandBuffer cmd, const Frame& f, Perm& p
         // bbTex = the technique's result; composite (pre, post, mask) -> the back buffer.
         vkCmdCopyImage(cmd, s.bbRT.image, VK_IMAGE_LAYOUT_GENERAL, s.bbTex.image, VK_IMAGE_LAYOUT_GENERAL, 1, &whole);
         barrierAll(cmd);
-        const int32_t push[4] = {(int32_t)scope, (int32_t)feather, 0, 0};
-        drawFullscreen(cmd, s.bbRT.view, VK_IMAGE_LAYOUT_GENERAL, s.w, s.h, scopePipe, mHost->scopeLayout, s.scopeSet,
-                       push, sizeof(push));
+        // <Prestige> {mode, feather, strength, split}: mode 0 = strength only (fx_scope.frag)
+        struct { int32_t mode, feather; float strength, split; } push{masked ? (int32_t)scope : 0, (int32_t)feather,
+                                                                     std::clamp(strength, 0.f, 1.f), 0.f};
+        static_assert(sizeof(push) == 16, "fx_scope.frag Push");
+        drawFullscreen(cmd, s.bbRT.view, VK_IMAGE_LAYOUT_GENERAL, s.w, s.h, scopePipe, mHost->scopeLayout,
+                       masked ? s.scopeSet : s.blendSet, &push, sizeof(push));
+        // </Prestige>
         barrierAll(cmd);
         vkCmdCopyImage(cmd, s.bbRT.image, VK_IMAGE_LAYOUT_GENERAL, s.bbTex.image, VK_IMAGE_LAYOUT_GENERAL, 1, &whole);
         barrierAll(cmd);
     }
 }
 
+// <Prestige> camera filters: the strength blend's and the before / after split's targets.
+// scopeSave (the image before a technique) is shared with the scope; compareSave holds the
+// image before the first compared technique. Both sets bind the 1x1 dummy as their (unread)
+// mask. Made on first use per Shared; false when an image could not be made (the blend /
+// split is then left out, the effects still run).
+bool LLFxRuntimeVK::ensureBlendTargets(Shared& s, bool compare)
+{
+    if (compare ? s.compareSetWritten : s.blendSetWritten) return true;
+    GpuImage& img = compare ? s.compareSave : s.scopeSave;
+    if (!img.image)
+    {
+        VkMemScope memcat(VKMEM_TARGET);
+        VkDeviceContext::SoftAllocScope soft(mCtx);
+        img = mCtx->createImage2D(s.w, s.h, s.bbFormat, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                  VK_IMAGE_ASPECT_COLOR_BIT);
+        if (!img.image) return false;
+        s.vramBytes += mCtx->allocBytes(img);
+        mCtx->setObjectName(VK_OBJECT_TYPE_IMAGE, (uint64_t)img.image, compare ? "fxCompareSave" : "fxScopeSave");
+        mCtx->submitImmediate([&](VkCommandBuffer c) {
+            imageBarrier(c, img.image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
+                         VK_PIPELINE_STAGE_2_NONE, 0, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, 0);
+        });
+    }
+    VkDevice dev = mCtx->device();
+    VkDescriptorSet set = compare ? s.compareSet : s.blendSet;
+    if (!set || !mHost->dummyColor.view) return false;
+    writeImage(dev, set, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mHost->nearest, img.view);
+    writeImage(dev, set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mHost->nearest, s.bbTex.view);
+    writeImage(dev, set, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, mHost->nearest, mHost->dummyColor.view);
+    (compare ? s.compareSetWritten : s.blendSetWritten) = true;
+    return true;
+}
+
+// The before / after split over the back buffer: compareSave left of the split, the result right.
+void LLFxRuntimeVK::recordCompareSplit(VkCommandBuffer cmd, Shared& s)
+{
+    VkPipeline pipe = cachedPipe(mHost->scopePipes, s.bbFormat, [&] {
+        return hostGraphicsPipe(mCtx->device(), mHost->vs, mHost->scopeFs, mHost->scopeLayout, s.bbFormat);
+    });
+    if (!pipe || !s.compareSetWritten) return;
+    VkImageCopy whole{};
+    whole.srcSubresource = whole.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+    whole.extent = {s.w, s.h, 1};
+    barrierAll(cmd);
+    vkCmdCopyImage(cmd, s.bbRT.image, VK_IMAGE_LAYOUT_GENERAL, s.bbTex.image, VK_IMAGE_LAYOUT_GENERAL, 1, &whole);
+    barrierAll(cmd);
+    struct { int32_t mode, feather; float strength, split; } push{3, 0, 1.f, std::clamp(mCompareSplit, 0.f, 1.f) * (float)s.w};
+    drawFullscreen(cmd, s.bbRT.view, VK_IMAGE_LAYOUT_GENERAL, s.w, s.h, pipe, mHost->scopeLayout, s.compareSet, &push, sizeof(push));
+    barrierAll(cmd);
+    vkCmdCopyImage(cmd, s.bbRT.image, VK_IMAGE_LAYOUT_GENERAL, s.bbTex.image, VK_IMAGE_LAYOUT_GENERAL, 1, &whole);
+    barrierAll(cmd);
+}
+
+void LLFxRuntimeVK::pushCapture()
+{
+    if (mCapture++ == 0)
+    {
+        mCaptureSeed = (uint32_t)std::chrono::steady_clock::now().time_since_epoch().count() | 1u;
+        mCaptureTimerMs = -1.f;
+        mCaptureFrameNumber = 0;
+    }
+}
+
+void LLFxRuntimeVK::popCapture()
+{
+    if (mCapture > 0) --mCapture;
+}
+
+// </Prestige>
+
 bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point, Shared& s)
 {
     // Collect this point's live techniques in run order.
-    struct Run { std::shared_ptr<Perm> p; size_t ti; uint8_t scope, feather; };
+    struct Run { std::shared_ptr<Perm> p; size_t ti; uint8_t scope, feather; float strength = 1.f; bool compare = false; };   // <Prestige> strength, compare </Prestige>
     std::vector<Run> runs;
     uint32_t need = 0;
     const VkFormat bbFmt = s.bbFormat;
@@ -2533,6 +2671,7 @@ bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point,
     {
         if (techPoint(pt) != point) continue;
         if (mParked.count(pt.effect)) continue;   // VRAM pressure (#546)
+        if (pt.strength <= 0.001f) continue;      // <Prestige> a filter at 0 % changes nothing </Prestige>
         std::shared_ptr<Perm> p = findOrQueue(pt.effect,s.w,s.h,point,bbFmt,sync,point==POINT_DISPLAY && f.displayLinear);
         if (!p) continue;
         if (sync) pollJobs();
@@ -2568,8 +2707,8 @@ bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point,
         for (size_t ti = 0; ti < m.techniques.size(); ++ti)
         {
             if (m.techniques[ti].name != pt.technique) continue;
-            if (f.captureFrame && !p->techs[ti].enabledInScreenshot) continue;
-            runs.push_back({p, ti, pt.scope, pt.feather});
+            if ((f.captureFrame || mCapture > 0) && !p->techs[ti].enabledInScreenshot) continue;   // <Prestige> + capture scope </Prestige>
+            runs.push_back({p, ti, pt.scope, pt.feather, pt.strength, pt.compare});   // <Prestige> strength, compare </Prestige>
             for (const Perm::TexVK& t : p->tex)
             {
                 switch (t.sem)
@@ -2649,6 +2788,27 @@ bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point,
         }
     }
 
+    // <Prestige> strength-only blends and the before / after split: their targets and sets.
+    bool wantBlend = false, anyCompare = false;
+    for (const Run& r : runs)
+    {
+        wantBlend = wantBlend || r.strength < 0.999f;
+        anyCompare = anyCompare || r.compare;
+    }
+    if (wantBlend) ensureBlendTargets(s, false);
+    // Live frames only: never offscreen, never a frame a user snapshot is taken from.
+    const bool wantCompare = anyCompare && mCompareSplit >= 0.f && !f.offscreen && !f.captureFrame && !f.skip
+                             && mCapture == 0 && ensureBlendTargets(s, true);
+    size_t firstCompare = runs.size(), lastCompare = runs.size();
+    if (wantCompare)
+        for (size_t i = 0; i < runs.size(); ++i)
+            if (runs[i].compare)
+            {
+                if (firstCompare == runs.size()) firstCompare = i;
+                lastCompare = i;
+            }
+    // </Prestige>
+
     resolveInputs(cmd, f, s, need);
     barrierAll(cmd);
     {
@@ -2686,7 +2846,19 @@ bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point,
             vkCmdWriteTimestamp2(cmd, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, mQueryPool[slot], q * 2);
         }
         vkBreadcrumb(cmd, kTechMarks[std::min<size_t>(i, 63)]);
-        recordTechnique(cmd, f, *r.p, s, r.ti, r.scope, r.feather);
+        // <Prestige> before / after: keep the image from before the first compared technique
+        if (i == firstCompare)
+        {
+            barrierAll(cmd);
+            VkImageCopy whole{};
+            whole.srcSubresource = whole.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
+            whole.extent = {s.w, s.h, 1};
+            vkCmdCopyImage(cmd, s.bbRT.image, VK_IMAGE_LAYOUT_GENERAL, s.compareSave.image, VK_IMAGE_LAYOUT_GENERAL, 1, &whole);
+            barrierAll(cmd);
+        }
+        recordTechnique(cmd, f, *r.p, s, r.ti, r.scope, r.feather, r.strength);
+        if (i == lastCompare) recordCompareSplit(cmd, s);
+        // </Prestige>
         if (timeThis) vkCmdWriteTimestamp2(cmd, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT, mQueryPool[slot], q * 2 + 1);
         if (!f.offscreen) ++r.p->goodFrames;
         r.p->lastUsed = mFrameCounter;

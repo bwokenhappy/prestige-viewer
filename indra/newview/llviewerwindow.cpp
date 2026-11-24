@@ -107,6 +107,7 @@
 // newview includes
 #include "slposeik.h"
 #include "slcameramode.h"
+#include "slfxstack.h"   // <Prestige> SLFxCaptureScope </Prestige>
 #include "slvideostudio.h"
 #include "slmmbnav.h"
 #include "slchatbar.h"
@@ -6733,6 +6734,10 @@ bool LLViewerWindow::rawSnapshot(LLImageRaw *raw, S32 image_width, S32 image_hei
     {
         show_ui = false;
     }
+    // <Prestige> Camera filters: the before / after split never reaches a shot, and the effects'
+    // time-driven sources (grain, noise) hold still for every frame the shot is made of.
+    SLFxCaptureScope fx_capture;
+    // </Prestige>
 
     // #947: the UI captures take the presented frame, which already holds the HUD attachments;
     // with "HUDs" off, hide them for the frames this snapshot renders.

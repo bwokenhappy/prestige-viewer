@@ -150,6 +150,26 @@ public:
     // Resolve a path or bare file name to a known effect's full path ("" = unknown).
     std::string resolveEffect(const std::string& effect_path) const;
 
+    // <Prestige> ---- camera filters: a session layer over the stack ----
+    // Techniques (ids "Name@File.fx" or bare names) that run AFTER the user's enabled ones, in
+    // this order, each with its own strength (0..1: the runtime keeps the image before the
+    // technique and blends its result back, like the scope), and that the before / after split
+    // compares against the image before them. Not saved in fx_state.xml (the camera's filter
+    // list keeps its own setting). The layer runs even while SLFxEnabled is off (then only the
+    // layer runs); --no-fx and quarantines still win. Empty = no layer.
+    struct LayerTech
+    {
+        std::string technique;
+        F32 strength = 1.f;
+    };
+    void setLayer(const std::vector<LayerTech>& techs);
+    bool hasLayer() const { return !mLayer.empty(); }
+    // Before / after: x of the split, 0..1 of the window width; < 0 = off (see LLFxRuntimeVK).
+    void setCompareSplit(F32 x01);
+    // Recompile one effect from its file (a LUT strip it samples was rewritten).
+    void reloadEffect(const std::string& effect_path);
+    // </Prestige>
+
 private:
     struct Effect
     {
@@ -177,6 +197,7 @@ private:
     void syncTechniqueList();
     void checkStartupMarkers();
     void updateSafety();
+    bool runtimeOn() const;   // <Prestige> isEnabled(), or the camera filter layer (not under --no-fx) </Prestige>
 
     std::map<std::string, Effect> mEffects;          // by full path (files found now)
     std::map<std::string, Effect> mHiddenEffects;    // saved state of effects not found this scan
@@ -193,11 +214,23 @@ private:
     bool mMetaRequested = false;
     std::string mStartupNotice;
     std::set<std::string> mProvisional;              // effect paths not yet proven stable
+    std::vector<LayerTech> mLayer;                   // <Prestige> camera filters (setLayer) </Prestige>
 };
 
 // No effects for the renders inside this scope (#547: 360 capture -- six faces through a
 // screen-space effect stack would not line up at the seams). With effects on, the first
 // use per session tells the user why the capture has none.
+// <Prestige> A user snapshot is rendered inside this scope (LLViewerWindow::rawSnapshot): no
+// before / after split in it, and the time-driven uniform sources hold still for its frames.
+struct SLFxCaptureScope
+{
+    SLFxCaptureScope();
+    ~SLFxCaptureScope();
+    SLFxCaptureScope(const SLFxCaptureScope&) = delete;
+    SLFxCaptureScope& operator=(const SLFxCaptureScope&) = delete;
+};
+// </Prestige>
+
 struct SLFxSuppressScope
 {
     explicit SLFxSuppressScope(const char* what);

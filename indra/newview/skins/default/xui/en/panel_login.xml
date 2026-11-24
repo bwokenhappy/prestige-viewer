@@ -17,16 +17,18 @@
     name="sign_up_url">
     https://join.secondlife.com/
   </panel.string>
+  <!-- Prestige: Firestorm's login layout, the login bar along the BOTTOM of the window and the
+       splash page filling the rest (Firestorm panel_fs_login). -->
   <layout_stack
-  follows="left|right|top"
-  height="172"
+  follows="left|right|bottom"
+  height="150"
   left="0"
   name="ui_stack"
   orientation="horizontal"
-  top="10"
+  top="618"
   width="1024">
     <layout_panel
-      height="172"
+      height="150"
       auto_resize="true"
       name="ui_elastic_pad_left"
       width="32" />
@@ -37,7 +39,7 @@
       width="1011"
       left="0"
       top="0"
-      height="172">
+      height="150">
   <icon
     height="73"
     width="165"
@@ -189,7 +191,7 @@
     height="22" />
   </layout_panel>
   <layout_panel
-      height="172"
+      height="150"
       auto_resize="true"
       name="ui_elastic_pad_right"
       width="32" />
@@ -203,7 +205,7 @@
     left="0"
     name="login_html"
     start_url=""
-    top="154"
-    height="600"
+    top="0"
+    height="618"
     width="1024" />
 </panel>

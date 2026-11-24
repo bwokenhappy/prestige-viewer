@@ -193,6 +193,13 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 #af .lk { position: absolute; left: -10dp; top: 40dp; width: 56dp; text-align: center; font-size: $fontCaption; color: $accent; display: none; }
 #af.locked .lk { display: block; }
 #af.locked { border-color: $accent; border-width: 3dp; }
+/* <Prestige> focus confirmation: green when the focus is achieved, red when it failed; the group
+   focus's markers on each chosen person's eyes */
+#af.ok { border-color: $ok; }
+#af.fail { border-color: $error; }
+.gm { position: absolute; display: none; box-sizing: border-box; border: 2dp $finderStrong; border-radius: 7dp; }
+.gm.ok { border-color: $ok; }
+/* </Prestige> */
 /* saved camera setups */
 /* saved camera setups, in the rail's camera section */
 .setups { margin-top: 6dp; }
@@ -280,6 +287,10 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 <div id="g-v1" class="gl"></div><div id="g-v2" class="gl"></div><div id="g-h1" class="gl"></div><div id="g-h2" class="gl"></div>
 <div id="g-d1" class="gl"></div><div id="g-d2" class="gl"></div><div id="g-cx" class="gl c"></div><div id="g-cy" class="gl c"></div>
 <div id="af"><div class="lk">{{lockMark}}</div></div>
+<!-- <Prestige> group focus markers -->
+<div id="gm-0" class="gm"></div><div id="gm-1" class="gm"></div><div id="gm-2" class="gm"></div><div id="gm-3" class="gm"></div>
+<div id="gm-4" class="gm"></div><div id="gm-5" class="gm"></div><div id="gm-6" class="gm"></div><div id="gm-7" class="gm"></div>
+<!-- </Prestige> -->
 <div id="level"><div id="lv-l" class="seg"></div><div id="lv-r" class="seg"></div></div>
 <div id="tiltband"><div id="tiltring"></div><div class="tdot" id="td-0"></div><div class="tdot" id="td-1"></div><div class="tdot" id="td-2"></div><div class="tdot" id="td-3"></div><div class="tdot" id="td-4"></div><div class="tdot" id="td-5"></div><div class="tdot" id="td-6"></div><div class="tdot" id="td-7"></div><div class="tdot" id="td-8"></div></div>
 <div id="tilthit"><div class="thit" id="th-0"></div><div class="thit" id="th-1"></div><div class="thit" id="th-2"></div><div class="thit" id="th-3"></div><div class="thit" id="th-4"></div><div class="thit" id="th-5"></div><div class="thit" id="th-6"></div><div class="thit" id="th-7"></div></div>
@@ -313,6 +324,9 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div id="levelchip" class="cbtn" data-class-on="levelOn" data-event-click="level()">{{levelOn ? '✓  ' : ''}}{{levelLabel}}</div>
   <div id="flashchip" class="cbtn" data-class-on="flashOn" data-event-click="flash()"><span class="ic ic-flash" data-class-off="!flashOn"><div class="a"></div><div class="b"></div><div class="c"></div><div class="s"></div></span></div>
   <div id="studiochip" class="cbtn" data-class-on="studioOn" data-event-click="studio()">{{studioLabel}}</div>
+  <!-- <Prestige> AE-L -->
+  <div id="aelchip" class="cbtn" data-class-on="aeLocked" data-event-click="ael()">{{aelLabel}}</div>
+  <!-- </Prestige> -->
 </div>
 <div id="gridpop" class="popover toggled" data-class-shown="popup == 'grid'">
   <div class="opt" data-for="g : grids" data-attr-id="g.id" data-class-selected="g.on" data-event-click="grid(it_index)">
@@ -605,6 +619,12 @@ struct View
     bool                   narrow = false; // the window is too narrow for the thumbnails' key hint
     std::string            moreShots, cardSrc, cardH, cardTitle, cardMeta, cardLabel, savedLabel, folderLabel, deleteLabel;
     F64                   hintSince = 0.0, nextRefresh = 0.0;
+    // <Prestige> AE-L (its chip), the AF point's confirmation and the group markers shown
+    bool                  aeLocked = false;
+    std::string           aelLabel;
+    U32                   afConfirm = 0;
+    size_t                markersShown = 0;
+    // </Prestige>
 };
 View gView;
 
@@ -698,6 +718,9 @@ void buildHelp()
     // press, or the on-screen shutter.
     v.helpMouse = { { str("MouseClick"), str("HelpClick"), false, "left" },
                     { str("MouseDoubleClick"), str("HelpDoubleClick"), false, "left" },
+                    // <Prestige> group focus
+                    { str("MouseShiftClick"), str("HelpShiftClick"), false, "left" },
+                    // </Prestige>
                     { str("MouseHold"), str("HelpHold"), false, "shutter" },
                     { str("MouseRightDrag"), str("HelpRightDrag"), false, "right" },
                     { str("MouseRightClick"), str("HelpRightClick"), false, "right" },
@@ -710,6 +733,9 @@ void buildHelp()
         { "camera_shoot", "KeyShoot" },      { "camera_af_on", "KeyFocus" },       { "camera_af_lock", "KeyLock" },
         { "camera_dof_preview", "KeyDepth" }, { "camera_q_menu", "KeyQuick" },      { "camera_review", "KeyReview" },
         { "camera_toggle_bar", "KeyBar" },    { "camera_help", "KeyHelp" },         { "camera_exit", "KeyExit" },
+        // <Prestige> AE-L
+        { "camera_ae_lock", "KeyExposureLock" },
+        // </Prestige>
     };
     v.helpKeys.clear();
     for (const auto& [command, text] : keys)
@@ -955,6 +981,9 @@ void refreshControls()
     set(v.levelOn, SLCameraModel::level(), "levelOn");
     set(v.studioOn, SLCameraRail::open(), "studioOn");
     set(v.flashOn, SLCameraModel::flashOn(), "flashOn");
+    // <Prestige> AE-L
+    set(v.aeLocked, SLCameraModel::exposureLocked(), "aeLocked");
+    // </Prestige>
 }
 
 // The quick settings grid: the Q menu's items, as value + plain word (mode and ISO as the strip
@@ -1350,6 +1379,48 @@ void hide(const char* id)
         e->SetProperty("display", "none");
 }
 
+// <Prestige> focus confirmation on the AF point (green: achieved, red: failed), and a small marker
+// on each person of a group focus (their eyes, inside the frame; green once the focus is achieved).
+void updatePrestigeFocus()
+{
+    View& v = gView;
+    if (!v.document)
+        return;
+    const U32 confirm = SLCameraModel::focusConfirm();
+    if (Rml::Element* e = v.document->GetElementById("af"))
+    {
+        e->SetClass("ok", confirm == 2);
+        e->SetClass("fail", confirm == 3);
+    }
+    if (confirm != v.afConfirm)
+    {
+        v.afConfirm = confirm;
+        markChanged();
+    }
+    std::vector<SLCameraModel::GroupMarker> marks;
+    SLCameraModel::groupMarkers(marks);
+    const LLRect fr = SLCameraModel::frame();
+    size_t shown = 0;
+    for (const SLCameraModel::GroupMarker& m : marks)
+    {
+        if (shown >= 8)
+            break;
+        if (!fr.pointInRect(ll_round(m.x), ll_round(m.y)))
+            continue;
+        const std::string id = llformat("gm-%u", (U32)shown);
+        place(id.c_str(), m.x / v.k - 7.f, v.H - m.y / v.k - 7.f, 14.f, 14.f);
+        if (Rml::Element* e = v.document->GetElementById(id))
+            e->SetClass("ok", confirm == 2);
+        ++shown;
+    }
+    for (size_t i = shown; i < v.markersShown; ++i)
+        hide(llformat("gm-%u", (U32)i).c_str());
+    if (shown > 0 || v.markersShown > 0)
+        markChanged();
+    v.markersShown = shown;
+}
+// </Prestige>
+
 // The crop mask, grid, level, tilt knob and AF point from the model, in dp from the top-left.
 void updateFinder()
 {
@@ -1718,6 +1789,10 @@ bool createDocument(Rml::Context* context)
         m.Bind("levelOn", &v.levelOn);
         m.Bind("studioOn", &v.studioOn);
         m.Bind("flashOn", &v.flashOn);
+        // <Prestige> AE-L
+        m.Bind("aeLocked", &v.aeLocked);
+        m.Bind("aelLabel", &v.aelLabel);
+        // </Prestige>
         // A cell's arrows: one step either way (the cell's click keeps its own action). The
         // values that switch an effect or reset on a click step their value; the others step
         // their named stops (modes, lenses, focus and drive modes).
@@ -1781,6 +1856,13 @@ bool createDocument(Rml::Context* context)
                                 SLCameraModel::setFlashOn(!SLCameraModel::flashOn());
                                 refreshControls();
                             });
+        // <Prestige> AE-L
+        m.BindEventCallback("ael", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                SLCameraModel::toggleExposureLock();
+                                refreshControls();
+                            });
+        // </Prestige>
         m.BindEventCallback("studio", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
                             {
                                 SLCameraRail::setOpen(!SLCameraRail::open());
@@ -2217,6 +2299,9 @@ bool SLCameraView::start(Rml::Context* context)
 
     v.clickWord       = str("TipClickWord");
     v.lockMark        = str("LockMark");
+    // <Prestige> AE-L
+    v.aelLabel        = str("AELabel");
+    // </Prestige>
     v.tipCell         = -1;
     v.presetArmed.clear();
     refreshPresets(true);
@@ -2582,6 +2667,22 @@ bool SLCameraView::sync(float density)
             st.push_back({ str("StatusFocusLocked") });
         if (SLCameraModel::dofPreviewHeld())
             st.push_back({ str("StatusDepthPreview") });
+        // <Prestige> AE-L, a group focus, the shutter key's half-press waiting for its second press
+        if (SLCameraModel::exposureLocked())
+            st.push_back({ str("StatusExposureLocked") });
+        if (SLCameraModel::groupSize() > 0)
+        {
+            LLStringUtil::format_map_t args;
+            args["[COUNT]"] = llformat("%d", (S32)SLCameraModel::groupSize());
+            st.push_back({ LLTrans::getString("CameraModeStatusGroup", args) });
+        }
+        if (SLCameraModel::halfPressArmed())
+        {
+            LLStringUtil::format_map_t args;
+            args["[KEY]"] = key("camera_shoot");
+            st.push_back({ LLTrans::getString("CameraModeStatusHalfPress", args), "", true });
+        }
+        // </Prestige>
         if (SLCameraModel::driveMode() != 0)
             st.push_back({ SLCameraModel::driveLabel() });
         if (!v.ims.empty())
@@ -2615,6 +2716,9 @@ bool SLCameraView::sync(float density)
     if (v.popup == "grid")
         placeChipMenus();
     updateFinder();
+    // <Prestige> the AF point's confirmation, the group's markers
+    updatePrestigeFocus();
+    // </Prestige>
     if (v.controlsOpen)
         refreshControls(); // the dials answer the wheel at once
     if (v.popup == "quick")

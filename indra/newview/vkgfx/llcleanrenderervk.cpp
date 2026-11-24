@@ -35847,6 +35847,11 @@ void LLCleanRendererVK::recordDoF(VkCommandBuffer cmd, uint32_t width, uint32_t 
     // A snapshot's accumulation sample (#417 / #873) is the raw jittered frame: colour and
     // depth line up as they are.
     const bool raw_sample = mSnapAccNow || mLiveCapNow;
+    // <Prestige> camera mode's focus peaking (MF): on the screen only, never in a snapshot -- offscreen,
+    // a live shot's samples, or the live frame a shot is armed to capture (#873)
+    const bool in_shot = mOffscreen || raw_sample || (mLiveSnap && mLiveSnap->armed());
+    p.params[3] = in_shot ? 0.f : mDofParams[3];
+    // </Prestige>
     p.jitter[0] = raw_sample ? 0.f : mTaaJitter[0];
     p.jitter[1] = raw_sample ? 0.f : mTaaJitter[1];
     p.jitter[2] = (mScaled && !raw_sample) ? 1.f : 0.f;

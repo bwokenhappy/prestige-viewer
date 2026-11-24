@@ -92,6 +92,9 @@ struct State
     S32 rightX = 0, rightY = 0, lastMX = 0, lastMY = 0;
     F32 rightTravel = 0.f;
     bool hadFocus = true;
+    // <Prestige> a Shift+press on the picture: its release adds a person to the group focus (or takes them out)
+    bool groupPress = false;
+    // </Prestige>
 };
 State sState;
 
@@ -194,6 +197,10 @@ void SLCameraMode::start()
     sState.hadFocus = true;
     // Before anything changes: every setting camera mode can touch, to be put back on exit.
     SLCameraRestore::capture();
+    // <Prestige> the session's defaults, after the record (so leaving puts the world's back)
+    SCM::applySessionDefaults();
+    sState.groupPress = false;
+    // </Prestige>
     sActive = true;
 }
 
@@ -338,6 +345,26 @@ bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType cli
     }
     if (click_type != CLICK_LEFT && click_type != CLICK_DOUBLELEFT) return false;   // middle: voice, as everywhere
 
+    // <Prestige> Shift+click on the picture: group focus (a person in or out), on the release.
+    // Shift with Alt or Ctrl still goes on to the camera tools.
+    if (down && (mask & (MASK_ALT | MASK_CONTROL | MASK_SHIFT)) == MASK_SHIFT && SCM::frame().pointInRect(x, y))
+    {
+        sState.groupPress = true;
+        sState.leftPassed = false;
+        sState.leftDown = false;
+        sState.leftX = x;
+        sState.leftY = y;
+        return true;
+    }
+    if (!down && sState.groupPress)
+    {
+        sState.groupPress = false;
+        if ((F32)llmax(llabs(x - sState.leftX), llabs(y - sState.leftY)) <= kSlop)
+            SCM::groupFocusAt(x, y);
+        sState.clicks = slcamin::ClickState(); // not half of a double-click either
+        return true;
+    }
+    // </Prestige>
     if (down)
     {
         sState.leftPassed = modified;
@@ -480,6 +507,10 @@ bool SLCameraMode::handleKeyOnce(KEY key, MASK mask)
         // The innermost thing first: an open popover, card or menu, then camera mode.
         if (SLCameraView::popupOpen())
             SLCameraView::closePopup();
+        // <Prestige> then the shutter key's half-press
+        else if (SCM::halfPressArmed())
+            SCM::cancelHalfPress();
+        // </Prestige>
         else
             stop();
         return true;
@@ -513,8 +544,11 @@ bool SLCameraMode::handleKeyOnce(KEY key, MASK mask)
         if (!slcamin::commandTakesKeyFor(slcamin::Command::Shoot, typing, menu)) return true;
         if (!repeat)
         {
-            SCM::halfPress(true);   // a full press passes the half-press on its way
-            SCM::pressShutter();
+            // <Prestige> two stages: the first press is the half-press (focus, the green
+            // confirmation), the next one shoots (slcameramodel.h shutterKey). A held key's
+            // repeats do nothing: no second press, no burst of shots.
+            SCM::shutterKey();
+            // </Prestige>
         }
         return true;
     }
@@ -529,6 +563,13 @@ bool SLCameraMode::handleKeyOnce(KEY key, MASK mask)
         if (!repeat && letters) SCM::toggleFocusLock();
         return true;
     }
+    // <Prestige> AE-L: hold the exposure, or let it go
+    if (keys.matches("camera_ae_lock", key, mask))
+    {
+        if (!repeat && letters) SCM::toggleExposureLock();
+        return true;
+    }
+    // </Prestige>
     if (keys.matches("camera_dof_preview", key, mask))
     {
         if (letters) SCM::setDofPreview(true);
@@ -598,3 +639,15 @@ bool SLCameraMode::focusPoint(LLVector3& agent_pos)
 {
     return sActive && SCM::focusPoint(agent_pos);
 }
+
+// <Prestige> focus peaking and the exposure lock, for the renderer
+bool SLCameraMode::focusPeaking()
+{
+    return sActive && SCM::focusPeaking();
+}
+
+bool SLCameraMode::exposureLocked()
+{
+    return sActive && SCM::exposureLocked();
+}
+// </Prestige>

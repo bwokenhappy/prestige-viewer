@@ -15,7 +15,7 @@ layout(location = 0) out vec4 outColor;
 layout(push_constant) uniform DofPush {
     mat4 inv_proj;   // VK clip -> view (current frame)
     vec4 lens;       // focal_distance (view z, m), blur_constant, tan_pixel_angle, magnification
-    vec4 params;     // max_cof (px), res_scale, near blur (0/1), -
+    vec4 params;     // max_cof (px), res_scale, near blur (0/1), focus peaking (0/1, <Prestige>)
     vec4 screen;     // full-res width, height, 1/width, 1/height
     vec4 jitter;     // TAA jitter (render px, x right / y down; 0 when the colour is not resolved),
                      // closest-of-2x2 depth (1 = scaled frame), -, -   (128 B: the push budget)

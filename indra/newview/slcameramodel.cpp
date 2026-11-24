@@ -52,6 +52,10 @@
 #include "llviewerregion.h"
 #include "llwebprofile.h"
 #include "llstatusbar.h"     // can_afford_transaction
+// <Prestige> faces, group focus, focus confirmation, AE-L
+#include "prestigecamerafocus.h"
+#include "llvoavatar.h"
+// </Prestige>
 
 #include <boost/regex.hpp>
 
@@ -276,12 +280,206 @@ F32 focusDistanceTo(const LLVector3& p)
     return cam->getAtAxis() * (p - cam->getOrigin());
 }
 
+// <Prestige> faces, group focus and the aperture that keeps a group sharp (prestigecamerafocus.h)
+namespace PCF = PrestigeCameraFocus;
+namespace
+{
+struct PrestigeFocus
+{
+    LLUUID person;              // the avatar whose eyes the focus is on (AF-C follows them)
+    bool   halfArmed = false;   // Enter's first press (the half-press): the next one shoots
+    // Group focus: the aperture settings it started from (put back when it ends, unless the
+    // photographer turned the aperture since) and what it set last.
+    bool           apertureActive = false;
+    SLCE::Settings base;
+    F32            setN = 0.f;
+    U32            setMode = 0;
+    bool           warnedDeep = false;    // "not everyone can be sharp", once per group
+    F64            nextGroupCheck = 0.0;  // AF-C: the aperture follows the group at 4 Hz
+};
+PrestigeFocus sPrestige;
+
+// The AF area around the AF point where a face is found (UI units: its 40 dp box and a margin).
+constexpr F32 kAfAreaHalf = 24.f;
+} // namespace
+
+// The aperture settings of `from` on `onto`: the mode, f-number and program shift, and the
+// shutter when it was Tv (which a group may have switched to Av).
+void prestigeTakeAperture(SLCE::Settings& onto, const SLCE::Settings& from)
+{
+    onto.mode = from.mode;
+    onto.fnumber = from.fnumber;
+    onto.programShift = from.programShift;
+    if (from.mode == SLCE::MODE_SHUTTER)
+        onto.shutter = from.shutter;
+}
+
+// Group focus: the smallest aperture change that keeps every chosen person's eyes sharp -- the
+// f-number at least fNumberFor(near, far), starting from the aperture the group started with.
+void prestigeGroupAperture(F32 near_m, F32 far_m)
+{
+    const SLCE::Settings cur = currentSettings();
+    const SLCE::Result have = SLCE::solve(cur);
+    if (!sPrestige.apertureActive || std::fabs(have.fnumber - sPrestige.setN) > 0.01f || cur.mode != sPrestige.setMode)
+    {
+        // A new group, or the photographer turned the aperture (or the mode): that is the base now.
+        sPrestige.apertureActive = true;
+        sPrestige.base = cur;
+        sPrestige.setN = have.fnumber;
+        sPrestige.setMode = cur.mode;
+    }
+    const F32 need = PCF::fNumberFor(near_m, far_m);
+    const std::vector<F32>& stops = SLCE::apertureStops();
+    SLCE::Settings s = cur;
+    prestigeTakeAperture(s, sPrestige.base);
+    if (SLCE::solve(s).fnumber + 0.01f < need)
+    {
+        if (s.mode == SLCE::MODE_PROGRAM)
+        {
+            // P: the program shift toward a smaller aperture, a third of a stop at a time.
+            while (SLCE::solve(s).fnumber + 0.01f < need && s.programShift > -8.f)
+                s.programShift = llmax(s.programShift - 1.f / 3.f, -8.f);
+        }
+        else
+        {
+            // Av / M: the aperture itself. Tv (the aperture follows the shutter): Av, as turning
+            // the aperture's own cell does.
+            if (s.mode == SLCE::MODE_SHUTTER)
+                s.mode = SLCE::MODE_APERTURE;
+            F32 n = stops.back();
+            for (F32 stop : stops)
+            {
+                if (stop + 0.01f >= need)
+                {
+                    n = stop;
+                    break;
+                }
+            }
+            s.fnumber = n;
+        }
+        if (need > stops.back() + 0.01f && !sPrestige.warnedDeep)
+        {
+            sPrestige.warnedDeep = true;
+            toast(LLTrans::getString("PrestigeCameraGroupTooDeep"), 3.0);
+        }
+    }
+    const SLCE::Result want = SLCE::solve(s);
+    if (s.mode == cur.mode && std::fabs(want.fnumber - have.fnumber) < 0.01f && std::fabs(want.shutter - have.shutter) < 1e-5f
+        && std::fabs(s.programShift - cur.programShift) < 0.01f)
+    {
+        return;   // already there
+    }
+    if (s.mode != cur.mode && s.mode == SLCE::MODE_APERTURE)
+        toast(LLTrans::getString("CameraModeSwitchedAv"), 3.0);
+    sModel.programShift = s.programShift;
+    applySettings(s);
+    sPrestige.setN = want.fnumber;
+    sPrestige.setMode = s.mode;
+}
+
+// The group ends (a plain click, the last one taken out, camera mode closing): the aperture back
+// to where it started, unless the photographer has turned it since.
+void prestigeEndGroup()
+{
+    if (sPrestige.apertureActive)
+    {
+        const SLCE::Settings cur = currentSettings();
+        if (std::fabs(SLCE::solve(cur).fnumber - sPrestige.setN) < 0.01f && cur.mode == sPrestige.setMode)
+        {
+            SLCE::Settings s = cur;
+            prestigeTakeAperture(s, sPrestige.base);
+            sModel.programShift = s.programShift;
+            applySettings(s);
+        }
+    }
+    sPrestige.apertureActive = false;
+    sPrestige.warnedDeep = false;
+    PCF::clearGroup();
+}
+
+// A group focus: the focus between its people's eyes and the aperture that covers them (instead
+// of the AF point). False: no group.
+bool prestigeAcquireGroup()
+{
+    if (PCF::group().empty())
+        return false;
+    F32 near_m = 0.f, far_m = 0.f;
+    if (!PCF::groupDepths(near_m, far_m))
+    {
+        PCF::fail();   // nobody of the group in view: the focus stays where it was
+        return true;
+    }
+    const LLViewerCamera* cam = LLViewerCamera::getInstance();
+    const LLVector3 point = cam->getOrigin() + cam->getAtAxis() * PCF::groupFocusDistance(near_m, far_m);
+    sModel.focusGlobal = gAgent.getPosGlobalFromAgent(point);
+    sModel.focusValid = true;
+    sModel.focusObject.setNull();
+    sPrestige.person.setNull();
+    prestigeGroupAperture(near_m, far_m);
+    PCF::search();
+    return true;
+}
+
+// After the AF point's pick: on a person (anywhere on the body, a rigged mesh body, something
+// worn), or a face in the AF area in front of what the pick hit, the focus goes to their eyes.
+// Otherwise the point stays; confirmed when the pick hit something, failed on the sky.
+void prestigeFaceFocus(LLViewerObject* obj, S32 x, S32 y, const LLVector3& point)
+{
+    sPrestige.person.setNull();
+    LLVOAvatar* av = PCF::personOf(obj);
+    if (!av)
+        av = PCF::faceNear(x, y, kAfAreaHalf, obj ? focusDistanceTo(point) : 512.f);
+    LLVector3 eyes;
+    if (av && PCF::eyesOf(av, eyes))
+    {
+        sModel.focusGlobal = gAgent.getPosGlobalFromAgent(eyes);
+        sModel.focusObject.setNull();
+        sPrestige.person = av->getID();
+        PCF::search();
+        return;
+    }
+    if (obj)
+        PCF::search();
+    else
+        PCF::fail();
+}
+
+// AF-C: the focus follows the person's eyes, or the group (its focus distance), every frame.
+// False: neither (or the group is out of view: the focus holds).
+bool prestigeTrack(LLVector3& agent_pos)
+{
+    const LLViewerCamera* cam = LLViewerCamera::getInstance();
+    if (!PCF::group().empty())
+    {
+        F32 near_m = 0.f, far_m = 0.f;
+        if (!PCF::groupDepths(near_m, far_m))
+            return false;
+        agent_pos = cam->getOrigin() + cam->getAtAxis() * PCF::groupFocusDistance(near_m, far_m);
+        sModel.focusGlobal = gAgent.getPosGlobalFromAgent(agent_pos);
+        return true;
+    }
+    if (sPrestige.person.isNull())
+        return false;
+    if (PCF::eyesOf(sPrestige.person, agent_pos))
+    {
+        sModel.focusGlobal = gAgent.getPosGlobalFromAgent(agent_pos);
+        return true;
+    }
+    sPrestige.person.setNull();   // gone: the focus holds where the eyes were last
+    PCF::fail();
+    return false;
+}
+// </Prestige>
+
 // Focus at the AF point: the nearest surface on its ray (sky: far away). One pick, at a press.
 // MF: the ring is set to that distance instead (focus there, then turn the ring).
 void acquireFocus()
 {
     const LLRect fr = frame();
     if (fr.isEmpty()) return;
+    // <Prestige> a group focus: its people's eyes, not the AF point (MF: the ring, as before)
+    if (focusMode() != FOCUS_MF && prestigeAcquireGroup()) return;
+    // </Prestige>
     const S32 x = fr.mLeft + ll_round(sModel.afX * (F32)fr.getWidth());
     const S32 y = fr.mBottom + ll_round(sModel.afY * (F32)fr.getHeight());
     LLVector4a hit, start, end;
@@ -305,6 +503,9 @@ void acquireFocus()
         sModel.focusObject = obj->getID();
         sModel.focusOffset = (point - obj->getPositionAgent()) * ~obj->getRenderRotation();
     }
+    // <Prestige> faces: a pick on a person (or a face in the AF area) focuses on their eyes
+    prestigeFaceFocus(obj, x, y, point);
+    // </Prestige>
 }
 
 // The shutter's half-press: autofocus at the AF point -- not in MF (the ring is the focus) and
@@ -1038,11 +1239,26 @@ void begin()
     sModel.focusObject.setNull();
     sModel.afLocked = false;
     sModel.toastUntil = 0.0;
+    // <Prestige> no person, group, half-press, confirmation or exposure lock carried over
+    sPrestige = PrestigeFocus();
+    PCF::clearGroup();
+    PCF::clearConfirm();
+    PCF::setExposureLocked(false);
+    // </Prestige>
 }
 
 void end()
 {
     setDofPreview(false);
+    // <Prestige> the group's aperture let go (the restore puts every dial back anyway), the
+    // exposure lock released, and the depth of field as camera mode leaves it remembered for the
+    // next session (on by default: PrestigeCameraDepthOfField)
+    prestigeEndGroup();
+    sPrestige = PrestigeFocus();
+    PCF::clearConfirm();
+    PCF::setExposureLocked(false);
+    gSavedSettings.setBOOL("PrestigeCameraDepthOfField", gSavedSettings.getBOOL("RenderDepthOfField"));
+    // </Prestige>
     stopDrive();
     sModel.pending = nullptr; // the card closed with camera mode: its full-size shot goes too
 }
@@ -1052,6 +1268,12 @@ bool focusAt(S32 x, S32 y)
     const LLRect fr = frame();
     if (!fr.pointInRect(x, y))
         return false;
+    // <Prestige> a plain click is one subject again (the group ends), and moves the AF point:
+    // the shutter key's half-press is over
+    if (!PCF::group().empty())
+        prestigeEndGroup();
+    sPrestige.halfArmed = false;
+    // </Prestige>
     sModel.afX = llclamp((F32)(x - fr.mLeft) / (F32)llmax(fr.getWidth(), 1), 0.f, 1.f);
     sModel.afY = llclamp((F32)(y - fr.mBottom) / (F32)llmax(fr.getHeight(), 1), 0.f, 1.f);
     acquireFocus();
@@ -1071,6 +1293,9 @@ void autofocus()
 
 void halfPress(bool held)
 {
+    // <Prestige> another half-press (or its release) ends the shutter key's armed one
+    sPrestige.halfArmed = false;
+    // </Prestige>
     if (held)
         halfPressFocus();
 }
@@ -1109,6 +1334,9 @@ bool moveAfPoint(S32 x, S32 y)
     const LLRect fr = frame();
     if (fr.isEmpty())
         return false;
+    // <Prestige> moving the AF point ends the shutter key's half-press
+    sPrestige.halfArmed = false;
+    // </Prestige>
     sModel.afX = llclamp((F32)(x - fr.mLeft) / (F32)llmax(fr.getWidth(), 1), 0.f, 1.f);
     sModel.afY = llclamp((F32)(y - fr.mBottom) / (F32)llmax(fr.getHeight(), 1), 0.f, 1.f);
     return true;
@@ -1122,6 +1350,19 @@ bool focusHeld()
 void tick()
 {
     driveTick();
+    // <Prestige> focus confirmation (green, the double beep); AF-C: the group's aperture follows
+    // it (4 Hz); the exposure lock lets go in M (nothing automatic to hold)
+    PCF::tick();
+    if (!PCF::group().empty() && focusMode() == FOCUS_AF_C && sModel.focusValid && now() >= sPrestige.nextGroupCheck)
+    {
+        sPrestige.nextGroupCheck = now() + 0.25;
+        F32 near_m = 0.f, far_m = 0.f;
+        if (PCF::groupDepths(near_m, far_m))
+            prestigeGroupAperture(near_m, far_m);
+    }
+    if (PCF::exposureLocked() && exposureModeSetting() == SLCE::MODE_MANUAL)
+        PCF::setExposureLocked(false);
+    // </Prestige>
 }
 
 bool driving()
@@ -1468,6 +1709,10 @@ bool focusPoint(LLVector3& agent_pos)
         return true;
     }
     if (!sModel.focusValid) return false;
+    // <Prestige> AF-C: a person's eyes, or the group, followed every frame
+    if (mode == FOCUS_AF_C && prestigeTrack(agent_pos))
+        return true;
+    // </Prestige>
     if (mode == FOCUS_AF_C && sModel.focusObject.notNull())
     {
         // Follow the subject: its focus point, where the subject now is.
@@ -1482,5 +1727,141 @@ bool focusPoint(LLVector3& agent_pos)
     agent_pos = gAgent.getPosAgentFromGlobal(sModel.focusGlobal);
     return true;
 }
+
+// <Prestige> focus and exposure: the public face (slcameramodel.h)
+void applySessionDefaults()
+{
+    // Depth of field on in camera mode, unless it was turned off there last time.
+    static LLCachedControl<bool> s_dof(gSavedSettings, "PrestigeCameraDepthOfField", true);
+    if (s_dof && !gSavedSettings.getBOOL("RenderDepthOfField"))
+        gSavedSettings.setBOOL("RenderDepthOfField", true);
+}
+
+void shutterKey()
+{
+    // The second press, or a press with nothing to focus (MF: the ring; AF-L: the held focus) or
+    // that cancels a running sequence: the shutter, as before.
+    if (sDrive.running || sPrestige.halfArmed || focusMode() == FOCUS_MF || sModel.afLocked)
+    {
+        sPrestige.halfArmed = false;
+        pressShutter();
+        return;
+    }
+    halfPress(true);   // focus (and the confirmation); the next press shoots
+    sPrestige.halfArmed = true;
+}
+
+bool halfPressArmed()
+{
+    return sPrestige.halfArmed;
+}
+
+void cancelHalfPress()
+{
+    sPrestige.halfArmed = false;
+}
+
+bool groupFocusAt(S32 x, S32 y)
+{
+    const LLRect fr = frame();
+    if (!fr.pointInRect(x, y))
+        return false;
+    sPrestige.halfArmed = false;
+    if (focusMode() == FOCUS_MF)
+    {
+        toast(LLTrans::getString("PrestigeCameraGroupNeedsAF"), 3.0);
+        return true;
+    }
+    LLVector4a hit;
+    hit.clear();
+    LLViewerObject* obj = gViewerWindow->cursorIntersect(x, y, 512.f, nullptr, -1, false, true, true, false, nullptr,
+                                                         nullptr, nullptr, &hit);
+    LLVOAvatar* av = PCF::personOf(obj);
+    if (!av)
+        av = PCF::faceNear(x, y, kAfAreaHalf, obj ? focusDistanceTo(LLVector3(hit.getF32ptr())) : 512.f);
+    if (!av)
+    {
+        toast(LLTrans::getString("PrestigeCameraGroupNoPerson"), 3.0);
+        return true;
+    }
+    // The person focused before the first Shift+click joins the group first.
+    const LLUUID seed = sModel.focusValid ? sPrestige.person : LLUUID::null;
+    const bool was_in = PCF::inGroup(av->getID());
+    if (!PCF::toggle(av->getID(), seed) && !was_in)
+    {
+        LLStringUtil::format_map_t args;
+        args["[COUNT]"] = llformat("%d", (S32)PCF::MAX_GROUP);
+        toast(LLTrans::getString("PrestigeCameraGroupFull", args), 3.0);
+        return true;
+    }
+    if (PCF::group().empty())
+    {
+        prestigeEndGroup();   // the last one taken out: the focus stays where it is
+        toast(LLTrans::getString("PrestigeCameraGroupOff"), 2.0);
+        return true;
+    }
+    acquireFocus();
+    LLStringUtil::format_map_t args;
+    args["[COUNT]"] = llformat("%d", (S32)PCF::group().size());
+    toast(LLTrans::getString("PrestigeCameraGroupCount", args), 2.0);
+    return true;
+}
+
+size_t groupSize()
+{
+    return PCF::group().size();
+}
+
+void groupMarkers(std::vector<GroupMarker>& out)
+{
+    out.clear();
+    if (!SLCameraMode::active() || focusMode() == FOCUS_MF)
+        return;
+    for (const LLUUID& id : PCF::group())
+    {
+        LLVector3 eyes;
+        GroupMarker m;
+        if (PCF::eyesOf(id, eyes) && PCF::toScreen(eyes, m.x, m.y))
+            out.push_back(m);
+    }
+}
+
+U32 focusConfirm()
+{
+    if (focusMode() == FOCUS_MF)
+        return PCF::CONFIRM_NONE;
+    const U32 c = PCF::confirm();
+    return (c == PCF::CONFIRM_FAILED || sModel.focusValid) ? c : (U32)PCF::CONFIRM_NONE;
+}
+
+void toggleExposureLock()
+{
+    if (PCF::exposureLocked())
+    {
+        PCF::setExposureLocked(false);
+        toast(LLTrans::getString("PrestigeCameraExposureUnlocked"));
+        return;
+    }
+    // M (and the renderer's auto exposure off): nothing automatic to hold.
+    if (exposureModeSetting() == SLCE::MODE_MANUAL || !gSavedSettings.getBOOL("RenderDynamicExposureEnabled"))
+    {
+        toast(LLTrans::getString("PrestigeCameraExposureFixed"), 3.0);
+        return;
+    }
+    PCF::setExposureLocked(true);
+    toast(LLTrans::getString("PrestigeCameraExposureLocked"));
+}
+
+bool exposureLocked()
+{
+    return SLCameraMode::active() && PCF::exposureLocked();
+}
+
+bool focusPeaking()
+{
+    static LLCachedControl<bool> s_peaking(gSavedSettings, "PrestigeCameraFocusPeaking", true);
+    return s_peaking && SLCameraMode::active() && focusMode() == FOCUS_MF;
+}
+// </Prestige>
 
 } // namespace SLCameraModel

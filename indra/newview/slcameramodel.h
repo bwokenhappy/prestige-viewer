@@ -218,6 +218,36 @@ F32         manualFocusDistance();
 F32         focusDistanceTo(const LLVector3& p);
 std::string driveLabel();
 U32         driveMode(); // 0 single, 1 2 s timer, 2 10 s timer, 3 burst, 4 bracketing
+
+// <Prestige> focus and exposure (prestigecamerafocus.h): faces, group focus, focus confirmation,
+// AE-L, the two-stage Enter, depth of field by default and focus peaking in MF.
+// Camera mode opened, its settings recorded: the session's defaults (depth of field on unless the
+// photographer turned it off in camera mode last time: PrestigeCameraDepthOfField).
+void applySessionDefaults();
+// Enter (the shutter key): the first press is the half-press (focus, confirmation), the next one
+// shoots. Nothing to focus (MF, AF-L) or a sequence running: the press acts at once.
+void shutterKey();
+// A half-press from the key is waiting for its second press; Escape or moving the AF point ends it.
+bool halfPressArmed();
+void cancelHalfPress();
+// Shift+click in the frame: the person there joins the group focus, or leaves it. False outside
+// the frame. A plain click (focusAt) is one subject again.
+bool groupFocusAt(S32 x, S32 y);
+size_t groupSize();
+// The group's people, where their eyes are in the window (UI units), for the overlay's markers.
+struct GroupMarker
+{
+    F32 x = 0.f, y = 0.f;
+};
+void groupMarkers(std::vector<GroupMarker>& out);
+// Focus confirmation: 0 none, 1 searching, 2 achieved (green, beeped), 3 failed (red).
+U32  focusConfirm();
+// AE-L: the auto exposure holds its value until pressed again or camera mode closes.
+void toggleExposureLock();
+bool exposureLocked();
+// Focus peaking: MF, with PrestigeCameraFocusPeaking on (drawn by the depth of field).
+bool focusPeaking();
+// </Prestige>
 } // namespace SLCameraModel
 
 #endif // SL_CAMERAMODEL_H

@@ -5202,7 +5202,9 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="CameraModeMouseMiddle">Middle button</string>
   <string name="CameraModeHintClick">focus there</string>
   <string name="CameraModeHintOr">or</string>
-  <string name="CameraModeHintShoot">shoot</string>
+  <!-- <Prestige> Enter is two-stage -->
+  <string name="CameraModeHintShoot">focus, again: shoot</string>
+  <!-- </Prestige> -->
   <string name="CameraModeHintTurn">turn the view</string>
   <string name="CameraModeHintMove">move in or out</string>
   <string name="CameraModeHintLeave">leave</string>
@@ -5217,7 +5219,9 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="CameraModeHelpCtrlWheel">Zoom</string>
   <string name="CameraModeHelpAltWheel">Move the camera in or out</string>
   <string name="CameraModeHelpMiddle">Talk, as everywhere</string>
-  <string name="CameraModeKeyShoot">shoot</string>
+  <!-- <Prestige> Enter is two-stage: focus, then shoot -->
+  <string name="CameraModeKeyShoot">focus; again: shoot</string>
+  <!-- </Prestige> -->
   <string name="CameraModeKeyFocus">focus</string>
   <string name="CameraModeKeyLock">lock the focus</string>
   <string name="CameraModeKeyDepth">hold: preview depth</string>
@@ -5420,6 +5424,24 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="CameraModeStatusFocusLocked">Focus locked</string>
   <string name="CameraModeStatusDepthPreview">Depth preview</string>
   <string name="CameraModeLockMark">AF-L</string>
+  <!-- <Prestige> camera mode focus & exposure: faces, group focus, AE-L, the two-stage Enter -->
+  <string name="CameraModeKeyExposureLock">lock the exposure (AE-L)</string>
+  <string name="CameraModeMouseShiftClick">Shift + click</string>
+  <string name="CameraModeHelpShiftClick">On people: focus on all of them at once, everyone's eyes sharp (again: take one out; a plain click: one subject)</string>
+  <string name="CameraModeStatusExposureLocked">AE-L</string>
+  <string name="CameraModeStatusHalfPress">Focused · [KEY] to shoot</string>
+  <string name="CameraModeStatusGroup">Group focus · [COUNT]</string>
+  <string name="CameraModeAELabel">AE-L</string>
+  <string name="PrestigeCameraGroupTooDeep">Not everyone can be sharp: f/22 is the smallest aperture</string>
+  <string name="PrestigeCameraGroupNeedsAF">Group focus works with autofocus (AF-S or AF-C)</string>
+  <string name="PrestigeCameraGroupNoPerson">Shift + click a person to focus on several at once</string>
+  <string name="PrestigeCameraGroupFull">Group focus: [COUNT] people at most</string>
+  <string name="PrestigeCameraGroupOff">Group focus off</string>
+  <string name="PrestigeCameraGroupCount">Group focus · [COUNT]</string>
+  <string name="PrestigeCameraExposureLocked">Exposure locked (AE-L)</string>
+  <string name="PrestigeCameraExposureUnlocked">Exposure unlocked</string>
+  <string name="PrestigeCameraExposureFixed">The exposure is fixed already (M, or auto exposure off)</string>
+  <!-- </Prestige> -->
   <string name="CameraModeTipRailLookTitle">Look</string>
   <string name="CameraModeTipRailLookWhat">A saved Photo Studio Look: a whole set of colour and tone settings.</string>
   <string name="CameraModeTipRailLookClick">the next Look · the arrows and the wheel step through them</string>

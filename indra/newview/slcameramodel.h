@@ -32,12 +32,14 @@
 #define SL_CAMERAMODEL_H
 
 #include "llrect.h"
+#include "llpointer.h" // <Prestige> the photo roll's images
 #include "stdtypes.h"
 
 #include <string>
 #include <vector>
 
 class LLVector3;
+class LLImageRaw; // <Prestige>
 
 namespace SLCameraModel
 {
@@ -149,6 +151,16 @@ void discardPending();
 const std::string& lastEmailTo();
 // Where the last shot went (with lastSavedAt()).
 U32  lastSavedTo();
+// <Prestige> The photo roll: a shot of the session's review (SLCameraReview index) sent again,
+// to the inventory, the profile feed or by e-mail, through the same card as a new shot (its
+// confirmation, its L$ cost, the address). The full image is read back from its file when it was
+// saved to disk, else the review's preview (at most 1280 px) is sent, and a notice says so. False
+// (with a notice) when it cannot be: a shot already waiting on the card, no image, not affordable.
+bool sendShot(size_t review_index, U32 dest);
+// The full image of a reviewed shot as it was saved (its file, decoded), or its preview; null
+// without either. `full`: it is the saved file.
+LLPointer<LLImageRaw> shotImage(size_t review_index, bool& full);
+// </Prestige>
 
 // ---- framing ----
 U32  grid();

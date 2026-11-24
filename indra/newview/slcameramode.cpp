@@ -36,6 +36,7 @@
 #include "slkeycommands.h"
 #include "slvideostudio.h"
 #include "prestigecameraisolate.h"   // <Prestige> isolate your subject: picking
+#include "prestigecamerapad.h" // <Prestige> the on-screen camera pad
 #include "llviewermenu.h" // gMenuBarView: the menu shortcuts camera mode swallows
 
 #include "llagent.h"
@@ -285,6 +286,15 @@ void SLCameraMode::draw()
     // snapshot capture points, so never in a shot.
     SLCameraView::markLayer();
     followRightDrag();
+    // <Prestige> the camera pad: while its knob is held, the camera moves (orbit, free, first person)
+    {
+        F32 pad_x = 0.f, pad_y = 0.f;
+        if (SLCameraView::padDeflection(pad_x, pad_y))
+            PrestigeCameraPad::drive(pad_x, pad_y, LLFrameTimer::getFrameDeltaTimeF32());
+        else
+            PrestigeCameraPad::release();
+    }
+    // </Prestige>
     if (sState.afDrag && sState.leftDown)
     {
         // The AF point follows the drag and focuses as it goes (a pick when the pointer moved,
@@ -610,6 +620,13 @@ bool SLCameraMode::handleKeyOnce(KEY key, MASK mask)
         return true;
     }
     const bool letters = slcamin::commandTakesKeyFor(slcamin::Command::Letter, typing, menu);
+    // <Prestige> what the viewfinder shows: everything, essentials, the picture alone (I, like a camera's INFO)
+    if (keys.matches("camera_display", key, mask))
+    {
+        if (!repeat && letters) SLCameraView::cycleDisplay();
+        return true;
+    }
+    // </Prestige>
     if (keys.matches("camera_af_on", key, mask))
     {
         if (!repeat && letters) SCM::autofocus();

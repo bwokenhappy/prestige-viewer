@@ -34,6 +34,7 @@
 
 #include "llagent.h"
 #include "llagentcamera.h"
+#include "llfile.h" // <Prestige> the photo roll reads a shot's file back
 #include "llimagebmp.h"
 #include "llimagejpeg.h"
 #include "llimagepng.h"
@@ -1193,6 +1194,81 @@ U32 lastSavedTo()
     return sModel.savedTo;
 }
 
+// <Prestige> the photo roll: a reviewed shot sent again, through the card of a new shot
+LLPointer<LLImageRaw> shotImage(size_t review_index, bool& full)
+{
+    full = false;
+    if (review_index >= SLCameraReview::count())
+        return nullptr;
+    // The file as saved: the shot at its full size (decoded once, on this click).
+    const std::string& path = SLCameraReview::path(review_index);
+    if (!path.empty() && LLFile::isfile(path))
+    {
+        LLPointer<LLImageFormatted> file = LLImageFormatted::createFromExtension(path);
+        LLPointer<LLImageRaw> raw = new LLImageRaw;
+        if (file.notNull() && file->load(path) && file->decode(raw, 0.f) && raw->getData() && raw->getWidth() > 0
+            && raw->getHeight() > 0)
+        {
+            full = true;
+            if (raw->getComponents() != 4)
+                return raw;
+            // A PNG with alpha: the upload and the encoders take RGB, as a new shot is.
+            LLPointer<LLImageRaw> rgb = new LLImageRaw((U16)raw->getWidth(), (U16)raw->getHeight(), 3);
+            if (rgb->getData())
+            {
+                rgb->copy(raw);
+                return rgb;
+            }
+            full = false;
+        }
+        LL_WARNS("CameraMode") << "photo roll: could not read " << path << "; sending the preview" << LL_ENDL;
+    }
+    // Not on disk (sent elsewhere, or deleted): the review's preview, copied.
+    const LLImageRaw* preview = SLCameraReview::preview(review_index);
+    if (!preview || !preview->getData())
+        return nullptr;
+    const U8* data = preview->getData();
+    LLPointer<LLImageRaw> copy = new LLImageRaw(data, (U16)preview->getWidth(), (U16)preview->getHeight(), preview->getComponents());
+    return copy->getData() ? copy : LLPointer<LLImageRaw>();
+}
+
+bool sendShot(size_t review_index, U32 dest)
+{
+    if (dest == DEST_DISK || dest > DEST_EMAIL)
+        return false;
+    if (sModel.pending.notNull())
+    {
+        toast(LLTrans::getString("CameraModeShotWaiting"));
+        return false;
+    }
+    bool full = false;
+    LLPointer<LLImageRaw> raw = shotImage(review_index, full);
+    if (raw.isNull())
+    {
+        toast(LLTrans::getString("PrestigeCameraRollNoImage"), 3.0);
+        return false;
+    }
+    if (dest == DEST_INVENTORY)
+    {
+        const S32 cost = LLSnapshotLivePreview::snapshotTextureCost(raw->getWidth(), raw->getHeight());
+        if (!can_afford_transaction(cost))
+        {
+            LLStringUtil::format_map_t args;
+            args["[COST]"] = llformat("%d", cost);
+            toast(LLTrans::getString("CameraModeCannotAfford", args), 4.0);
+            return false;
+        }
+    }
+    if (!full)
+        toast(LLTrans::getString("PrestigeCameraRollPreviewOnly"), 4.0);
+    // The card asks every time for a shot sent again ("don't ask again" is for new shots).
+    sModel.pending    = raw;
+    sModel.pendingTo  = dest;
+    sModel.pendingPos = gAgentCamera.getCameraPositionGlobal();
+    return true;
+}
+// </Prestige>
+
 void windowSize(S32& w, S32& h)
 {
     w = gViewerWindow ? gViewerWindow->getWindowWidthRaw() : 0;
@@ -1272,6 +1348,16 @@ void begin()
     PCF::clearGroup();
     PCF::clearConfirm();
     PCF::setExposureLocked(false);
+    // <Prestige> 4K by default: a snapshot size never set (still the "Window" default) becomes
+    // 3840 x 2160, once. After that the size is the user's: "Window" chosen later stays Window.
+    if (!gSavedSettings.getBOOL("PrestigeCamera4KDefaultApplied"))
+    {
+        LLControlVariable* w = gSavedSettings.getControl("SnapshotLocalWidth");
+        LLControlVariable* h = gSavedSettings.getControl("SnapshotLocalHeight");
+        if (w && h && w->isDefault() && h->isDefault())
+            setOutputBase(3840, 2160);
+        gSavedSettings.setBOOL("PrestigeCamera4KDefaultApplied", true);
+    }
     // </Prestige>
 }
 

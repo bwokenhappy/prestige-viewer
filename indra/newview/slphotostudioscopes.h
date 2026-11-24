@@ -81,6 +81,11 @@ public:
     void draw() override;
     bool handleRightMouseDown(S32 x, S32 y, MASK mask) override;
 
+    // <Prestige> Camera mode's live histogram: the sampling runs while it holds it, as while a
+    // Scopes panel exists (the same count; the last holder to let go stops it).
+    static void holdCapture(bool hold);
+    // </Prestige>
+
 private:
     /// What the plot shows: RGB overlaid, one channel on its own, or the
     /// chroma plane.

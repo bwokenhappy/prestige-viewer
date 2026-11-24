@@ -112,6 +112,22 @@ SLPanelPhotoStudioScopes::~SLPanelPhotoStudioScopes()
     }
 }
 
+// <Prestige> camera mode's live histogram holds the sampling like a panel does
+void SLPanelPhotoStudioScopes::holdCapture(bool hold)
+{
+    if (hold)
+    {
+        ++sScopePanelCount;
+        LLPipeline::sScopeCapture = true;
+    }
+    else if (--sScopePanelCount <= 0)
+    {
+        sScopePanelCount = 0;
+        LLPipeline::sScopeCapture = false;
+    }
+}
+// </Prestige>
+
 bool SLPanelPhotoStudioScopes::postBuild()
 {
     mPlotPanel = getChild<LLPanel>("scope_plot");

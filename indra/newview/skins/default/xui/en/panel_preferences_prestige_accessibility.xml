@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- <Prestige> Preferences > Accessibility: bigger text, reduced motion, high contrast and a
+     dyslexia-friendly font in one place. Text size, font and colours apply live; interface size
+     applies when you press OK. -->
+<panel
+ border="true"
+ follows="all"
+ height="408"
+ label="Accessibility"
+ layout="topleft"
+ left="102"
+ name="accessibility"
+ top="1"
+ width="517">
+  <!-- Bigger text -->
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   font="SansSerifBold"
+   height="16"
+   layout="topleft"
+   left="20"
+   name="bigger_text_heading"
+   top="12"
+   width="470">
+    Bigger text
+  </text>
+  <slider
+   can_edit_text="true"
+   control_name="FSFontSizeAdjustment"
+   decimal_digits="1"
+   follows="left|top"
+   height="16"
+   increment="0.5"
+   initial_value="0"
+   label="Text size:"
+   label_width="110"
+   layout="topleft"
+   left="30"
+   max_val="4"
+   min_val="-2"
+   name="a11y_font_size_slider"
+   tool_tip="Points added to every interface font size (0 = normal). Applies right away; the same setting as Preferences > Skins > Font size adjustment."
+   top_pad="8"
+   width="330" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left_pad="6"
+   name="a11y_font_size_units"
+   top_delta="0"
+   width="100">
+    pt larger
+  </text>
+  <slider
+   can_edit_text="true"
+   control_name="UIScaleFactor"
+   decimal_digits="2"
+   follows="left|top"
+   height="16"
+   increment="0.025"
+   initial_value="1"
+   label="Interface size:"
+   label_width="110"
+   layout="topleft"
+   left="30"
+   max_val="4.0"
+   min_val="0.75"
+   name="a11y_ui_scale_slider"
+   tool_tip="Size of the whole interface: windows, buttons, icons and text together (1 = normal). Applies when you press OK; the same setting as Preferences > Advanced > UI size."
+   top_pad="6"
+   width="330" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left_pad="6"
+   name="a11y_ui_scale_note"
+   top_delta="0"
+   width="140">
+    (applies on OK)
+  </text>
+  <!-- Reduced motion -->
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   font="SansSerifBold"
+   height="16"
+   layout="topleft"
+   left="20"
+   name="motion_heading"
+   top_pad="18"
+   width="470">
+    Motion
+  </text>
+  <check_box
+   control_name="PrestigeReducedMotion"
+   follows="left|top"
+   height="16"
+   label="Reduced motion"
+   layout="topleft"
+   left="30"
+   name="reduced_motion_check"
+   tool_tip="Fewer moving and fading things on screen. Applies right away."
+   top_pad="6"
+   width="300" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="42"
+   layout="topleft"
+   left="50"
+   name="reduced_motion_desc"
+   text_color="LabelDisabledColor"
+   top_pad="2"
+   word_wrap="true"
+   width="450">
+    Camera moves (focus, sit, appearance) jump instead of gliding, mouse wheel zoom steps without easing, the pie menu opens without its pop-up animation, notifications disappear without fading, and animated chat pictures stay on their first frame.
+  </text>
+  <!-- High contrast -->
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   font="SansSerifBold"
+   height="16"
+   layout="topleft"
+   left="20"
+   name="contrast_heading"
+   top_pad="10"
+   width="470">
+    Colours
+  </text>
+  <check_box
+   control_name="PrestigeHighContrast"
+   follows="left|top"
+   height="16"
+   label="High contrast"
+   layout="topleft"
+   left="30"
+   name="high_contrast_check"
+   tool_tip="White text on black windows with a bright yellow accent. Applies right away."
+   top_pad="6"
+   width="300" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="42"
+   layout="topleft"
+   left="50"
+   name="high_contrast_desc"
+   text_color="LabelDisabledColor"
+   top_pad="2"
+   word_wrap="true"
+   width="450">
+    White text on black windows, bright borders and a bright yellow accent. Your own colours (Preferences > Skins > Your colours) are kept and come back when you turn this off. Images drawn by the skin, such as active tabs and check boxes, keep their colours.
+  </text>
+  <!-- Dyslexia-friendly font -->
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   font="SansSerifBold"
+   height="16"
+   layout="topleft"
+   left="20"
+   name="font_heading"
+   top_pad="10"
+   width="470">
+    Reading
+  </text>
+  <check_box
+   follows="left|top"
+   height="16"
+   label="Dyslexia-friendly font (OpenDyslexic)"
+   layout="topleft"
+   left="30"
+   name="dyslexic_font_check"
+   tool_tip="Use the OpenDyslexic font for the whole interface. Applies right away. Turning it off goes back to the normal font; other fonts are in Preferences > Skins > Font."
+   top_pad="6"
+   width="300" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="50"
+   name="dyslexic_font_missing"
+   text_color="LabelDisabledColor"
+   top_pad="2"
+   visible="false"
+   width="450">
+    Not available: the OpenDyslexic font is not installed with this build.
+  </text>
+</panel>

@@ -214,6 +214,8 @@ set(viewer_SOURCE_FILES
     prestigemarkdownrenderer.cpp
     prestigeoutfitbackup.cpp          # <Prestige> outfit backup to / restore from a JSON file
     prestigeoutfitbackupformat.cpp
+    prestigepanelaccessibility.cpp    # <Prestige> Preferences > Accessibility
+    prestigeuicolors.cpp              # <Prestige> Your colours, high contrast colours
     slfloaterao.cpp
     slfloaterfirstrun.cpp
     slfloatergesturesets.cpp
@@ -1252,6 +1254,8 @@ set(viewer_HEADER_FILES
     prestigemarkdownrenderer.h
     prestigeoutfitbackup.h            # <Prestige> outfit backup to / restore from a JSON file
     prestigeoutfitbackupformat.h
+    prestigepanelaccessibility.h      # <Prestige> Preferences > Accessibility
+    prestigeuicolors.h                # <Prestige> Your colours, high contrast colours
     slfloaterao.h
     slfloaterfirstrun.h
     slfloatergesturesets.h

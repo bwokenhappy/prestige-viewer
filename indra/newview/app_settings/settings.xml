@@ -33990,6 +33990,43 @@
     <key>Value</key>
     <integer>0</integer>
   </map>
+  <!-- <Prestige> Accessibility page -->
+  <key>PrestigeReducedMotion</key>
+  <map>
+    <key>Comment</key>
+    <string>Reduced motion (Preferences > Accessibility): camera moves jump instead of gliding, mouse wheel zoom steps without easing, the pie menu opens without its pop-up animation, notification toasts disappear without fading, and animated chat images show their first frame. Applies live</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>PrestigeHighContrast</key>
+  <map>
+    <key>Comment</key>
+    <string>High contrast colours (Preferences > Accessibility): white text on black windows with a bright yellow accent, set in the UI colour table. Your own colours (Preferences > Skins, Your colours) are kept in PrestigeHighContrastSavedColors and come back when this is turned off. Applies live</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>PrestigeHighContrastSavedColors</key>
+  <map>
+    <key>Comment</key>
+    <string>Internal: the user's own interface colours set aside while PrestigeHighContrast is on ({"colors": {name: colour}}); empty when it is off</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>HideFromEditor</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>LLSD</string>
+    <key>Value</key>
+    <map />
+  </map>
+  <!-- </Prestige> -->
   <key>InventoryFavoritesColorText</key>
   <map>
     <key>Comment</key>

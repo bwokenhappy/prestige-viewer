@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- <Prestige> Your colours: accent, window background and text of the interface
+     (Preferences > Skins). PrestigePanelYourColors sets the skin's colour groups live. -->
+<panel
+ follows="left|top"
+ height="24"
+ layout="topleft"
+ name="prestige_your_colors"
+ width="490">
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="10"
+   name="your_colors_label"
+   top="4"
+   width="80">
+    Your colours:
+  </text>
+  <color_swatch
+   can_apply_immediately="true"
+   disabled_control="PrestigeHighContrast"
+   follows="left|top"
+   height="20"
+   label_height="0"
+   layout="topleft"
+   left="92"
+   name="prestige_accent_swatch"
+   tool_tip="Accent: highlights, focus outlines, links, hovered and pressed items, emphasis and mention colours. Changes show right away. (Off while High contrast is on.)"
+   top="1"
+   width="32">
+    <color_swatch.caption_text
+     height="0" />
+  </color_swatch>
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="128"
+   name="accent_label"
+   top="4"
+   width="44">
+    Accent
+  </text>
+  <color_swatch
+   can_apply_immediately="true"
+   disabled_control="PrestigeHighContrast"
+   follows="left|top"
+   height="20"
+   label_height="0"
+   layout="topleft"
+   left="174"
+   name="prestige_window_swatch"
+   tool_tip="Window background: windows, panels, menus and bars; text fields, borders and selected rows follow it. Changes show right away. (Off while High contrast is on.)"
+   top="1"
+   width="32">
+    <color_swatch.caption_text
+     height="0" />
+  </color_swatch>
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="210"
+   name="window_label"
+   top="4"
+   width="56">
+    Windows
+  </text>
+  <color_swatch
+   can_apply_immediately="true"
+   disabled_control="PrestigeHighContrast"
+   follows="left|top"
+   height="20"
+   label_height="0"
+   layout="topleft"
+   left="268"
+   name="prestige_text_swatch"
+   tool_tip="Text: labels, buttons, menus and chat text; dimmed and disabled text follow it. Changes show right away. (Off while High contrast is on.)"
+   top="1"
+   width="32">
+    <color_swatch.caption_text
+     height="0" />
+  </color_swatch>
+  <text
+   type="string"
+   length="1"
+   follows="left|top"
+   height="16"
+   layout="topleft"
+   left="304"
+   name="text_label"
+   top="4"
+   width="30">
+    Text
+  </text>
+  <button
+   disabled_control="PrestigeHighContrast"
+   follows="left|top"
+   height="19"
+   label="Reset to Prestige defaults"
+   layout="topleft"
+   left="336"
+   name="prestige_reset_colors"
+   tool_tip="Use the skin's own accent, window and text colours again. Images drawn by the skin (active tabs, check boxes, slider knobs) always keep the skin's colours; pick a coloured skin above for those."
+   top="2"
+   width="150" />
+</panel>

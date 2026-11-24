@@ -247,9 +247,12 @@ void LLFloaterChatImage::drawImage(LLView* view)
     // Frame from play time (only advanced across consecutive draws, i.e. while
     // the floater is drawn). ChatImageAnimate "never" shows the first frame.
     static LLCachedControl<S32> animate(gSavedSettings, "ChatImageAnimate", 2);
+    // <Prestige> Reduced motion: animated pictures stay on their first frame
+    static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
+    // </Prestige>
     size_t index = 0;
     bool live = false;
-    if (mImage.isAnimated() && animate() > 0)
+    if (mImage.isAnimated() && animate() > 0 && !reduced_motion) // <Prestige/> reduced motion
     {
         const F64 now = LLTimer::getTotalSeconds();
         if (mLastPlayDraw > 0.0 && now - mLastPlayDraw > 0.0 && now - mLastPlayDraw < 0.5)

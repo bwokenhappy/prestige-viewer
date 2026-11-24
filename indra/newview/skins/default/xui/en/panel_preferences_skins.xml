@@ -341,6 +341,18 @@ Jan 1, 2001
    width="460">
     Font changes apply immediately. If some text looks off, reopen its window.
   </text>
+  <!-- <Prestige> Your colours: accent, window background, text (live; reset to the skin's) -->
+  <panel
+   class="prestige_panel_your_colors"
+   filename="panel_preferences_prestige_your_colors.xml"
+   follows="left|top"
+   height="24"
+   layout="topleft"
+   left="20"
+   name="your_colors_panel"
+   top="374"
+   width="490" />
+  <!-- </Prestige> -->
   <check_box
    control_name="UsePieMenu"
    follows="left|top"

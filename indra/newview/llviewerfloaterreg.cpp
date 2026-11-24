@@ -54,6 +54,7 @@
 #include "fsfloaterposer.h" // <FS:AR> [FIRE-30873]: Poser
 #include "slfloaterao.h"
 #include "prestigefloaterposestand.h"
+#include "prestigefloatergifpicker.h" // <Prestige/> GIF picker
 #include "slfloaterwearablefavorites.h"
 #include "slfloatergesturesets.h"
 #include "slfloaterfirstrun.h"
@@ -469,6 +470,7 @@ void LLViewerFloaterReg::registerFloaters()
     LLFloaterReg::add("gesture_sets", "floater_gesture_sets.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterGestureSets>);
     LLFloaterReg::add("wearable_favorites", "floater_wearable_favorites.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterWearableFavorites>);
     LLFloaterReg::add("prestige_pose_stand", "floater_prestige_pose_stand.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterPoseStand>);
+    LLFloaterReg::add("prestige_gif_picker", "floater_prestige_gif_picker.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<PrestigeFloaterGifPicker>); // <Prestige/> GIF picker
     LLFloaterReg::add("sl_ao", "floater_sl_ao.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterAO>);
     LLFloaterReg::add("sl_ao_editor", "floater_sl_ao_editor.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterAOEditor>);
     LLFloaterReg::add("sl_ao_ignored", "floater_sl_ao_ignored.xml", (LLFloaterBuildFunc)&LLFloaterReg::build<SLFloaterAOIgnored>);

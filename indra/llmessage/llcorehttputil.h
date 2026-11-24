@@ -63,6 +63,13 @@ typedef boost::function<void(const std::string &, bool, const std::string &)> Bo
 
 void setPropertyMethods(BoolSettingQuery_t queryfn, BoolSettingUpdate_t updatefn);
 
+// <Prestige> Secrets sent in a request URL (an API key in the query string or the
+// path) must never reach the log. Register each one here; the request URL this file
+// logs when a request fails goes through redactForLog(), which replaces every
+// registered secret with "[redacted]". Empty and very short strings are ignored.
+void addLogRedaction(const std::string& secret);
+std::string redactForLog(const std::string& text);
+// </Prestige>
 
 extern const F32 HTTP_REQUEST_EXPIRY_SECS;
 

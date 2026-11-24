@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- <Prestige> GIF picker (PrestigeFloaterGifPicker), opened by the GIF button in chat -->
+<floater
+    name="prestige_gif_picker"
+    title="GIFS"
+    help_topic="prestige_gif_picker"
+    single_instance="true"
+    save_rect="true"
+    can_minimize="false"
+    can_tear_off="false"
+    can_resize="true"
+    layout="topleft"
+    min_width="260"
+    min_height="220"
+    height="440"
+    width="380">
+    <floater.string name="search_label">Search [SERVICE]</floater.string>
+    <floater.string name="powered_by">Powered by [SERVICE]. Click a GIF to add its link to your message.</floater.string>
+    <floater.string name="loading_trending">Loading trending GIFs from [SERVICE]...</floater.string>
+    <floater.string name="searching">Searching [SERVICE]...</floater.string>
+    <floater.string name="no_results">No GIFs found. Try other words.</floater.string>
+    <floater.string name="no_key">Add your own free GIPHY or KLIPY key in Preferences &gt; Chat &gt; GIF to search for GIFs.</floater.string>
+    <floater.string name="error_key">[SERVICE] did not accept your key. Check it in Preferences &gt; Chat &gt; GIF.</floater.string>
+    <floater.string name="error_limit">Too many searches for now: free [SERVICE] keys are limited. Try again later.</floater.string>
+    <floater.string name="error_other">Could not reach [SERVICE]. Try again later.</floater.string>
+    <floater.string name="error_conversation">That conversation is closed.</floater.string>
+    <search_editor
+        name="gif_search"
+        label="Search"
+        clear_button_visible="true"
+        follows="left|top|right"
+        height="22"
+        layout="topleft"
+        left="6"
+        max_length_bytes="100"
+        top="24"
+        width="282" />
+    <combo_box
+        name="gif_provider"
+        follows="top|right"
+        height="22"
+        layout="topleft"
+        left_pad="4"
+        tool_tip="Which GIF service to search"
+        top_delta="0"
+        width="82">
+        <combo_box.item
+            label="GIPHY"
+            name="giphy"
+            value="giphy" />
+        <combo_box.item
+            label="KLIPY"
+            name="klipy"
+            value="klipy" />
+    </combo_box>
+    <web_browser
+        name="gif_results"
+        trusted_content="true"
+        initial_mime_type="text/html"
+        follows="all"
+        layout="topleft"
+        left="6"
+        top="50"
+        height="364"
+        width="368" />
+    <text
+        name="gif_status"
+        follows="left|right|bottom"
+        height="16"
+        layout="topleft"
+        left="8"
+        top="418"
+        use_ellipses="true"
+        width="364" />
+</floater>

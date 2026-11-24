@@ -313,6 +313,25 @@
                          left_pad="5"
                          right="-30"
                          wrap="true" />
+                        <!-- <Prestige> GIF picker: shown (and the message line shortened) by
+                             LLFloaterIMSessionTab::updateGifPickerBtn() while a GIPHY or KLIPY key is set -->
+                        <button
+                         name="gif_picker_btn"
+                         label="GIF"
+                         tool_tip="Find a GIF (GIPHY / KLIPY) and add its link to your message"
+                         follows="right|bottom"
+                         font="SansSerifSmallBold"
+                         pad_left="0"
+                         pad_right="0"
+                         image_hover_unselected="Toolbar_Middle_Over"
+                         image_selected="Toolbar_Middle_Selected"
+                         image_unselected="Toolbar_Middle_Off"
+                         bottom="-2"
+                         right="-27"
+                         height="25"
+                         width="28"
+                         visible="false"/>
+                        <!-- </Prestige> -->
                         <button
                          name="emoji_recent_panel_toggle_btn"
                          tool_tip="Shows/hides recent emojis"

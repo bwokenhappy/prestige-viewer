@@ -100,6 +100,21 @@ public:
 private:
     bool mOn;
 };
+// <Prestige> camera mode's "Isolate your subject" (prestigecameraisolate.h): while one lives, the
+// snapshot renders take this scope (SNAPSHOT_AVATARS_*, you, the others' ids) instead of
+// SLSnapshotAvatarScope and the picker's ticks, which stay untouched. `animesh`: free-standing
+// animesh named in `selected` are taken too.
+class LLSnapshotScopeOverride
+{
+public:
+    LLSnapshotScopeOverride(U32 scope, bool self, const std::set<LLUUID>& selected, bool animesh);
+    ~LLSnapshotScopeOverride();
+    LLSnapshotScopeOverride(const LLSnapshotScopeOverride&) = delete;
+    LLSnapshotScopeOverride& operator=(const LLSnapshotScopeOverride&) = delete;
+private:
+    bool mOn;
+};
+// </Prestige>
 // An avatar layer at image_width x image_height (rows bottom-up, as rawSnapshot): RGBA for the
 // transparent avatar, grey for the mattes.
 bool snapshotRawAvatar(LLImageRaw* raw, S32 image_width, S32 image_height,

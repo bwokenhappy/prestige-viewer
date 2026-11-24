@@ -8276,6 +8276,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeCameraIsolate</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: camera mode's Isolate your subject. 0 off, 1 my avatar (with what it wears), 2 the avatars and animesh picked in the viewfinder: the shot is saved as a PNG of only the subject on a transparent background.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>PrestigeEstateMessageCard</key>
     <map>
       <key>Comment</key>

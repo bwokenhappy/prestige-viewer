@@ -37,6 +37,7 @@
 #include "slcamerarail.h"
 #include "slcamerareview.h"
 #include "slkeycommands.h"
+#include "prestigecameraisolate.h"   // <Prestige> isolate your subject
 
 #include "llfile.h"
 #include "llfloaterpreference.h"
@@ -275,6 +276,14 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 .custom { display: flex; flex-direction: row; align-items: center; gap: 6dp; padding: 4dp 8dp 4dp 32dp; }
 .custom .field { width: 80dp; }
 .qrow { display: flex; flex-direction: row; align-items: center; gap: 8dp; padding: 6dp 8dp; }
+/* <Prestige> isolate your subject: its menu under its chip, the picked subjects' marks, the picking banner */
+#isopop { top: 58dp; width: 320dp; pointer-events: auto; } /* left: under its chip (placeChipMenus) */
+#isopop .caption { margin: 6dp 4dp 4dp 4dp; }
+.isomark { position: absolute; display: none; box-sizing: border-box; border: 2dp $accent; border-radius: 11dp; }
+#isopick { position: absolute; left: 0; right: 0; top: 104dp; text-align: center; }
+.top #isopick { top: auto; bottom: 104dp; }
+#help .foot.iso { margin-bottom: 6dp; }
+/* </Prestige> */
 </style></head><body><div data-model="camera" data-class-top="barTop">
 <div id="m-t" class="mask"></div><div id="m-b" class="mask"></div><div id="m-l" class="mask"></div><div id="m-r" class="mask"></div>
 <div id="g-v1" class="gl"></div><div id="g-v2" class="gl"></div><div id="g-h1" class="gl"></div><div id="g-h2" class="gl"></div>
@@ -313,6 +322,9 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div id="levelchip" class="cbtn" data-class-on="levelOn" data-event-click="level()">{{levelOn ? '✓  ' : ''}}{{levelLabel}}</div>
   <div id="flashchip" class="cbtn" data-class-on="flashOn" data-event-click="flash()"><span class="ic ic-flash" data-class-off="!flashOn"><div class="a"></div><div class="b"></div><div class="c"></div><div class="s"></div></span></div>
   <div id="studiochip" class="cbtn" data-class-on="studioOn" data-event-click="studio()">{{studioLabel}}</div>
+  <!-- <Prestige> isolate your subject -->
+  <div id="isochip" class="cbtn" data-class-on="isoMode != 0" data-event-click="pop('iso')">{{isoChip}}<span class="chev" data-class-down="popup != 'iso'"></span></div>
+  <!-- </Prestige> -->
 </div>
 <div id="gridpop" class="popover toggled" data-class-shown="popup == 'grid'">
   <div class="opt" data-for="g : grids" data-attr-id="g.id" data-class-selected="g.on" data-event-click="grid(it_index)">
@@ -324,6 +336,21 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
       <div class="cx" data-if="it_index == 4"></div><div class="cy" data-if="it_index == 4"></div></div>
     <div class="col">{{g.label}}</div><div class="tick" data-if="g.on">✓</div></div>
 </div>
+<!-- <Prestige> isolate your subject: its menu, the picked subjects' marks (placed from C++), picking -->
+<div id="isopop" class="popover toggled" data-class-shown="popup == 'iso'">
+  <div class="caption">{{isoTitle}}</div>
+  <div class="opt" data-for="o : isoModes" data-class-selected="o.on" data-event-click="isomode(it_index)">
+    <div class="col"><div>{{o.label}}</div><div class="caption">{{o.note}}</div></div><div class="tick" data-if="o.on">✓</div></div>
+  <div class="sep" data-if="isoMode == 2"></div>
+  <div class="opt" data-if="isoMode == 2" data-event-click="isopick()"><div class="col">{{isoPickLabel}}</div></div>
+  <div class="opt" data-if="isoMode == 2 && isoCount > 0" data-event-click="isoclear()"><div class="col">{{isoClearLabel}}</div></div>
+  <div class="sep"></div>
+  <div class="caption">{{isoHelp}}</div>
+</div>
+<div class="isomark" id="iso-m0"></div><div class="isomark" id="iso-m1"></div><div class="isomark" id="iso-m2"></div><div class="isomark" id="iso-m3"></div>
+<div class="isomark" id="iso-m4"></div><div class="isomark" id="iso-m5"></div><div class="isomark" id="iso-m6"></div><div class="isomark" id="iso-m7"></div>
+<div id="isopick" data-if="isoPicking"><div class="capsule raised">{{isoPickText}}</div></div>
+<!-- </Prestige> -->
 <div id="notice" data-if="noticeShown"><div id="noticepill" class="capsule"><span class="t">{{noticeTitle}}</span><span class="ht">{{noticeText}}</span><span class="hk">{{toggleKey}}</span><span class="ht">{{noticeEnd}}</span></div></div>
 <div id="readout" data-if="readoutShown"><div><span class="caption">{{readoutName}}</span><span class="v">{{readoutValue}}</span></div>
   <div class="ticks" data-if="readoutTicks.size > 0"><div class="tk" data-for="k : readoutTicks" data-class-on="k.on" data-class-major="k.major"></div></div>
@@ -428,6 +455,7 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
     <div class="field"><input id="customh" class="bare" type="text" maxlength="5" data-value="customH"/></div></div>
   <div class="caption">{{typeTitle}}</div>
   <div class="segmented"><div class="seg" data-for="f : formats" data-class-on="f.on" data-event-click="format(it_index)">{{f.label}}</div></div>
+  <div class="caption" data-if="isoMode != 0">{{isoPngNote}}</div><!-- <Prestige> isolate: PNG -->
   <div class="qrow" data-if="jpeg"><div>{{qualityTitle}}</div><input class="range" type="range" min="10" max="100" step="1" data-value="quality"/><div>{{quality}}</div></div>
   <div class="sep"></div>
   <div class="trow" data-event-click="post()"><div class="label">{{postTitle}}</div><div class="toggle" data-class-on="post"><div class="knob"></div></div></div>
@@ -442,6 +470,7 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div class="sep"></div>
   <div id="keys"><div class="krow" data-for="k : helpKeys"><span class="hk">{{k.key}}</span>{{k.text}}</div></div>
   <div class="sep"></div>
+  <div class="foot iso">{{isoHelpLine}}</div><!-- <Prestige> isolate your subject -->
   <div class="foot">{{helpFooter}} <span class="link" data-event-click="changekeys()">{{changeKeysLabel}}</span></div>
 </div>
 </div></body></rml>)rml";
@@ -605,6 +634,13 @@ struct View
     bool                   narrow = false; // the window is too narrow for the thumbnails' key hint
     std::string            moreShots, cardSrc, cardH, cardTitle, cardMeta, cardLabel, savedLabel, folderLabel, deleteLabel;
     F64                   hintSince = 0.0, nextRefresh = 0.0;
+    // <Prestige> isolate your subject
+    int                    isoMode = 0, isoCount = 0, isoMarks = 0;
+    bool                   isoPicking = false;
+    std::vector<Choice>    isoModes;
+    std::string            isoChip, isoTitle, isoPickLabel, isoClearLabel, isoHelp, isoPickText, isoPngNote, isoHelpLine;
+    std::string            isoMarkSignature;
+    // </Prestige>
 };
 View gView;
 
@@ -733,7 +769,7 @@ std::string sizeText()
     LLStringUtil::format_map_t args;
     args["[W]"]      = llformat("%d", w);
     args["[H]"]      = llformat("%d", h);
-    args["[FORMAT]"] = formats[llclamp((S32)s_format, 0, 2)];
+    args["[FORMAT]"] = PrestigeCameraIsolate::enabled() ? "PNG" : formats[llclamp((S32)s_format, 0, 2)];   // <Prestige> isolate: PNG
     std::string s = str("SizeLabel");
     LLStringUtil::format(s, args);
     return s;
@@ -1518,7 +1554,7 @@ void updateFinder()
 void placeChipMenus()
 {
     View& v = gView;
-    const std::pair<const char*, const char*> menus[] = { { "gridpop", "gridchip" } };
+    const std::pair<const char*, const char*> menus[] = { { "gridpop", "gridchip" }, { "isopop", "isochip" } };   // <Prestige> + isolate
     for (const auto& [menuId, chipId] : menus)
     {
         Rml::Element* menu = v.document->GetElementById(menuId);
@@ -1671,6 +1707,64 @@ void retheme()
         v.model.DirtyAllVariables();
     markChanged();
 }
+
+// <Prestige> isolate your subject (prestigecameraisolate.h): its chip, menu and picking banner,
+// from the model; dirty only what changed.
+void refreshIsolate()
+{
+    View& v = gView;
+    namespace PCI = PrestigeCameraIsolate;
+    const int mode = (int)PCI::mode(), count = (int)PCI::pickedCount();
+    set(v.isoMode, mode, "isoMode");
+    set(v.isoCount, count, "isoCount");
+    set(v.isoPicking, PCI::picking(), "isoPicking");
+    LLStringUtil::format_map_t args;
+    args["[COUNT]"] = llformat("%d", count);
+    args["[KEY]"]   = key("camera_exit");
+    static const char* const chips[] = { "CameraModeIsolateChipOff", "CameraModeIsolateChipMine", "CameraModeIsolateChipPicked" };
+    set(v.isoChip, LLTrans::getString(chips[llclamp(mode, 0, 2)], args), "isoChip");
+    set(v.isoPickLabel, str(v.isoPicking ? "IsolateStopPicking" : "IsolatePick"), "isoPickLabel");
+    set(v.isoPickText, LLTrans::getString("CameraModeIsolatePickBanner", args), "isoPickText");
+    std::vector<Choice> modes;
+    for (int i = 0; i < (int)PCI::MODE_COUNT; ++i)
+        modes.push_back({ str(llformat("IsolateMode%d", i).c_str()), str(llformat("IsolateNote%d", i).c_str()), i == mode, std::string() });
+    bool same = modes.size() == v.isoModes.size();
+    for (size_t i = 0; same && i < modes.size(); ++i)
+        same = modes[i].label == v.isoModes[i].label && modes[i].note == v.isoModes[i].note && modes[i].on == v.isoModes[i].on;
+    if (!same)
+    {
+        v.isoModes = std::move(modes);
+        dirty("isoModes");
+    }
+}
+
+// The picked subjects' marks: a ring just over each one's head (none with Isolate off or on
+// "My avatar"). Re-placed only when one moved, the window or the document changed.
+void updateIsolateMarks()
+{
+    View& v = gView;
+    constexpr int kMarks = 8;   // (the document has iso-m0 .. iso-m7)
+    constexpr float kRing = 22.f;
+    std::vector<std::pair<S32, S32>> points;
+    PrestigeCameraIsolate::markPoints(points);
+    std::string signature = llformat("%p|%.3f|%d|", (void*)v.document, v.k, v.rootH);
+    for (const auto& [x, y] : points)
+        signature += llformat("%d,%d;", x, y);
+    if (signature == v.isoMarkSignature)
+        return;
+    v.isoMarkSignature = signature;
+    for (int i = 0; i < kMarks; ++i)
+    {
+        const std::string id = llformat("iso-m%d", i);
+        if (i < (int)points.size())
+            place(id.c_str(), (float)points[(size_t)i].first / v.k - kRing * 0.5f, v.H - (float)points[(size_t)i].second / v.k - kRing * 0.5f,
+                  kRing, kRing);
+        else
+            hide(id.c_str());
+    }
+    markChanged();
+}
+// </Prestige>
 
 bool createDocument(Rml::Context* context)
 {
@@ -2133,6 +2227,42 @@ bool createDocument(Rml::Context* context)
                             { SLCameraView::setControlsOpen(!gView.controlsOpen); });
         m.BindEventCallback("help", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
                             { SLCameraView::showHelp(!gView.helpOpen); });
+        // <Prestige> isolate your subject: the chip's menu (modes, picking) and its labels
+        m.Bind("isoModes", &v.isoModes);
+        m.Bind("isoMode", &v.isoMode);
+        m.Bind("isoCount", &v.isoCount);
+        m.Bind("isoPicking", &v.isoPicking);
+        for (auto [name, field] : { std::make_pair("isoChip", &View::isoChip), std::make_pair("isoTitle", &View::isoTitle),
+                                    std::make_pair("isoPickLabel", &View::isoPickLabel), std::make_pair("isoClearLabel", &View::isoClearLabel),
+                                    std::make_pair("isoHelp", &View::isoHelp), std::make_pair("isoPickText", &View::isoPickText),
+                                    std::make_pair("isoPngNote", &View::isoPngNote), std::make_pair("isoHelpLine", &View::isoHelpLine) })
+            m.Bind(name, &(v.*field));
+        m.BindEventCallback("isomode", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& args)
+                            {
+                                if (args.empty())
+                                    return;
+                                const int mode = args[0].Get<int>();
+                                PrestigeCameraIsolate::setMode(mode);
+                                if (mode == PrestigeCameraIsolate::MODE_PICKED && PrestigeCameraIsolate::pickedCount() == 0)
+                                {
+                                    openPopup(std::string()); // nobody picked yet: straight to picking
+                                    PrestigeCameraIsolate::setPicking(true);
+                                }
+                                refreshIsolate();
+                            });
+        m.BindEventCallback("isopick", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                const bool on = !PrestigeCameraIsolate::picking();
+                                openPopup(std::string()); // the frame is clicked next
+                                PrestigeCameraIsolate::setPicking(on);
+                                refreshIsolate();
+                            });
+        m.BindEventCallback("isoclear", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraIsolate::clearPicks();
+                                refreshIsolate();
+                            });
+        // </Prestige>
         v.model = m.GetModelHandle();
     }
     catch (const std::bad_alloc&)
@@ -2215,6 +2345,15 @@ bool SLCameraView::start(Rml::Context* context)
     v.presetSaveLabel = str("PresetSave");
     v.deleteAsk       = str("PresetDeleteAsk");
 
+    // <Prestige> isolate your subject
+    v.isoTitle        = str("IsolateTitle");
+    v.isoClearLabel   = str("IsolateClear");
+    v.isoHelp         = str("IsolateHelp");
+    v.isoPngNote      = str("IsolatePngNote");
+    v.isoHelpLine     = str("IsolateHelpLine");
+    v.isoMarkSignature.clear();
+    refreshIsolate();
+    // </Prestige>
     v.clickWord       = str("TipClickWord");
     v.lockMark        = str("LockMark");
     v.tipCell         = -1;
@@ -2584,6 +2723,10 @@ bool SLCameraView::sync(float density)
             st.push_back({ str("StatusDepthPreview") });
         if (SLCameraModel::driveMode() != 0)
             st.push_back({ SLCameraModel::driveLabel() });
+        // <Prestige> isolate your subject: on (and PNG), easy to forget
+        if (PrestigeCameraIsolate::enabled())
+            st.push_back({ PrestigeCameraIsolate::statusLabel(), "", true, std::string() });
+        // </Prestige>
         if (!v.ims.empty())
             st.push_back({ v.ims, "", true });
         bool same = st.size() == v.statuses.size();
@@ -2612,9 +2755,13 @@ bool SLCameraView::sync(float density)
     }
     refreshReview();
     previewGrid();
-    if (v.popup == "grid")
+    if (v.popup == "grid" || v.popup == "iso")   // <Prestige> + isolate
         placeChipMenus();
     updateFinder();
+    // <Prestige> isolate your subject: picks change from the frame's clicks
+    refreshIsolate();
+    updateIsolateMarks();
+    // </Prestige>
     if (v.controlsOpen)
         refreshControls(); // the dials answer the wheel at once
     if (v.popup == "quick")
@@ -2732,7 +2879,8 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
         else if (!v.popup.empty() && !within(hover, "savepop") && !within(hover, "sizepop") && !within(hover, "gridpop")
                  && !within(hover, "quick") && !within(hover, "cellmore") && !within(hover, "review") && !within(hover, "sendcard")
                  && !within(hover, "rail") && !within(hover, "saveto") && !within(hover, "size")
-                 && !within(hover, "gridchip"))
+                 && !within(hover, "gridchip")
+                 && !within(hover, "isopop") && !within(hover, "isochip"))   // <Prestige> + isolate
             openPopup(std::string()); // another control: the popover closes, the click goes on
         v.context->ProcessMouseButtonDown(0, rmlModifiers(mask));
         markChanged();

@@ -82,6 +82,18 @@ struct SnapScope
 };
 SnapScope s_scope;
 
+// <Prestige> camera isolate (LLSnapshotScopeOverride): the scope its captures render with
+struct ScopeOverride
+{
+    bool on = false;
+    U32  scope = SNAPSHOT_AVATARS_ALL;
+    bool self = true;
+    bool animesh = false;
+    std::set<LLUUID> selected;
+};
+ScopeOverride s_override;
+// </Prestige>
+
 U32 scopeSetting()
 {
     static LLCachedControl<U32> s_setting(gSavedSettings, "SLSnapshotAvatarScope", SNAPSHOT_AVATARS_ALL);
@@ -95,6 +107,13 @@ SLSnapshotScopePick scopePick()
     pick.scope = s_scope.scope;
     pick.self = s_scope.self;
     pick.selected = &gSnapshotSelectedAvatars;
+    // <Prestige> camera isolate: its picks, not the floater's ticks
+    if (s_override.on)
+    {
+        pick.selected = &s_override.selected;
+        pick.animesh = s_override.animesh;
+    }
+    // </Prestige>
     return pick;
 }
 
@@ -106,6 +125,13 @@ void scopeBegin(bool avatar_only)
     s_scope.scope = scopeSetting();
     s_scope.self = gSnapshotSelectedSelf;
     s_scope.avatar_only = avatar_only;
+    // <Prestige> camera isolate: its scope for as long as its override lives
+    if (s_override.on)
+    {
+        s_scope.scope = slSnapshotScopeClamp(s_override.scope);
+        s_scope.self = s_override.self;
+    }
+    // </Prestige>
 }
 
 // The avatar an avatar / animesh counts as: an animesh worn by someone is that wearer's.
@@ -196,6 +222,24 @@ LLSnapshotScopeHold::~LLSnapshotScopeHold()
 {
     if (mOn) s_scope = SnapScope{};
 }
+
+// <Prestige> camera isolate (prestigecameraisolate.h). Not nested: an inner one changes nothing.
+LLSnapshotScopeOverride::LLSnapshotScopeOverride(U32 scope, bool self, const std::set<LLUUID>& selected, bool animesh)
+    : mOn(!s_override.on)
+{
+    if (!mOn) return;
+    s_override.on = true;
+    s_override.scope = scope;
+    s_override.self = self;
+    s_override.animesh = animesh;
+    s_override.selected = selected;
+}
+
+LLSnapshotScopeOverride::~LLSnapshotScopeOverride()
+{
+    if (mOn) s_override = ScopeOverride{};
+}
+// </Prestige>
 
 bool snapshotRawAvatar(LLImageRaw* raw, S32 image_width, S32 image_height,
                            LLSnapshotModel::ESnapshotLayerType type, S32 max_size, std::vector<U8>* pairedHdr)

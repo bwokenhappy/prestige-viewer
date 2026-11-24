@@ -29,6 +29,7 @@
 #include "slcameraexposure.h"
 #include "slcameramode.h"
 #include "slcamerareview.h"
+#include "prestigecameraisolate.h"   // <Prestige> isolate your subject
 
 #include "llagent.h"
 #include "llagentcamera.h"
@@ -377,8 +378,14 @@ void capture(bool in_sequence)
     outputSize(w, h);
     LLPointer<LLImageRaw> raw = new LLImageRaw;
     const bool no_post = gSavedSettings.getBOOL("RenderSnapshotNoPost");
+    // <Prestige> isolate your subject: the subject alone on a transparent background (RGBA)
+    const bool isolate = PrestigeCameraIsolate::enabled();
+    if (isolate && !PrestigeCameraIsolate::capture(*raw, w, h))
+        return;   // (it said why)
+    // </Prestige>
     // Never the interface (the overlay is part of it), never the HUDs: camera mode hides both.
-    if (!gViewerWindow->rawSnapshot(raw, w, h, false, false, false, false, false, no_post, false,
+    // <Prestige> (!isolate: the cut-out above is the shot) </Prestige>
+    if (!isolate && !gViewerWindow->rawSnapshot(raw, w, h, false, false, false, false, false, no_post, false,
                                     LLSnapshotModel::SNAPSHOT_TYPE_COLOR, (S32)MAX_SNAPSHOT_IMAGE_SIZE))
     {
         toast("The shot could not be taken");
@@ -393,6 +400,19 @@ void capture(bool in_sequence)
         toast(LLTrans::getString("CameraModeSequenceToDisk"));
         dest = DEST_DISK;
     }
+    // <Prestige> isolate: the profile feed and e-mail take JPEG (no transparency): the cut-out
+    // goes to disk. An inventory texture keeps its alpha (at the upload's power-of-two size).
+    if (isolate && (dest == DEST_PROFILE || dest == DEST_EMAIL))
+    {
+        toast(LLTrans::getString("CameraModeIsolateToDisk"), 4.0);
+        dest = DEST_DISK;
+    }
+    if (isolate && dest == DEST_INVENTORY)
+    {
+        PrestigeCameraIsolate::prepareForTexture(*raw);
+        toast(LLTrans::getString("CameraModeIsolateInventory"), 4.0);
+    }
+    // </Prestige>
     if (dest != DEST_DISK)
     {
         gViewerWindow->playSnapshotAnimAndSound();
@@ -421,7 +441,9 @@ void capture(bool in_sequence)
         return;
     }
     LLPointer<LLImageFormatted> formatted;
-    switch ((LLSnapshotModel::ESnapshotFormat)gSavedSettings.getS32("SnapshotFormat"))
+    // <Prestige> isolate: only PNG keeps the transparency
+    switch (isolate ? LLSnapshotModel::SNAPSHOT_FORMAT_PNG : (LLSnapshotModel::ESnapshotFormat)gSavedSettings.getS32("SnapshotFormat"))
+    // </Prestige>
     {
     case LLSnapshotModel::SNAPSHOT_FORMAT_JPEG:
         formatted = new LLImageJPEG(gSavedSettings.getS32("SnapshotQuality"));
@@ -1045,6 +1067,7 @@ void end()
     setDofPreview(false);
     stopDrive();
     sModel.pending = nullptr; // the card closed with camera mode: its full-size shot goes too
+    PrestigeCameraIsolate::endSession();   // <Prestige> isolate: picking off, the picks forgotten
 }
 
 bool focusAt(S32 x, S32 y)

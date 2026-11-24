@@ -207,6 +207,7 @@ set(viewer_SOURCE_FILES
     sldiscordpresence.cpp
     prestigebuildplacement.cpp        # <Prestige> Place on Surface (P), Snap to Objects
     prestigechatlinehistory.cpp       # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
+    prestigecameraisolate.cpp         # <Prestige> camera mode: Isolate your subject
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1248,6 +1249,7 @@ set(viewer_HEADER_FILES
     sldiscordpresence.h
     prestigebuildplacement.h          # <Prestige> Place on Surface (P), Snap to Objects
     prestigechatlinehistory.h         # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
+    prestigecameraisolate.h           # <Prestige> camera mode: Isolate your subject
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

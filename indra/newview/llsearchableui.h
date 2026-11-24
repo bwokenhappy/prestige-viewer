@@ -35,6 +35,7 @@ class LLScrollListCtrl;
 
 
 #include "llsearchablecontrol.h"
+#include "llhandle.h" // <Prestige/> items whose view was deleted
 
 namespace ll
 {
@@ -62,6 +63,11 @@ namespace ll
             // matching ones lit
             LLScrollListCtrl *mList = nullptr;
             bool mListMatched = false;
+            // <Prestige> a page that builds its controls again (Preferences > ReShade's effect
+            // settings) deletes the views it had: the item is then gone and never touched
+            LLHandle< LLView > mHandle;
+            bool isGone() const { return mHandle.isDead(); }
+            // </Prestige>
 
             std::vector< std::shared_ptr< SearchableItem >  > mChildren;
 
@@ -110,6 +116,10 @@ namespace ll
             // each list to its first matching row and the topmost match into view. True when
             // something matched, or the filter is empty.
             bool filter( LLWString const &aFilter );
+
+            // <Prestige> true when a view collected here was deleted since: collect again
+            bool hasGoneItems() const;
+            // </Prestige>
         };
     }
 

@@ -4828,6 +4828,16 @@ void LLFloaterPreference::onUpdateFilterTerm(bool force)
     if (!mSearchData || (mSearchData->mLastFilter == seachValue && !force))
         return;
 
+    // <Prestige> a page that builds its controls again (Preferences > ReShade shows the selected
+    // effect's settings) deleted views the search had collected: un-light what is still there
+    // and collect again, so the new controls are found too
+    if (!mSearchDataDirty && mSearchData->hasGoneItems())
+    {
+        mSearchData->filter(LLWString());
+        mSearchDataDirty = true;
+    }
+    // </Prestige>
+
     if (mSearchDataDirty)
     {
         // Data exists, but is obsolete, regenerate

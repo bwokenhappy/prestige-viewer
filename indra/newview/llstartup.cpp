@@ -244,6 +244,7 @@
 #include "slviewerimportcore.h"
 #include "slviewerimportplan.h"
 #include "slfloaterfirstrun.h"
+#include "prestigefloaterwelcome.h" // <Prestige/> "Where is everything?" at login
 #include "slsettingsmigration.h"
 
 #include "llfloatersidepanelcontainer.h"
@@ -2957,6 +2958,10 @@ bool idle_startup()
         // #132: chat history asked for in the welcome window before logging in (it is per
         // account) is offered now, once.
         SLFloaterFirstRun::offerPendingImport();
+
+        // <Prestige> "Where is everything?": once for each new version
+        PrestigeFloaterWelcome::showIfNew();
+        // </Prestige>
 
         // <Prestige> Firestorm-style: nearby chat bar always shown at the bottom left
         if (gSavedSettings.getBOOL("PrestigeChatBarAlwaysVisible"))

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Prestige: "Where is everything?" (prestigefloaterwelcome.cpp). Shown once at login for each new
+     version, and from Help > Where is everything?. Each card: card_N_title, card_N_text, card_N_icon
+     (a texture of textures.xml) and, for a "Show me" button, card_N_open (a floater name, or
+     "preferences:<page>"). [KEY:<menu item name>] shows that item's current key. -->
+<floater
+ positioning="centered"
+ can_resize="false"
+ height="300"
+ width="500"
+ layout="topleft"
+ name="prestige_welcome"
+ single_instance="true"
+ title="Where is everything?">
+    <string name="page">[N] of [COUNT]</string>
+    <string name="next_label">Next</string>
+    <string name="done_label">Done</string>
+    <string name="no_key">no key set</string>
+    <string name="footer_text">Open this again from Help &gt; Where is everything?  Every key is in Help &gt; Keyboard shortcuts ([KEY:Prestige Shortcuts]).</string>
+
+    <string name="card_1_title">Toolbars</string>
+    <string name="card_1_icon">Command_Inventory_Icon</string>
+    <string name="card_1_text">The buttons along the edges of the screen are your toolbars, with their names beside the icons. Right-click a toolbar to add or remove buttons, or to switch to icons only. Drag in more buttons from Me &gt; Toolbar buttons.</string>
+    <string name="card_1_open">toybox</string>
+
+    <string name="card_2_title">Search the menus</string>
+    <string name="card_2_icon">Search_Icon</string>
+    <string name="card_2_text">Can't find something? Type a word in the "Search Menus" box at the top right of the screen, such as "weather" or "teleport", and the menu items that match light up.</string>
+
+    <string name="card_3_title">Preferences</string>
+    <string name="card_3_icon">Command_Preferences_Icon</string>
+    <string name="card_3_text">Preferences ([KEY:Preferences]) holds every setting, with a search box at the top. New pages: Weather, ReShade, Accessibility (bigger text, less motion, high contrast) and Skins &gt; Your colours.</string>
+    <string name="card_3_open">preferences</string>
+
+    <string name="card_4_title">The AO bar</string>
+    <string name="card_4_icon">Command_AO_Icon</string>
+    <string name="card_4_text">The animation overrider has a small bar like Firestorm's: turn it on or off, pick a set and step through your stands. It is in Comm &gt; AO Control, and on the AO toolbar button.</string>
+    <string name="card_4_open">sl_ao</string>
+
+    <string name="card_5_title">Camera mode and Photo Studio</string>
+    <string name="card_5_icon">Command_Snapshot_Icon</string>
+    <string name="card_5_text">Press [KEY:Take Snapshot] for camera mode: a full-screen camera with focus, exposure and drive modes. Esc leaves it. Photo Studio ([KEY:Photo Studio]) grades colours and runs ReShade effects.</string>
+    <string name="card_5_open">photo_studio</string>
+
+    <string name="card_6_title">Quick Library</string>
+    <string name="card_6_icon">Command_QuickLibrary_Icon</string>
+    <string name="card_6_text">Press [KEY:Quick Library] to find a texture, object, animation, notecard or landmark by name, without opening your inventory.</string>
+    <string name="card_6_open">prestige_quick_library</string>
+
+    <string name="card_7_title">Notification Center</string>
+    <string name="card_7_icon">Command_NotificationCenter_Icon</string>
+    <string name="card_7_text">Missed a group notice or an offer? Comm &gt; Notification Center keeps your recent notifications, the ones still waiting for an answer, and their history.</string>
+    <string name="card_7_open">notification_center</string>
+
+    <string name="card_8_title">Build helpers</string>
+    <string name="card_8_icon">Command_Build_Icon</string>
+    <string name="card_8_text">With an object selected, hold [KEY:Place on Surface] to see where it would land on what is under the mouse, and let go to place it (also Build &gt; Place on Surface). Build &gt; Options &gt; Snap to Objects lines moved objects up against their neighbours.</string>
+
+    <icon
+     follows="left|top"
+     height="48"
+     layout="topleft"
+     left="16"
+     name="card_icon"
+     top="34"
+     width="48" />
+    <text
+     follows="left|top|right"
+     font="SansSerifLarge"
+     height="22"
+     layout="topleft"
+     left="80"
+     name="card_title"
+     right="-16"
+     top="32"
+     use_ellipses="true">
+    </text>
+    <text
+     follows="left|top|right"
+     height="110"
+     layout="topleft"
+     left="80"
+     name="card_text"
+     right="-16"
+     top_pad="6"
+     word_wrap="true">
+    </text>
+    <button
+     follows="left|top"
+     height="22"
+     label="Show me"
+     layout="topleft"
+     left="80"
+     name="open_btn"
+     tool_tip="Open it now"
+     top_pad="4"
+     width="100" />
+    <text
+     follows="left|bottom|right"
+     height="30"
+     layout="topleft"
+     left="16"
+     name="footer"
+     right="-16"
+     bottom="-60"
+     text_color="LtGray_50"
+     word_wrap="true">
+    </text>
+    <check_box
+     control_name="PrestigeWelcomeDontShow"
+     follows="left|bottom"
+     height="16"
+     label="Don't show this at login again"
+     layout="topleft"
+     left="14"
+     name="dont_show"
+     tool_tip="It stays in Help &gt; Where is everything?"
+     bottom="-34"
+     width="230" />
+    <text
+     follows="left|bottom"
+     height="16"
+     layout="topleft"
+     left="18"
+     name="card_page"
+     bottom="-10"
+     width="80">
+    </text>
+    <button
+     follows="right|bottom"
+     height="22"
+     label="Back"
+     layout="topleft"
+     name="back_btn"
+     right="-188"
+     bottom="-8"
+     width="80" />
+    <button
+     follows="right|bottom"
+     height="22"
+     label="Next"
+     layout="topleft"
+     name="next_btn"
+     right="-102"
+     bottom="-8"
+     width="80" />
+    <button
+     follows="right|bottom"
+     height="22"
+     label="Close"
+     layout="topleft"
+     name="close_btn"
+     right="-16"
+     bottom="-8"
+     width="80" />
+</floater>

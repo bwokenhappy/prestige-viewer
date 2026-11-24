@@ -1214,13 +1214,15 @@
                  function="World.EnableSetHomeLocation" />
             </menu_item_call>
         <menu_item_separator/>
+        <!-- <Prestige> say that this is camera mode -->
         <menu_item_call
-         label="Snapshot"
+         label="Snapshot (camera mode)"
          name="Take Snapshot"
          shortcut="control|shift|S">
             <menu_item_call.on_click
              function="Snapshot.Toggle" />
         </menu_item_call>
+        <!-- </Prestige> -->
         
 <menu_item_call
          label="360 snapshot"
@@ -1230,6 +1232,18 @@
              function="Floater.Show"
              parameter="360capture" />
         </menu_item_call>
+        <!-- <Prestige> ReShade window (also Preferences > ReShade, toolbar button "ReShade") -->
+        <menu_item_check
+         label="ReShade..."
+         name="Prestige ReShade">
+            <menu_item_check.on_check
+             function="Floater.Visible"
+             parameter="prestige_reshade" />
+            <menu_item_check.on_click
+             function="Floater.ToggleOrBringToFront"
+             parameter="prestige_reshade" />
+        </menu_item_check>
+        <!-- </Prestige> -->
         <!-- Video Studio (#1668): camera tracks, riding and recording them; instant replay's home -->
         <menu_item_check
          label="Video Studio"
@@ -2615,6 +2629,29 @@ function="World.EnvPreset"
              function="Help.OpenExternalURL"
              parameter="https://slipstreamviewer.org/wiki/" />
         </menu_item_call>
+        <!-- <Prestige> the viewer's keyboard shortcuts, and a short tour of where things are -->
+        <menu_item_check
+         label="Keyboard shortcuts..."
+         name="Prestige Shortcuts"
+         shortcut="control|shift|/">
+            <menu_item_check.on_check
+             function="Floater.Visible"
+             parameter="prestige_shortcuts" />
+            <menu_item_check.on_click
+             function="Floater.ToggleOrBringToFront"
+             parameter="prestige_shortcuts" />
+        </menu_item_check>
+        <menu_item_check
+         label="Where is everything?"
+         name="Prestige Welcome">
+            <menu_item_check.on_check
+             function="Floater.Visible"
+             parameter="prestige_welcome" />
+            <menu_item_check.on_click
+             function="Floater.ToggleOrBringToFront"
+             parameter="prestige_welcome" />
+        </menu_item_check>
+        <!-- </Prestige> -->
         <menu_item_call
          label="Slipstream website"
          name="Slipstream Website"

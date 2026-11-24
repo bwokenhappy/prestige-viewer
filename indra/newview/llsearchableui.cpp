@@ -160,6 +160,7 @@ namespace
                 LLWStringUtil::toLower( text );
                 ll::prefs::SearchableItemPtr item = ll::prefs::SearchableItemPtr( new ll::prefs::SearchableItem() );
                 item->mView = pView;
+                item->mHandle = pView->getHandle(); // <Prestige/>
                 item->mCtrl = pSCtrl;
                 item->mList = pSCtrl ? nullptr : dynamic_cast< LLScrollListCtrl* >( pView ); // its rows are read at each search
                 item->mLabel = text;
@@ -285,7 +286,7 @@ namespace
         // each list with a match shows its first matching row
         for( const ll::prefs::SearchableItemPtr &item : aItems )
         {
-            if( !item->mList || !item->mListMatched )
+            if( !item->mList || !item->mListMatched || item->isGone() ) // <Prestige/> isGone
                 continue;
             for( LLScrollListItem* row : item->mList->getAllData() )
             {
@@ -304,11 +305,15 @@ ll::prefs::SearchableItem::~SearchableItem()
 
 bool ll::prefs::SearchableItem::isHighlighted() const
 {
+    if( isGone() ) // <Prestige/>
+        return false;
     return mList ? mListMatched : mCtrl->getHighlighted();
 }
 
 void ll::prefs::SearchableItem::setNotHighlighted()
 {
+    if( isGone() ) // <Prestige/>
+        return;
     if( mList )
     {
         if( mListMatched )
@@ -321,6 +326,8 @@ void ll::prefs::SearchableItem::setNotHighlighted()
 
 bool ll::prefs::SearchableItem::hightlightAndHide( LLWString const &aFilter )
 {
+    if( isGone() ) // <Prestige/>
+        return false;
     if( !mList && mCtrl->getHighlighted() )
         return true; // lit by its spinner or radio group
 
@@ -455,6 +462,18 @@ bool ll::prefs::SearchData::filter( LLWString const &aFilter )
         reveal( mItems, mMarked );
     return found;
 }
+
+// <Prestige>
+bool ll::prefs::SearchData::hasGoneItems() const
+{
+    for( const SearchableItemPtr &item : mItems )
+    {
+        if( item->isGone() )
+            return true;
+    }
+    return false;
+}
+// </Prestige>
 
 ll::statusbar::SearchableItem::SearchableItem()
     : mMenu(0)

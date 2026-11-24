@@ -57,27 +57,55 @@ LLToastGroupNotifyPanel::LLToastGroupNotifyPanel(const LLNotificationPtr& notifi
 {
     buildFromFile( "panel_group_notify.xml");
     const LLSD& payload = notification->getPayload();
+    // <Prestige> The card shows the group (insignia and name) on top, then the subject,
+    // "From <sender> on <time>", the message, and the attachment with a Save attachment /
+    // Open button. LL put "Sender / Group" in the header and had only a link to click.
+    mGroupID = payload["group_id"].asUUID();
     LLGroupData groupData;
-    if (!gAgent.getGroupData(payload["group_id"].asUUID(),groupData))
+    const bool have_group_data = gAgent.getGroupData(mGroupID, groupData);
+    if (!have_group_data)
     {
-        LL_WARNS() << "Group notice for unknown group: " << payload["group_id"].asUUID() << LL_ENDL;
+        LL_WARNS() << "Group notice for unknown group: " << mGroupID << LL_ENDL;
     }
 
     //group icon
     LLGroupIconCtrl* pGroupIcon = getChild<LLGroupIconCtrl>("group_icon", true);
 
-    // We should already have this data preloaded, so no sense in setting icon through setValue(group_id)
-    pGroupIcon->setIconId(groupData.mInsigniaID);
+    if (have_group_data)
+    {
+        // We should already have this data preloaded, so no sense in setting icon through setValue(group_id)
+        pGroupIcon->setIconId(groupData.mInsigniaID);
+    }
+    else if (mGroupID.notNull())
+    {
+        // Offline notices can arrive at login before the agent's group list: let the
+        // icon ask the group manager for the insignia.
+        pGroupIcon->setValue(LLSD(mGroupID));
+    }
+    else
+    {
+        pGroupIcon->setIconId(LLUUID::null);
+    }
 
-    //header title
+    //header title: the group's name
+    if (have_group_data && !groupData.mName.empty())
+    {
+        setGroupTitle(groupData.mName);
+    }
+    else
+    {
+        setGroupTitle(LLStringUtil::null);
+        if (mGroupID.notNull() && gCacheName)
+        {
+            // Called at once when the name is cached, otherwise when it arrives.
+            mGroupNameConnection = gCacheName->getGroup(mGroupID,
+                [this](const LLUUID&, const std::string& name, bool) { setGroupTitle(name); });
+        }
+    }
+
     std::string from_name = payload["sender_name"].asString();
     from_name = LLCacheName::buildUsername(from_name);
-
-    std::stringstream from;
-    from << from_name << "/" << groupData.mName;
-    LLTextBox* pTitleText = getChild<LLTextBox>("title");
-    pTitleText->setValue(from.str());
-    pTitleText->setToolTip(from.str());
+    // </Prestige>
 
     //message subject
     const std::string& subject = payload["subject"].asString();
@@ -111,7 +139,12 @@ LLToastGroupNotifyPanel::LLToastGroupNotifyPanel(const LLNotificationPtr& notifi
     LLFontGL* date_font = LLFontGL::getFontByName(getString("date_font"));
     if (date_font)
         style.font = date_font;
-    pMessageText->appendText(timeStr + "\n", true, style);
+    // <Prestige> Who sent it and when. <nolink> keeps a "first.last" username plain text.
+    LLStringUtil::format_map_t sender_args;
+    sender_args["[SENDER]"] = from_name.empty() ? from_name : "<nolink>" + from_name + "</nolink>";
+    sender_args["[TIME]"] = timeStr;
+    pMessageText->appendText(getString("sender_and_time", sender_args) + "\n", true, style);
+    // </Prestige>
 
     style.font = pMessageText->getFont();
     pMessageText->appendText(message, true, style);
@@ -123,12 +156,19 @@ LLToastGroupNotifyPanel::LLToastGroupNotifyPanel(const LLNotificationPtr& notifi
     LLTextBox * pAttachLink = getChild<LLTextBox>("attachment");
     //attachment icon
     LLIconCtrl* pAttachIcon = getChild<LLIconCtrl>("attachment_icon", true);
+    // <Prestige>
+    LLButton* pSaveAttachBtn = getChild<LLButton>("btn_save_attachment");
+    pSaveAttachBtn->setVisible(hasInventory);
+    // </Prestige>
 
     //If attachment is empty let it be invisible and not take place at the panel
     pAttachLink->setVisible(hasInventory);
     pAttachIcon->setVisible(hasInventory);
     if (hasInventory) {
         pAttachLink->setValue(payload["inventory_name"]);
+        // <Prestige>
+        pAttachLink->setToolTip(payload["inventory_name"].asString());
+        // </Prestige>
 
         mInventoryOffer = new LLOfferInfo(payload["inventory_offer"]);
         getChild<LLTextBox>("attachment")->setClickedCallback(boost::bind(
@@ -137,6 +177,14 @@ LLToastGroupNotifyPanel::LLToastGroupNotifyPanel(const LLNotificationPtr& notifi
         LLUIImagePtr attachIconImg = LLInventoryIcon::getIcon(mInventoryOffer->mType,
                                                 LLInventoryType::IT_TEXTURE);
         pAttachIcon->setValue(attachIconImg->getName());
+
+        // <Prestige> "Open" for what opens in a window (notecards, landmarks, pictures);
+        // "Save attachment" for the rest. Both save it to inventory first.
+        const bool openable = isAttachmentOpenable(mInventoryOffer->mType);
+        pSaveAttachBtn->setLabel(getString(openable ? "open_attachment_label" : "save_attachment_label"));
+        pSaveAttachBtn->setToolTip(getString(openable ? "open_attachment_tooltip" : "save_attachment_tooltip"));
+        pSaveAttachBtn->setClickedCallback(boost::bind(&LLToastGroupNotifyPanel::onClickAttachment, this));
+        // </Prestige>
     }
 
     //ok button
@@ -151,11 +199,38 @@ LLToastGroupNotifyPanel::LLToastGroupNotifyPanel(const LLNotificationPtr& notifi
         maxLinesCount = DEFAULT_MESSAGE_MAX_LINE_COUNT;
     }
     snapToMessageHeight(pMessageText, maxLinesCount);
+
+    // <Prestige> No attachment: take its row out so the OK button sits under the message.
+    // The message keeps its place and size (follows the top only while the card shrinks).
+    if (!hasInventory)
+    {
+        const S32 row_height = pSaveAttachBtn->getRect().mTop - pOkBtn->getRect().mTop;
+        if (row_height > 0 && getRect().getHeight() - row_height >= MIN_PANEL_HEIGHT)
+        {
+            const U32 message_follows = pMessageText->getFollows();
+            pMessageText->setFollows(FOLLOWS_LEFT | FOLLOWS_RIGHT | FOLLOWS_TOP);
+            reshape(getRect().getWidth(), getRect().getHeight() - row_height);
+            pMessageText->setFollows(message_follows);
+        }
+    }
+    // </Prestige>
 }
+
+// <Prestige>
+void LLToastGroupNotifyPanel::setGroupTitle(const std::string& group_name)
+{
+    LLTextBox* pTitleText = getChild<LLTextBox>("title");
+    pTitleText->setValue(group_name);
+    pTitleText->setToolTip(group_name);
+}
+// </Prestige>
 
 // virtual
 LLToastGroupNotifyPanel::~LLToastGroupNotifyPanel()
 {
+    // <Prestige>
+    mGroupNameConnection.disconnect();
+    // </Prestige>
 }
 
 void LLToastGroupNotifyPanel::close()
@@ -192,6 +267,12 @@ void LLToastGroupNotifyPanel::onClickAttachment()
         LLIconCtrl* pAttachIcon =
                 getChild<LLIconCtrl> ("attachment_icon", true);
         pAttachIcon->setEnabled(false);
+
+        // <Prestige> One save per notice: the button turns into a greyed "Saved".
+        LLButton* pSaveAttachBtn = getChild<LLButton>("btn_save_attachment");
+        pSaveAttachBtn->setLabel(getString("attachment_saved_label"));
+        pSaveAttachBtn->setEnabled(false);
+        // </Prestige>
 
         //if attachment isn't openable - notify about saving
         if (!isAttachmentOpenable(mInventoryOffer->mType)) {

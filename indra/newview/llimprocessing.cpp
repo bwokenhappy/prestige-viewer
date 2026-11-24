@@ -508,7 +508,21 @@ static void god_message_name_cb(const LLAvatarName& av_name, LLChat chat, std::s
     LLSD args;
     args["NAME"] = av_name.getCompleteName();
     args["MESSAGE"] = message;
-    LLNotificationsUtil::add("GodMessage", args);
+    // <Prestige> Estate / region messages as a card in the middle of the screen (an
+    // alert, like other cards that need you), with the sender and the region. The
+    // nearby-chat copy below is kept, so the message stays in chat history.
+    static LLCachedControl<bool> estate_message_card(gSavedSettings, "PrestigeEstateMessageCard", true);
+    if (estate_message_card)
+    {
+        const LLViewerRegion* region = gAgent.getRegion();
+        args["REGION"] = region ? region->getName() : LLTrans::getString("Unknown");
+        LLNotificationsUtil::add("PrestigeEstateMessage", args);
+    }
+    else
+    {
+        LLNotificationsUtil::add("GodMessage", args);
+    }
+    // </Prestige>
 
     // Treat like a system message and put in chat history.
     chat.mSourceType = CHAT_SOURCE_SYSTEM;

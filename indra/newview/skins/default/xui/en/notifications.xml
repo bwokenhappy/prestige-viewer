@@ -9894,6 +9894,24 @@ Your object named &lt;nolink&gt;[OBJECTFROMNAME]&lt;/nolink&gt; has given you th
 [MESSAGE]
   </notification>
 
+  <!-- <Prestige> A message an estate manager (or the grid) sends to everyone in the
+       region, shown as a card in the middle of the screen. GodMessage above is used
+       instead when the setting PrestigeEstateMessageCard is off. -->
+  <notification
+   icon="alert.tga"
+   label="Message from [NAME]"
+   name="PrestigeEstateMessage"
+   type="alert">
+Message from [NAME]
+Region: [REGION]
+
+[MESSAGE]
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+  <!-- </Prestige> -->
+
   <notification
    icon="notify.tga"
    name="JoinGroup"

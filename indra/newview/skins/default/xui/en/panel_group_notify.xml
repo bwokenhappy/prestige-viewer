@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- <Prestige> Group notice card: the group (insignia and name) on top, then the
+     subject, who sent it and when, the message, and the attachment with a Save
+     attachment / Open button. Was 90 high with "Sender / Group" in the header and
+     the attachment as a link only. </Prestige> -->
 <panel
  background_visible="true"
- height="90"
+ height="100"
  label="instant_message"
  layout="topleft"
  left="0"
@@ -17,6 +21,20 @@
     <string
      name="date_font"
      value="SANSSERIF" />
+    <!-- <Prestige> -->
+    <string
+     name="sender_and_time">From [SENDER] on [TIME]</string>
+    <string
+     name="save_attachment_label">Save attachment</string>
+    <string
+     name="save_attachment_tooltip">Save this attachment to your inventory.</string>
+    <string
+     name="open_attachment_label">Open</string>
+    <string
+     name="open_attachment_tooltip">Save this attachment to your inventory and open it.</string>
+    <string
+     name="attachment_saved_label">Saved</string>
+    <!-- </Prestige> -->
     <panel
      background_visible="true"
      follows="top"
@@ -47,8 +65,8 @@
          text_color="GroupNotifyTextColor"
          top="5"
          use_ellipses="true"
-         value="Sender Name / Group Name"
-         width="230" />
+         value="Group Name"
+         width="260" />
     </panel>
     <text_editor
      parse_urls="true"
@@ -70,34 +88,46 @@
 	 word_wrap="true" >
     </text_editor>
     <icon
-     bottom="60"
-     follows="left|bottom|right"
-     height="15"
+     follows="left|bottom"
+     height="16"
      layout="topleft"
      left="25"
      mouse_opaque="true"
      name="attachment_icon"
-     width="15" />
+     top="50"
+     width="16" />
     <text
-     bottom="60"
      follows="left|bottom|right"
      font="SansSerif"
-     height="15"
+     height="16"
      layout="topleft"
      left="45"
      name="attachment"
      parse_urls="false"
      text_color="GroupNotifyTextColor"
+     top="51"
      value="Attachment"
      use_ellipses="true"
-     width="250" />
+     width="130" />
+    <!-- <Prestige> -->
     <button
-     bottom="85"
-     follows="bottom"
+     follows="right|bottom"
+     height="20"
+     label="Save attachment"
+     layout="topleft"
+     right="-10"
+     name="btn_save_attachment"
+     tab_stop="false"
+     top="48"
+     width="115" />
+    <!-- </Prestige> -->
+    <button
+     follows="right|bottom"
      height="20"
      label="OK"
      layout="topleft"
      right="-10"
      name="btn_ok"
+     top="73"
      width="70" />
 </panel>

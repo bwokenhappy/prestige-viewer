@@ -8254,6 +8254,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeEstateMessageCard</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: show a message an estate manager sends to the region as a card in the middle of the screen (with the sender and the region). Off: a notice in the corner, as before. Either way it is also put in nearby chat history.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeNotificationCenterLogAlerts</key>
     <map>
       <key>Comment</key>

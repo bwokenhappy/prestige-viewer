@@ -32,6 +32,9 @@
 #include "lltimer.h"
 #include "llviewermessage.h"
 #include "llnotificationptr.h"
+// <Prestige>
+#include <boost/signals2/connection.hpp>
+// </Prestige>
 
 class LLButton;
 
@@ -57,11 +60,17 @@ protected:
     void onClickAttachment();
 private:
     static bool isAttachmentOpenable(LLAssetType::EType);
+    // <Prestige>
+    void setGroupTitle(const std::string& group_name);
+    // </Prestige>
 
     static const S32 DEFAULT_MESSAGE_MAX_LINE_COUNT;
 
     LLUUID mGroupID;
     LLOfferInfo* mInventoryOffer;
+    // <Prestige> Group name lookup for a group the agent's group list doesn't have yet.
+    boost::signals2::connection mGroupNameConnection;
+    // </Prestige>
 };
 
 // This view contains the stack of notification windows.

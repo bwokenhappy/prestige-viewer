@@ -327,6 +327,7 @@ void LLFloaterIMSession::sendMsgFromInputEditor(bool ooc)
             LLWStringUtil::trim(used);
             if (!used.empty())
             {
+                rememberSentLine(); // <Prestige/> Ctrl+Up / Ctrl+Down in this conversation
                 updateUsedEmojis(used);
                 for (const std::string& piece : composeIM(text, ooc, nullptr))
                 {

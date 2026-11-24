@@ -75,6 +75,12 @@ public:
      */
     void    updateHistory();
 
+    // <Prestige> per conversation line history (prestigechatlinehistory.h): the lines sent
+    // here, and putting back a conversation's lines (browsing starts again from the newest)
+    const std::vector<std::string>& getLineHistory() const { return mLineHistory; }
+    void    setLineHistory(const std::vector<std::string>& lines);
+    // </Prestige>
+
 private:
 
     /**

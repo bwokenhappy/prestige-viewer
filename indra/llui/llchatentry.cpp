@@ -150,6 +150,19 @@ void LLChatEntry::updateHistory()
     }
 }
 
+// <Prestige> per conversation line history
+void LLChatEntry::setLineHistory(const std::vector<std::string>& lines)
+{
+    if (lines == mLineHistory)
+    {
+        return; // the same lines: keep where Ctrl+Up / Ctrl+Down browsing is
+    }
+    mLineHistory = lines;
+    mCurrentHistoryLine = mLineHistory.end();
+    mCurrentInput.clear();
+}
+// </Prestige>
+
 void LLChatEntry::beforeValueChange()
 {
     if(this->getLength() == 0 && !mLabel.empty())

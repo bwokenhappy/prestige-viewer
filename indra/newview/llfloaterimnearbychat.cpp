@@ -827,6 +827,7 @@ void LLFloaterIMNearbyChat::sendChat( EChatType type, bool ooc )
         sent_empty = !sendChatText(text, type, ooc);
         if (!sent_empty)
         {
+            rememberSentLine(); // <Prestige/> Ctrl+Up / Ctrl+Down (also shout, whisper, OOC)
             LLWString used = text;
             LLWStringUtil::trim(used);
             updateUsedEmojis(used);

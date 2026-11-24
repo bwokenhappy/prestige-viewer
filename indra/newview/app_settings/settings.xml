@@ -8243,6 +8243,28 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>PrestigeOwnScriptErrorsInChat</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: script errors and warnings (DEBUG_CHANNEL) from objects you own show as a red line in nearby chat, with no Script Debug window, pop-up or sound. Off: ShowScriptErrorsLocation decides, as before. Needs ShowScriptErrors.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeQuietObjectChat</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: chat from objects you don't own shows in nearby chat as a smaller, dimmer line, with no pop-up, flash or sound. llOwnerSay, llRegionSayTo and llInstantMessage stay as they are.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeNotificationCenterAutoRemoveScripts</key>
     <map>
       <key>Comment</key>

@@ -47,6 +47,46 @@
 // LLViewerChat
 LLViewerChat::font_change_signal_t LLViewerChat::sChatFontChangedSignal;
 
+// <Prestige> calmer chat
+namespace
+{
+    constexpr F32 QUIET_OBJECT_CHAT_ALPHA = 0.6f;
+}
+
+//static
+bool LLViewerChat::isOwnScriptErrorInChat(const LLChat& chat)
+{
+    static LLCachedControl<bool> show_errors(gSavedSettings, "ShowScriptErrors", true);
+    static LLCachedControl<bool> errors_in_chat(gSavedSettings, "PrestigeOwnScriptErrorsInChat", true);
+    return show_errors && errors_in_chat
+        && chat.mChatType == CHAT_TYPE_DEBUG_MSG
+        && chat.mOwnerID == gAgentID;
+}
+
+//static
+bool LLViewerChat::isQuietObjectChat(const LLChat& chat)
+{
+    static LLCachedControl<bool> quiet_object_chat(gSavedSettings, "PrestigeQuietObjectChat", true);
+    if (!quiet_object_chat || chat.mSourceType != CHAT_SOURCE_OBJECT || chat.mMuted)
+    {
+        return false;
+    }
+    // lines from the chat transcript keep their own (grey) look
+    if (chat.mChatStyle == CHAT_STYLE_HISTORY)
+    {
+        return false;
+    }
+    // llOwnerSay (RLV commands included), llRegionSayTo, llInstantMessage and script errors
+    // are meant for us
+    if (chat.mFromTaskIM || chat.mChatType == CHAT_TYPE_OWNER || chat.mChatType == CHAT_TYPE_DIRECT
+        || chat.mChatType == CHAT_TYPE_DEBUG_MSG)
+    {
+        return false;
+    }
+    return chat.mOwnerID != gAgentID;
+}
+// </Prestige>
+
 //static
 void LLViewerChat::getChatColor(const LLChat& chat, LLUIColor& r_color, F32& r_color_alpha)
 {
@@ -126,6 +166,13 @@ void LLViewerChat::getChatColor(const LLChat& chat, LLUIColor& r_color, F32& r_c
                 r_color_alpha = 1.0f;
             }
         }
+
+        // <Prestige> quiet object chat: the object chat colour, dimmed
+        if (isQuietObjectChat(chat))
+        {
+            r_color_alpha *= QUIET_OBJECT_CHAT_ALPHA;
+        }
+        // </Prestige>
     }
 }
 

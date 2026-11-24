@@ -85,6 +85,7 @@
 #include "llimview.h"            // IM mode
 #include "llinstantmessage.h"    // IM mode
 #include "llslurl.h"             // IM mode
+#include "prestigechatlinehistory.h" // <Prestige/> sent lines per conversation
 
 class SLChatBarGestureObserver final : public LLGestureManagerObserver
 {
@@ -152,6 +153,14 @@ bool SLChatBar::postBuild()
     mInputEditor->setKeystrokeCallback(boost::bind(&SLChatBar::onInputEditorKeystroke, this, _1));
     mInputEditor->setFocusLostCallback(boost::bind(&SLChatBar::onInputEditorFocusLost));
     mInputEditor->setFocusReceivedCallback(boost::bind(&SLChatBar::onInputEditorGainFocus));
+    // <Prestige> Ctrl+Up / Ctrl+Down: the lines sent in the conversation the bar is in (also
+    // those sent from that conversation's own window, hence fetched again on focus)
+    mInputEditor->setFocusReceivedCallback([this](LLFocusableElement*)
+    {
+        PrestigeChatLineHistory::restore(lineHistorySession(), mInputEditor);
+    });
+    PrestigeChatLineHistory::restore(lineHistorySession(), mInputEditor);
+    // </Prestige>
     mInputEditor->setCommitOnFocusLost( false );
     mInputEditor->setPassDelete(true);
     mInputEditor->setShowEmojiHelper(true);
@@ -374,7 +383,9 @@ void SLChatBar::sendChat( EChatType type, bool ooc )
         // MMO chat log IM mode: to the person picked in the chat log, not nearby
         if (mIMTarget.notNull() && !text.empty())
         {
-            mInputEditor->updateHistory();
+            // <Prestige> kept with the IM's own lines (Ctrl+Up / Ctrl+Down)
+            PrestigeChatLineHistory::remember(lineHistorySession(), mInputEditor);
+            // </Prestige>
             if (ooc) text = FSCommon::wrapOOC(text);
             sendIM(text);
             text.clear();
@@ -382,7 +393,9 @@ void SLChatBar::sendChat( EChatType type, bool ooc )
         if (!text.empty())
         {
             // store sent line for Ctrl+Up/Down recall, duplicates get filtered
-            mInputEditor->updateHistory();
+            // <Prestige> kept with nearby chat's lines (shared with the nearby chat window)
+            PrestigeChatLineHistory::remember(lineHistorySession(), mInputEditor);
+            // </Prestige>
             // <FS> Alt+Enter: out-of-character chat
             if (ooc)
             {
@@ -573,6 +586,7 @@ void SLChatBar::startIM(const LLUUID& id, const std::string& name)
     LLAvatarName av_name;
     bar->mIMTarget = id;
     bar->mIMName = LLAvatarNameCache::get(id, &av_name) ? av_name.getDisplayName() : name;
+    PrestigeChatLineHistory::restore(bar->lineHistorySession(), bar->mInputEditor); // <Prestige/> the IM's lines
     bar->changeChannelLabel(0);
     bar->updateChannelSelector();
     gAgent.stopTyping();   // (no nearby typing animation for an IM)
@@ -586,6 +600,7 @@ void SLChatBar::cancelIM()
     }
     mIMTarget.setNull();
     mIMName.clear();
+    PrestigeChatLineHistory::restore(LLUUID::null, mInputEditor); // <Prestige/> nearby chat's lines again
     changeChannelLabel(LLFloaterIMNearbyChat::getDefaultChatChannel());
     updateChannelSelector();
 }
@@ -628,6 +643,13 @@ void SLChatBar::sendIM(const LLWString& text)
         }
     }
 }
+
+// <Prestige> sent lines per conversation
+LLUUID SLChatBar::lineHistorySession() const
+{
+    return mIMTarget.isNull() ? LLUUID::null : LLIMMgr::computeSessionID(IM_NOTHING_SPECIAL, mIMTarget);
+}
+// </Prestige>
 
 // static
 void SLChatBar::updateChatFont()

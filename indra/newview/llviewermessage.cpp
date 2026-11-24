@@ -3040,7 +3040,10 @@ void process_chat_from_simulator(LLMessageSystem *msg, void **user_data)
             }
         }
 
-        if (mesg != "")
+        // <Prestige> calmer chat: own script errors in chat and quiet object chat make no
+        // sound and flash nothing (LLViewerChat::isCalmChat)
+        if (mesg != "" && !LLViewerChat::isCalmChat(chat))
+        // </Prestige>
         {
             LLSD msg_notify = LLSD(LLSD::emptyMap());
             msg_notify["session_id"] = LLUUID();

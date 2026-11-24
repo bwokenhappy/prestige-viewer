@@ -208,6 +208,7 @@ set(viewer_SOURCE_FILES
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
+    prestigefoldercolors.cpp          # <Prestige> folder colours
     prestigemarkdown.cpp
     prestigemarkdownrenderer.cpp
     slfloaterao.cpp
@@ -1242,6 +1243,7 @@ set(viewer_HEADER_FILES
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)
+    prestigefoldercolors.h            # <Prestige> folder colours
     prestigemarkdown.h
     prestigemarkdownrenderer.h
     slfloaterao.h

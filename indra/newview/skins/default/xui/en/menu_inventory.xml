@@ -999,6 +999,96 @@
      parameter="gmdx_pin_toolbar" />
   </menu_item_call>
   <!-- </GMDX> -->
+  <!-- <Prestige> folder colours, seen by you only (prestigefoldercolors.cpp) -->
+  <menu
+   label="Folder Colour"
+   layout="topleft"
+   name="Prestige Folder Colour">
+    <menu_item_call
+     label="Red"
+     layout="topleft"
+     name="Prestige Folder Colour Red">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_red" />
+    </menu_item_call>
+    <menu_item_call
+     label="Orange"
+     layout="topleft"
+     name="Prestige Folder Colour Orange">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_orange" />
+    </menu_item_call>
+    <menu_item_call
+     label="Yellow"
+     layout="topleft"
+     name="Prestige Folder Colour Yellow">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_yellow" />
+    </menu_item_call>
+    <menu_item_call
+     label="Green"
+     layout="topleft"
+     name="Prestige Folder Colour Green">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_green" />
+    </menu_item_call>
+    <menu_item_call
+     label="Teal"
+     layout="topleft"
+     name="Prestige Folder Colour Teal">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_teal" />
+    </menu_item_call>
+    <menu_item_call
+     label="Blue"
+     layout="topleft"
+     name="Prestige Folder Colour Blue">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_blue" />
+    </menu_item_call>
+    <menu_item_call
+     label="Purple"
+     layout="topleft"
+     name="Prestige Folder Colour Purple">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_purple" />
+    </menu_item_call>
+    <menu_item_call
+     label="Pink"
+     layout="topleft"
+     name="Prestige Folder Colour Pink">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_pink" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft"
+     name="Prestige Folder Colour Separator" />
+    <menu_item_call
+     label="Custom..."
+     layout="topleft"
+     name="Prestige Folder Colour Custom">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_custom" />
+    </menu_item_call>
+    <menu_item_call
+     label="Clear Colour"
+     layout="topleft"
+     name="Prestige Folder Colour Clear">
+      <menu_item_call.on_click
+       function="Inventory.DoToSelected"
+       parameter="prestige_folder_color_clear" />
+    </menu_item_call>
+  </menu>
+  <!-- </Prestige> -->
   <menu_item_call
    label="Add to Favorite Wearables"
    layout="topleft"

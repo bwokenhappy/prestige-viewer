@@ -4,7 +4,7 @@
  can_minimize="true"
  can_resize="false"
  save_rect="true"
- height="540"
+ height="625"
  width="483"
  name="inventory_settings"
  title="INVENTORY SETTINGS">
@@ -341,4 +341,54 @@
       name="1"
       value="1"/>
   </combo_box>
+  <!-- <Prestige> folder colours (prestigefoldercolors.cpp) -->
+  <icon
+   follows="top|left"
+   height="18"
+   image_name="Inv_FolderClosed"
+   layout="topleft"
+   left="18"
+   mouse_opaque="true"
+   name="prestige_colors_icon"
+   top_pad="19"
+   width="18" />
+  <text
+   type="string"
+   length="1"
+   follows="left|top|right"
+   height="13"
+   layout="topleft"
+   left_pad="12"
+   top_delta="2"
+   name="prestige_colors_txt"
+   font="SansSerifMedium"
+   text_color="White"
+   width="400">
+   Colours (right-click a folder, Folder Colour; only you see them)
+  </text>
+  <check_box
+   control_name="PrestigeInventoryFolderColorLabels"
+   follows="left|top"
+   top_pad="8"
+   layout="topleft"
+   font="SansSerifMedium"
+   left="60"
+   width="300"
+   height="18"
+   label="Colour the names of coloured folders too"
+   name="prestige_folder_color_labels"
+   label_text.text_color="White"/>
+  <check_box
+   control_name="PrestigeInventoryColoredIcons"
+   follows="left|top"
+   top_pad="5"
+   layout="topleft"
+   font="SansSerifMedium"
+   left="60"
+   width="300"
+   height="18"
+   label="Colour item icons by type"
+   name="prestige_colored_icons"
+   label_text.text_color="White"/>
+  <!-- </Prestige> -->
 </floater>

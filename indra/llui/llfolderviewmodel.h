@@ -46,6 +46,7 @@ class LLUIImage;
 class LLUUID;
 class LLFolderViewItem;
 class LLFolderViewFolder;
+class LLColor4; // <Prestige/> folder colours
 
 class LLFolderViewFilter
 {
@@ -153,6 +154,12 @@ public:
     virtual LLPointer<LLUIImage> getIcon() const = 0;
     virtual LLPointer<LLUIImage> getIconOpen() const { return getIcon(); }
     virtual LLPointer<LLUIImage> getIconOverlay() const { return NULL; }
+    // <Prestige> folder colours: a colour the row's icon is drawn in (a folder the user coloured,
+    // or an item icon coloured by its type), and one for its label. false (the default) draws
+    // the row exactly as before.
+    virtual bool getPrestigeIconColor(LLColor4& /*color*/) const { return false; }
+    virtual bool getPrestigeLabelColor(LLColor4& /*color*/) const { return false; }
+    // </Prestige>
 
     virtual LLFontGL::StyleFlags getLabelStyle() const = 0;
     virtual std::string getLabelSuffix() const = 0;

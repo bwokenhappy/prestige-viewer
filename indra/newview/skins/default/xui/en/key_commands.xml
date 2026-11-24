@@ -129,6 +129,14 @@
    label="Camera mode: depth of field preview (hold)"
    context="camera_mode"
    shortcut="V" />
+  <!-- <Prestige> AE-L: the exposure lock -->
+  <command
+   name="camera_ae_lock"
+   group="camera"
+   label="Camera mode: AE-L (hold the exposure, or let it go)"
+   context="camera_mode"
+   shortcut="X" />
+  <!-- </Prestige> -->
   <command
    name="camera_review"
    group="camera"

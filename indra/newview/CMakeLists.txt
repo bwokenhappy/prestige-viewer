@@ -208,6 +208,7 @@ set(viewer_SOURCE_FILES
     prestigebuildplacement.cpp        # <Prestige> Place on Surface (P), Snap to Objects
     prestigechatlinehistory.cpp       # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.cpp         # <Prestige> camera mode: Isolate your subject
+    prestigecamerafocus.cpp           # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1252,6 +1253,7 @@ set(viewer_HEADER_FILES
     prestigebuildplacement.h          # <Prestige> Place on Surface (P), Snap to Objects
     prestigechatlinehistory.h         # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.h           # <Prestige> camera mode: Isolate your subject
+    prestigecamerafocus.h             # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

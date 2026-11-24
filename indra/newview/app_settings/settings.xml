@@ -14411,6 +14411,41 @@
     <key>Value</key>
     <integer>0</integer>
   </map>
+  <!-- <Prestige> camera mode focus & exposure -->
+  <key>PrestigeCameraFocusBeep</key>
+  <map>
+    <key>Comment</key>
+    <string>Camera mode: when the autofocus finds its focus (the AF point turns green), a quick double beep plays (two short UI clicks through the UI sounds; silent when the UI click is off in Sound &amp; Media or the sound is muted).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>PrestigeCameraDepthOfField</key>
+  <map>
+    <key>Comment</key>
+    <string>Camera mode turns depth of field on when it opens (RenderDepthOfField, for the session only). Remembers how camera mode was left: turning depth of field off in camera mode keeps it off there next time.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>PrestigeCameraFocusPeaking</key>
+  <map>
+    <key>Comment</key>
+    <string>Camera mode, manual focus (MF): focus peaking -- the edges that are in focus are outlined in red on screen (never in the shot). Drawn by the depth of field, so it shows while depth of field is on.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <!-- </Prestige> -->
   <key>SLCameraModeFocus</key>
   <map>
     <key>Comment</key>

@@ -6682,6 +6682,9 @@ static void buildVKDoF(LLVKWorldFrame& wf, F32 fov, const LLVector3& eye, const 
     wf.dof_lens[3] = magnification;
     wf.dof_params[0] = llmax((F32)s_max_cof, 0.01f);
     wf.dof_params[1] = llclamp((F32)s_res_scale, 0.1f, 1.f);
+    // <Prestige> camera mode, MF: focus peaking (clean_dof_combine.frag; never in a snapshot)
+    wf.dof_params[3] = SLCameraMode::focusPeaking() ? 1.f : 0.f;
+    // </Prestige>
 }
 
 // #479 frozen culling camera: the GPU cull planes for a pose, built exactly as
@@ -7635,7 +7638,11 @@ static bool buildVulkanWorldFrame(LLVKWorldFrame& wf)
             put(13, vintage ? 1.f : llclamp((F32)s_exposure, 0.5f, 4.f), sky->getTonemapMix(auto_adj),
                     (F32)(U32)s_tm_type, legacy_gamma);
             put(14, s_dyn_coef, exp_min, exp_max, s_dyn_err);
-            put(15, s_dyn_tgt, (F32)gFrameIntervalSeconds, (s_dyn && !vintage) ? 1.f : 0.f, no_post);
+            // <Prestige> camera mode's AE-L: the adaptation holds the value it has (clean_exposure.comp
+            // eases at -log(speed_error) / speed_target per second: practically never)
+            const F32 dyn_target = SLCameraMode::exposureLocked() ? 1.0e9f : (F32)s_dyn_tgt;
+            put(15, dyn_target, (F32)gFrameIntervalSeconds, (s_dyn && !vintage) ? 1.f : 0.f, no_post);
+            // </Prestige>
 
             // ---- clouds (LLDrawPoolWLSky::renderSkyCloudsDeferred + LLSettingsVOSky::
             //      applySpecial inputs). Layout: indra/vkclean/shaders/clean_clouds.glsl.

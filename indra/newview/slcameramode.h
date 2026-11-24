@@ -100,6 +100,11 @@ public:
     // DEPTH OF FIELD (buildVKDoF): the point the camera's autofocus locked on, in agent space.
     // False while camera mode is closed or nothing is focused yet.
     static bool focusPoint(LLVector3& agent_pos);
+    // <Prestige> for the renderer (llappviewer): focus peaking on (MF; drawn with the depth of
+    // field), and the exposure lock (AE-L: the auto exposure holds its value)
+    static bool focusPeaking();
+    static bool exposureLocked();
+    // </Prestige>
 
 private:
     // handleKey for one arrival of a key (Enter's two arrivals are one press there).

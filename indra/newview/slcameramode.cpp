@@ -34,6 +34,7 @@
 #include "slcameraview.h"
 #include "slkeycommands.h"
 #include "slvideostudio.h"
+#include "prestigecameraisolate.h"   // <Prestige> isolate your subject: picking
 #include "llviewermenu.h" // gMenuBarView: the menu shortcuts camera mode swallows
 
 #include "llagent.h"
@@ -355,6 +356,10 @@ bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType cli
             sState.afDrag = fabsf((F32)x - cx) <= reach && fabsf((F32)y - cy) <= reach;
             sState.afFocusX = sState.afFocusY = INT_MIN;
         }
+        // <Prestige> isolate: while picking, a click picks; the AF point stays where it is
+        if (PrestigeCameraIsolate::picking())
+            sState.afDrag = false;
+        // </Prestige>
         return true;
     }
     if (sState.leftPassed)
@@ -364,6 +369,17 @@ bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType cli
     }
     if (!sState.leftDown) return true;
     sState.leftDown = false;
+    // <Prestige> isolate: while picking, a click picks (or unpicks) the avatar it lands on; no
+    // focus, no shot (a double-click is two picks)
+    if (PrestigeCameraIsolate::picking())
+    {
+        sState.afDrag = false;
+        sState.clicks = slcamin::ClickState();
+        if (llmax(llabs(x - sState.leftX), llabs(y - sState.leftY)) <= (S32)kSlop)
+            PrestigeCameraIsolate::pickAt(x, y);
+        return true;
+    }
+    // </Prestige>
     if (sState.afDrag)
     {
         // Dragged (or clicked) on the AF point: it focuses where it was let go.
@@ -480,6 +496,10 @@ bool SLCameraMode::handleKeyOnce(KEY key, MASK mask)
         // The innermost thing first: an open popover, card or menu, then camera mode.
         if (SLCameraView::popupOpen())
             SLCameraView::closePopup();
+        // <Prestige> isolate: Esc ends picking before it leaves camera mode
+        else if (PrestigeCameraIsolate::picking())
+            PrestigeCameraIsolate::setPicking(false);
+        // </Prestige>
         else
             stop();
         return true;

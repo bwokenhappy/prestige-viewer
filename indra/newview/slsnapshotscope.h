@@ -65,6 +65,10 @@ struct SLSnapshotScopePick
     U32 scope = SNAPSHOT_AVATARS_ALL;
     bool self = true;                               // "Selected": you are ticked
     const std::set<LLUUID>* selected = nullptr;     // "Selected": the other avatars ticked
+    // <Prestige> camera isolate: `selected` may name free-standing animesh (their control
+    // avatars), which "Selected" then takes too. Off for the Snapshot floater's picker.
+    bool animesh = false;
+    // </Prestige>
 };
 
 // A setting value as a scope (out of range: "All").

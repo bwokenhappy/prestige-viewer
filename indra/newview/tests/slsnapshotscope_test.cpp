@@ -112,4 +112,21 @@ namespace tut
         ensure_equals("clamp", slSnapshotScopeClamp(7), (U32)SNAPSHOT_AVATARS_ALL);
         ensure_equals("clamp keeps Selected", slSnapshotScopeClamp(SNAPSHOT_AVATARS_SELECTED), (U32)SNAPSHOT_AVATARS_SELECTED);
     }
+
+    // <Prestige> camera isolate: with `animesh` on, "Selected" takes the free-standing animesh it
+    // names (and still only those); "Self only" never does.
+    template<> template<>
+    void snapshotscope_object::test<6>()
+    {
+        const std::set<LLUUID> picked = { avatar(3) };
+        SLSnapshotScopePick p = pick(SNAPSHOT_AVATARS_SELECTED, false, picked);
+        p.animesh = true;
+        ensure("isolate: a picked animesh", slSnapshotScopeTakes(p, SLSnapshotAvatarKind::ANIMESH, avatar(3)));
+        ensure("isolate: an animesh not picked", !slSnapshotScopeTakes(p, SLSnapshotAvatarKind::ANIMESH, avatar(4)));
+        ensure("isolate: you, unpicked", !slSnapshotScopeTakes(p, SLSnapshotAvatarKind::SELF, avatar(1)));
+        SLSnapshotScopePick self_only = pick(SNAPSHOT_AVATARS_SELF, true, picked);
+        self_only.animesh = true;
+        ensure("isolate, my avatar: no animesh", !slSnapshotScopeTakes(self_only, SLSnapshotAvatarKind::ANIMESH, avatar(3)));
+    }
+    // </Prestige>
 }

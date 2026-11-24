@@ -39,6 +39,9 @@ bool slSnapshotScopeTakes(const SLSnapshotScopePick& pick, SLSnapshotAvatarKind 
         return kind == SLSnapshotAvatarKind::SELF;
     case SNAPSHOT_AVATARS_SELECTED:
         if (kind == SLSnapshotAvatarKind::SELF) return pick.self;
+        // <Prestige> camera isolate: free-standing animesh picked in the viewfinder
+        if (kind == SLSnapshotAvatarKind::ANIMESH && pick.animesh) return pick.selected && pick.selected->count(id) > 0;
+        // </Prestige>
         return kind == SLSnapshotAvatarKind::AVATAR && pick.selected && pick.selected->count(id) > 0;
     default:
         return true;

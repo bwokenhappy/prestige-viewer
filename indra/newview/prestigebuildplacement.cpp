@@ -36,6 +36,9 @@
 #include "llviewerobject.h"
 #include "llviewerobjectlist.h"
 #include "llviewerwindow.h"
+#include "llvolume.h"
+#include "llvovolume.h"
+#include "llmeshrepository.h"
 #include "llworld.h"
 #include "rlvhandler.h"
 #include "rlvmodifiers.h"
@@ -870,6 +873,24 @@ namespace
     bool sSnapActive = false;
     AABox sSnapSelection;
     std::vector<AABox> sSnapNeighbors;
+    // The object each box in sSnapNeighbors belongs to (same order).
+    std::vector<LLPointer<LLViewerObject>> sSnapNeighborObjects;
+
+    // The exact stops against an object's real shape (its triangles), not its box.
+    // Worked out once per drag, the first time the drag moves along a region axis.
+    struct ExactStops
+    {
+        bool mExact = false;    // false: use the box
+        F64 mAhead = 0.0;       // nearest stop ahead (1.0e30: none)
+        F64 mBehind = 0.0;      // nearest stop behind (-1.0e30: none)
+    };
+    std::vector<ExactStops> sSnapExact;
+    S32 sSnapExactAxis = -1;    // which region axis (0..2) sSnapExact is for, -1: none yet
+    F64 sSnapExactSign = 0.0;   // and which way along it
+
+    // How much real shape is looked at per drag before falling back to boxes.
+    constexpr S32 SNAP_EXACT_MAX_OBJECTS = 96;
+    constexpr S64 SNAP_EXACT_MAX_TRIANGLES = 2000000;
 
     AABox aabox_of(const LLBBox& box)
     {
@@ -895,6 +916,180 @@ namespace
             }
         }
         return true;
+    }
+
+    // Clips a polygon to lo < p[i] < hi (one axis). Sutherland-Hodgman, small fixed arrays.
+    S32 clip_axis(const LLVector3* in, S32 n, LLVector3* out, S32 i, F32 lo, F32 hi)
+    {
+        LLVector3 tmp[16];
+        S32 m = 0;
+        // lower side
+        for (S32 a = 0; a < n && m < 15; ++a)
+        {
+            const LLVector3& p = in[a];
+            const LLVector3& q = in[(a + 1) % n];
+            const bool pin = p.mV[i] >= lo;
+            const bool qin = q.mV[i] >= lo;
+            if (pin)
+            {
+                tmp[m++] = p;
+            }
+            if (pin != qin)
+            {
+                const F32 t = (lo - p.mV[i]) / (q.mV[i] - p.mV[i]);
+                tmp[m++] = p + (q - p) * t;
+            }
+        }
+        S32 k = 0;
+        // upper side
+        for (S32 a = 0; a < m && k < 15; ++a)
+        {
+            const LLVector3& p = tmp[a];
+            const LLVector3& q = tmp[(a + 1) % m];
+            const bool pin = p.mV[i] <= hi;
+            const bool qin = q.mV[i] <= hi;
+            if (pin)
+            {
+                out[k++] = p;
+            }
+            if (pin != qin)
+            {
+                const F32 t = (hi - p.mV[i]) / (q.mV[i] - p.mV[i]);
+                out[k++] = p + (q - p) * t;
+            }
+        }
+        return k;
+    }
+
+    // The stops against obj's real shape for the selection box sliding along region
+    // axis k (sign +1 or -1): the parts of its triangles inside the selection's
+    // cross-section, nearest in front and nearest behind. False: no shape to use
+    // (not a prim/mesh, rigged or animated, or its shape could not be read).
+    bool exact_stops(LLViewerObject* obj, const AABox& sel, S32 k, F64 sign, S64& budget, ExactStops& out)
+    {
+        LLVOVolume* vobj = dynamic_cast<LLVOVolume*>(obj);
+        if (!vobj || vobj->isDead() || vobj->isRiggedMesh() || vobj->isAnimatedObject())
+        {
+            return false;
+        }
+        LLVolume* volume = vobj->getVolume();
+        if (!volume || volume->getNumVolumeFaces() <= 0)
+        {
+            return false;
+        }
+        if (volume->hasReleasedFaceGeometry() && !gMeshRepo.rehydrateReleasedVolume(volume))
+        {
+            return false;
+        }
+
+        const S32 i = (k + 1) % 3;
+        const S32 j = (k + 2) % 3;
+        constexpr F32 EDGE = 0.001f;   // touching side by side is not in the way
+        const F32 i_lo = sel.mMin.mV[i] + EDGE, i_hi = sel.mMax.mV[i] - EDGE;
+        const F32 j_lo = sel.mMin.mV[j] + EDGE, j_hi = sel.mMax.mV[j] - EDGE;
+        if (i_lo >= i_hi || j_lo >= j_hi)
+        {
+            return false;
+        }
+        // Along the drag: the selection spans [trail, lead] (projected on sign * axis).
+        const F64 lead = sign > 0.0 ? sel.mMax.mV[k] : -sel.mMin.mV[k];
+        const F64 trail = sign > 0.0 ? sel.mMin.mV[k] : -sel.mMax.mV[k];
+        const F64 EPS = 0.001;
+
+        out.mExact = true;
+        out.mAhead = 1.0e30;
+        out.mBehind = -1.0e30;
+
+        std::vector<LLVector3> agent;
+        for (S32 f = 0; f < volume->getNumVolumeFaces(); ++f)
+        {
+            const LLVolumeFace& vf = volume->getVolumeFace(f);
+            if (!vf.mPositions || !vf.mIndices || vf.mNumVertices < 3 || vf.mNumIndices < 3)
+            {
+                if (vf.mNumIndices >= 3)
+                {
+                    return false;   // part of the shape is missing: don't trust the rest
+                }
+                continue;
+            }
+            budget -= vf.mNumIndices / 3;
+            if (budget < 0)
+            {
+                return false;
+            }
+            agent.resize(vf.mNumVertices);
+            for (S32 v = 0; v < vf.mNumVertices; ++v)
+            {
+                agent[v] = vobj->volumePositionToAgent(LLVector3(vf.mPositions[v].getF32ptr()));
+            }
+            for (S32 t = 0; t + 2 < vf.mNumIndices; t += 3)
+            {
+                const LLVector3& a = agent[vf.mIndices[t]];
+                const LLVector3& b = agent[vf.mIndices[t + 1]];
+                const LLVector3& c = agent[vf.mIndices[t + 2]];
+                // Quick reject: the triangle misses the cross-section.
+                if (llmax(a.mV[i], b.mV[i], c.mV[i]) <= i_lo || llmin(a.mV[i], b.mV[i], c.mV[i]) >= i_hi
+                    || llmax(a.mV[j], b.mV[j], c.mV[j]) <= j_lo || llmin(a.mV[j], b.mV[j], c.mV[j]) >= j_hi)
+                {
+                    continue;
+                }
+                LLVector3 poly[3] = { a, b, c };
+                LLVector3 p1[16], p2[16];
+                S32 n = clip_axis(poly, 3, p1, i, i_lo, i_hi);
+                if (n < 1)
+                {
+                    continue;
+                }
+                n = clip_axis(p1, n, p2, j, j_lo, j_hi);
+                for (S32 v = 0; v < n; ++v)
+                {
+                    const F64 q = sign * p2[v].mV[k];
+                    if (q >= lead - EPS)
+                    {
+                        out.mAhead = llmin(out.mAhead, q - lead);
+                    }
+                    else if (q <= trail + EPS)
+                    {
+                        out.mBehind = llmax(out.mBehind, q - trail);
+                    }
+                    // else: already inside the selection's span: let it move out
+                }
+            }
+        }
+        return true;
+    }
+
+    // Works out sSnapExact for region axis k / sign, for the boxes the slide can meet.
+    void compute_exact_stops(S32 k, F64 sign)
+    {
+        sSnapExactAxis = k;
+        sSnapExactSign = sign;
+        sSnapExact.assign(sSnapNeighbors.size(), ExactStops());
+        const S32 i = (k + 1) % 3;
+        const S32 j = (k + 2) % 3;
+        S32 objects = 0;
+        S64 budget = SNAP_EXACT_MAX_TRIANGLES;
+        for (size_t n = 0; n < sSnapNeighbors.size() && objects < SNAP_EXACT_MAX_OBJECTS && budget > 0; ++n)
+        {
+            const AABox& b = sSnapNeighbors[n];
+            // Only boxes across the selection's path (overlapping its cross-section).
+            if (b.mMax.mV[i] <= sSnapSelection.mMin.mV[i] || b.mMin.mV[i] >= sSnapSelection.mMax.mV[i]
+                || b.mMax.mV[j] <= sSnapSelection.mMin.mV[j] || b.mMin.mV[j] >= sSnapSelection.mMax.mV[j])
+            {
+                continue;
+            }
+            LLViewerObject* obj = n < sSnapNeighborObjects.size() ? sSnapNeighborObjects[n].get() : nullptr;
+            if (!obj)
+            {
+                continue;
+            }
+            ++objects;
+            ExactStops e;
+            if (exact_stops(obj, sSnapSelection, k, sign, budget, e))
+            {
+                sSnapExact[n] = e;
+            }
+        }
     }
 }
 
@@ -970,6 +1165,7 @@ void PrestigeObjectSnap::beginDrag()
         if (overlaps(b, reach))
         {
             sSnapNeighbors.push_back(b);
+            sSnapNeighborObjects.push_back(obj);
         }
     }
 
@@ -982,6 +1178,10 @@ void PrestigeObjectSnap::endDrag()
 {
     sSnapActive = false;
     sSnapNeighbors.clear();
+    sSnapNeighborObjects.clear();
+    sSnapExact.clear();
+    sSnapExactAxis = -1;
+    sSnapExactSign = 0.0;
 }
 
 // static
@@ -1005,10 +1205,33 @@ F64 PrestigeObjectSnap::adjust(const LLVector3& axis_in, F64 distance)
     // For every box: the stretch of the drag (from its start) over which the
     // selection's box would be inside it. The nearest one ahead stops the drag at
     // its near side; the nearest one behind stops it going back.
+    // Along a region axis (the World ruler): stop at the objects' real shape, not
+    // their boxes (a floor mesh's box can stand well above the floor you see).
+    S32 region_axis = -1;
+    for (S32 k = 0; k < 3; ++k)
+    {
+        if (std::fabs(axis.mV[k]) > 0.9999f)
+        {
+            region_axis = k;
+        }
+    }
+    const F64 axis_sign = region_axis >= 0 ? (axis.mV[region_axis] > 0.f ? 1.0 : -1.0) : 0.0;
+    if (region_axis >= 0 && (region_axis != sSnapExactAxis || axis_sign != sSnapExactSign))
+    {
+        compute_exact_stops(region_axis, axis_sign);
+    }
+
     F64 ahead = NONE;
     F64 behind = -NONE;
-    for (const AABox& b : sSnapNeighbors)
+    for (size_t n = 0; n < sSnapNeighbors.size(); ++n)
     {
+        if (region_axis >= 0 && n < sSnapExact.size() && sSnapExact[n].mExact)
+        {
+            ahead = llmin(ahead, sSnapExact[n].mAhead);
+            behind = llmax(behind, sSnapExact[n].mBehind);
+            continue;
+        }
+        const AABox& b = sSnapNeighbors[n];
         F64 enter = -NONE;
         F64 leave = NONE;
         bool meets = true;

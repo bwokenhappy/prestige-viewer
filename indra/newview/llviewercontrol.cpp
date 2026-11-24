@@ -77,6 +77,10 @@
 #include "llspellcheck.h"
 #include "llslurl.h"
 #include "llstartup.h"
+// <Prestige> Firestorm's global online status toggle
+#include "llavatarpropertiesprocessor.h"
+#include "llcallingcard.h"
+// </Prestige>
 #include "llfloaterreg.h"
 #include "llperfstats.h"
 #include "llvkautotune.h"   // #422
@@ -768,6 +772,69 @@ void handleLocalTerrainChanged(const LLSD& newValue)
 }
 ////////////////////////////////////////////////////////////////////////////
 
+// <Prestige> Firestorm's global online status toggle (<FS:Ansariel>): the People > Friends eye button
+// grants or revokes "see me online" for every friend at once, after a confirmation
+static void applyGlobalOnlineStatusChange(const LLSD& notification, const LLSD& response)
+{
+    bool visible = notification["payload"]["visible"].asBoolean();
+    S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+    if (option != 0)
+    {
+        gSavedPerAccountSettings.setBOOL("GlobalOnlineStatusCurrentlyReverting", true);
+        gSavedPerAccountSettings.setBOOL("GlobalOnlineStatusToggle", !visible);
+        return;
+    }
+
+    LLAvatarTracker::buddy_map_t all_buddies;
+    LLAvatarTracker::instance().copyBuddyList(all_buddies);
+
+    for (const auto& buddy : all_buddies)
+    {
+        const LLUUID& buddy_id = buddy.first;
+        const LLRelationship* relation = LLAvatarTracker::instance().getBuddyInfo(buddy_id);
+        if (relation == nullptr)
+        {
+            // Lets have a warning log message instead of having a crash. EXT-4947.
+            LL_WARNS() << "Trying to modify rights for non-friend avatar. Skipped." << LL_ENDL;
+            continue;
+        }
+
+        S32 cur_rights = relation->getRightsGrantedTo();
+        S32 new_rights = 0;
+        if (visible)
+        {
+            new_rights = LLRelationship::GRANT_ONLINE_STATUS + (cur_rights & LLRelationship::GRANT_MAP_LOCATION) + (cur_rights & LLRelationship::GRANT_MODIFY_OBJECTS);
+        }
+        else
+        {
+            new_rights = (cur_rights & LLRelationship::GRANT_MAP_LOCATION) + (cur_rights & LLRelationship::GRANT_MODIFY_OBJECTS);
+        }
+
+        LLAvatarPropertiesProcessor::getInstance()->sendFriendRights(buddy_id, new_rights);
+    }
+
+    LLNotificationsUtil::add("GlobalOnlineStatusToggleInfo");
+}
+
+static void handleGlobalOnlineStatusChanged(const LLSD& newvalue)
+{
+    if (LLStartUp::getStartupState() < STATE_STARTED)
+    {
+        // Skip the checks if not inworld; Ignore startup-time setting application, if it somehow fires
+        return;
+    }
+    if (gSavedPerAccountSettings.getBOOL("GlobalOnlineStatusCurrentlyReverting"))
+    {
+        gSavedPerAccountSettings.setBOOL("GlobalOnlineStatusCurrentlyReverting", false);
+        return;
+    }
+    bool visible = newvalue.asBoolean();
+    LLSD payload;
+    payload["visible"] = visible;
+    LLNotificationsUtil::add("ConfirmGlobalOnlineStatusToggle", LLSD(), payload, applyGlobalOnlineStatusChange);
+}
+// </Prestige>
+
 LLPointer<LLControlVariable> setting_get_control(LLControlGroup& group, const std::string& setting)
 {
     LLPointer<LLControlVariable> cntrl_ptr = group.getControl(setting);
@@ -1019,6 +1086,7 @@ void settings_setup_listeners()
     }
 
     setting_setup_signal_listener(gSavedPerAccountSettings, "AvatarHoverOffsetZ", handleAvatarHoverOffsetChanged);
+    setting_setup_signal_listener(gSavedPerAccountSettings, "GlobalOnlineStatusToggle", handleGlobalOnlineStatusChanged); // <Prestige/> Firestorm
 // [RLVa:KB] - Checked: 2015-12-27 (RLVa-1.5.0)
     gSavedSettings.getControl(RlvSettingNames::Main)->getSignal()->connect(boost::bind(&RlvSettings::onChangedSettingMain, _2));
 // [/RLVa:KB]

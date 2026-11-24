@@ -16129,4 +16129,29 @@ Reports go to our servers through Cloudflare, which terminates TLS and can see I
 Usage statistics are paused pending renewed consent for the current categories: hardware, software version, graphics settings, aggregate performance, memory, loading and session events. [secondlife:///app/openfloater/sl_telemetry See exactly what is sent].
     <usetemplate name="okcancelbuttons" yestext="Keep sharing" notext="Stop sharing" />
   </notification>
+  <!-- <Prestige> Firestorm's global online status toggle (People > Friends eye button) -->
+  <notification
+   icon="alertmodal.tga"
+   name="ConfirmGlobalOnlineStatusToggle"
+   type="alertmodal">
+Are you sure you want to change your online status visibility for all friends at once?
+
+Due to server load, this mass change can take a while to become effective and may cause temporary issues for some friends seeing your online status.
+    <tag>confirm</tag>
+    <usetemplate
+     name="okcancelbuttons"
+     notext="Cancel"
+     yestext="OK"/>
+  </notification>
+  <notification
+   icon="alertmodal.tga"
+   name="GlobalOnlineStatusToggleInfo"
+   type="alertmodal">
+Due to server load, mass toggling online status visibility can take a while to become effective. Please be patient.
+    <usetemplate
+     ignoretext="Inform me that toggling online status visibility may take a while"
+     name="okignore"
+     yestext="OK"/>
+  </notification>
+  <!-- </Prestige> -->
 </notifications>

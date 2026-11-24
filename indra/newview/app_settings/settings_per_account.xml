@@ -118,6 +118,32 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <!-- <Prestige> Firestorm's global online status toggle (eye button, People > Friends) -->
+    <key>GlobalOnlineStatusToggle</key>
+    <map>
+      <key>Comment</key>
+      <string>Saves the state of global online status permission for friends</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>GlobalOnlineStatusCurrentlyReverting</key>
+    <map>
+      <key>Comment</key>
+      <string>Flag to prevent infinite loop when reverting the setting on cancel</string>
+      <key>HideFromEditor</key>
+      <integer>1</integer>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>AvatarHoverOffsetZ</key>
     <map>
       <key>Comment</key>

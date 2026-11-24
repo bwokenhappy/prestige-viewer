@@ -637,15 +637,6 @@ bool LLPanelPeople::postBuild()
     mAllFriendList->showPermissions(spType);
     mAllFriendList->setShowCompleteName(!gSavedSettings.getBOOL("FriendsListHideUsernames"));
 
-    // <Prestige> Firestorm's eye toggle in the Friends button row: permission icons on every row / hidden
-    mFriendsPermissionsBtn = friends_tab->findChild<LLButton>("friends_permissions_btn");
-    if (mFriendsPermissionsBtn)
-    {
-        mFriendsPermissionsBtn->setToggleState(SP_ALWAYS == spType);
-        mFriendsPermissionsBtn->setCommitCallback(boost::bind(&LLPanelPeople::onFriendsPermissionsBtnClicked, this));
-    }
-    // </Prestige>
-
     LLPanel* nearby_tab = getChild<LLPanel>(NEARBY_TAB_NAME);
 
     mMiniMap = nearby_tab->getChild<LLNetMap>("Net Map", true);
@@ -1439,9 +1430,9 @@ void LLPanelPeople::onFriendsViewSortMenuItemClicked(const LLSD& userdata)
             spType = SP_HOVER;
         else if ("view_permissions_nondefault" == chosen_item)
             spType = SP_NONDEFAULT;
-        // <Prestige> Firestorm-style always-visible icons; shared with the eye button
+        // <Prestige> Firestorm's "View Permissions Granted": every icon on every row <-> hidden
         else if ("view_permissions_always" == chosen_item)
-            spType = SP_ALWAYS;
+            spType = (SP_ALWAYS == gSavedSettings.getU32("FriendsListShowPermissions")) ? SP_NEVER : SP_ALWAYS;
         setFriendsPermissionMode((U32)spType);
         // </Prestige>
     }
@@ -1521,18 +1512,6 @@ void LLPanelPeople::setFriendsPermissionMode(U32 sp_type)
 
     mAllFriendList->showPermissions(spType);
     mOnlineFriendList->showPermissions(spType);
-
-    if (mFriendsPermissionsBtn)
-    {
-        mFriendsPermissionsBtn->setToggleState(SP_ALWAYS == spType);
-    }
-}
-
-void LLPanelPeople::onFriendsPermissionsBtnClicked()
-{
-    // Eye button: all icons on every row <-> hidden (hover / per-user stay in the view menu)
-    const bool showing = (SP_ALWAYS == gSavedSettings.getU32("FriendsListShowPermissions"));
-    setFriendsPermissionMode((U32)(showing ? SP_NEVER : SP_ALWAYS));
 }
 
 void LLPanelPeople::onFriendsSubTabSelected()

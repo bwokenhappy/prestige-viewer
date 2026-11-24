@@ -227,7 +227,8 @@ Learn about [https://community.secondlife.com/knowledgebase/joining-and-particip
                     <commit_callback
                      function="People.AddFriendWizard" />
                 </button>
-                <!-- <Prestige> Firestorm's eye toggle: permission icons on every friend row (highlighted) or hidden -->
+                <!-- <Prestige> Firestorm's eye: global online status visibility for all friends
+                     (per-account GlobalOnlineStatusToggle, confirmed in llviewercontrol.cpp) -->
                 <button
                  follows="right"
                  height="25"
@@ -235,11 +236,12 @@ Learn about [https://community.secondlife.com/knowledgebase/joining-and-particip
                  image_overlay="Permission_Visible_Online"
                  image_selected="Toolbar_Middle_Selected"
                  image_unselected="Toolbar_Middle_Off"
+                 control_name="GlobalOnlineStatusToggle"
                  is_toggle="true"
                  layout="topleft"
                  left_pad="2"
-                 name="friends_permissions_btn"
-                 tool_tip="Show the permissions you and each friend have granted on every row"
+                 name="GlobalOnlineStatusToggle"
+                 tool_tip="Toggle global online status visibility"
                  top_delta="0"
                  width="31" />
                 <!-- </Prestige> -->

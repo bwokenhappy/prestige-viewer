@@ -326,6 +326,7 @@ bool LLPanelMainInventory::postBuild()
     mCombinationGalleryPanel->setSelectionChangeCallback(boost::bind(&LLPanelMainInventory::onCombinationGallerySelectionChanged, this, _1));
 
     initListCommandsHandlers();
+    initFirestormControls(); // <Prestige> Firestorm inventory layout
 
     const std::string sound_upload_cost_str = std::to_string(LLAgentBenefitsMgr::current().getSoundUploadCost());
     const std::string animation_upload_cost_str = std::to_string(LLAgentBenefitsMgr::current().getAnimationUploadCost());
@@ -1091,6 +1092,12 @@ void LLPanelMainInventory::updateAfterDraw()
 {
     updateItemcountText();
     updateCombinationVisibility();
+    // <Prestige> the filters button stays lit while the filter window is open
+    if (mShowFiltersBtn)
+    {
+        mShowFiltersBtn->setToggleState(getFinder() != nullptr);
+    }
+    // </Prestige>
 }
 
 void LLPanelMainInventory::draw()
@@ -1173,6 +1180,11 @@ void LLPanelMainInventory::updateItemcountText()
         string_args["[ITEM_COUNT]"] = mItemCountString;
         string_args["[CATEGORY_COUNT]"] = mCategoryCountString;
         string_args["[FILTER]"] = mLastFilterText;
+        // <Prestige> Firestorm counts items and folders together as "Elements"
+        std::string element_count_string;
+        LLResMgr::getInstance()->getIntegerString(element_count_string, mItemCount + mCategoryCount);
+        string_args["[ELEMENT_COUNT]"] = element_count_string;
+        // </Prestige>
 
         std::string text = "";
 
@@ -1197,13 +1209,17 @@ void LLPanelMainInventory::updateItemcountText()
         }
 
         mCounterCtrl->setValue(text);
-        mCounterCtrl->setToolTip(text);
+        // <Prestige> tooltip keeps the separate item and folder counts
+        //mCounterCtrl->setToolTip(text);
+        mCounterCtrl->setToolTip(hasString("ItemcountTooltip") ? getString("ItemcountTooltip", string_args) : text);
+        // </Prestige>
     }
 }
 
 void LLPanelMainInventory::setFilterTextFromFilter()
 {
     mFilterText = getCurrentFilter().getFilterText();
+    updateFilterDropdown(&getCurrentFilter()); // <Prestige> keep the type dropdown in step
 }
 
 void LLPanelMainInventory::toggleFindOptions()
@@ -1669,11 +1685,28 @@ void LLPanelMainInventory::initListCommandsHandlers()
     mVisibilityMenuButton->setMenu(mMenuVisibility, LLMenuButton::MP_BOTTOM_LEFT, true);
 
     // Update the trash button when selected item(s) get worn or taken off.
-    LLOutfitObserver::instance().addCOFChangedCallback(boost::bind(&LLPanelMainInventory::updateListCommands, this));
+    // <Prestige> through a handle: the trash button update now touches this panel, which a closed
+    // extra inventory window no longer has
+    //LLOutfitObserver::instance().addCOFChangedCallback(boost::bind(&LLPanelMainInventory::updateListCommands, this));
+    LLHandle<LLPanel> handle = getHandle();
+    LLOutfitObserver::instance().addCOFChangedCallback([handle]()
+    {
+        if (LLPanelMainInventory* panel = static_cast<LLPanelMainInventory*>(handle.get()))
+        {
+            panel->updateListCommands();
+        }
+    });
+    // </Prestige>
 }
 
 void LLPanelMainInventory::updateListCommands()
 {
+    // <Prestige> Firestorm trash button: only usable when the selection can be deleted
+    if (mTrashButton && mActivePanel)
+    {
+        mTrashButton->setEnabled(isActionEnabled("delete"));
+    }
+    // </Prestige>
 }
 
 void LLPanelMainInventory::onAddButtonClick()
@@ -2878,3 +2911,170 @@ void LLPanelMainInventory::scrollToInvPanelSelection()
 
 // List Commands                                                              //
 ////////////////////////////////////////////////////////////////////////////////
+
+// <Prestige> Firestorm inventory layout (type filter dropdown, trash, new window and filters buttons).
+// Ported from Firestorm's LLPanelMainInventory (FS:Zi filter dropdown, FS:Ansariel trash button).
+// Every control is optional so other inventory layouts keep working.
+void LLPanelMainInventory::initFirestormControls()
+{
+    mFilterMap["filter_type_animations"]    = 0x01ULL << LLInventoryType::IT_ANIMATION;
+    mFilterMap["filter_type_calling_cards"] = 0x01ULL << LLInventoryType::IT_CALLINGCARD;
+    mFilterMap["filter_type_clothing"]      = 0x01ULL << LLInventoryType::IT_WEARABLE;
+    mFilterMap["filter_type_gestures"]      = 0x01ULL << LLInventoryType::IT_GESTURE;
+    mFilterMap["filter_type_landmarks"]     = 0x01ULL << LLInventoryType::IT_LANDMARK;
+    mFilterMap["filter_type_notecards"]     = 0x01ULL << LLInventoryType::IT_NOTECARD;
+    mFilterMap["filter_type_objects"]       = 0x01ULL << LLInventoryType::IT_OBJECT;
+    mFilterMap["filter_type_scripts"]       = 0x01ULL << LLInventoryType::IT_LSL;
+    mFilterMap["filter_type_sounds"]        = 0x01ULL << LLInventoryType::IT_SOUND;
+    mFilterMap["filter_type_textures"]      = 0x01ULL << LLInventoryType::IT_TEXTURE;
+    mFilterMap["filter_type_snapshots"]     = 0x01ULL << LLInventoryType::IT_SNAPSHOT;
+    mFilterMap["filter_type_settings"]      = 0x01ULL << LLInventoryType::IT_SETTINGS;
+    mFilterMap["filter_type_materials"]     = 0x01ULL << LLInventoryType::IT_MATERIAL;
+    mFilterMask = 0;
+    for (const auto& entry : mFilterMap)
+    {
+        mFilterMask |= entry.second;
+    }
+
+    mFilterComboBox = findChild<LLComboBox>("filter_combo_box");
+    if (mFilterComboBox)
+    {
+        mFilterComboBox->setCommitCallback([this](LLUICtrl*, const LLSD& value) { onFilterTypeSelected(value.asString()); });
+    }
+
+    mTrashButton = findChild<LLDragAndDropButton>("trash_btn");
+    if (mTrashButton)
+    {
+        mTrashButton->setCommitCallback([this](LLUICtrl*, const LLSD&) { onTrashButtonClick(); });
+        mTrashButton->setDragAndDropHandler([this](S32, S32, MASK, bool drop, EDragAndDropType cargo_type, void*, EAcceptance* accept, std::string&)
+        {
+            return handleDragAndDropToTrash(drop, cargo_type, accept);
+        });
+    }
+
+    if (LLButton* new_window_btn = findChild<LLButton>("new_inv_btn"))
+    {
+        new_window_btn->setCommitCallback([](LLUICtrl*, const LLSD&) { newWindow(); });
+    }
+
+    mShowFiltersBtn = findChild<LLButton>("show_filters_inv_btn");
+    if (mShowFiltersBtn)
+    {
+        mShowFiltersBtn->setCommitCallback([this](LLUICtrl*, const LLSD&) { toggleFindOptions(); });
+    }
+
+    updateListCommands();
+    if (mActivePanel)
+    {
+        updateFilterDropdown(&getCurrentFilter());
+    }
+}
+
+void LLPanelMainInventory::onFilterTypeSelected(const std::string& filter_type_name)
+{
+    if (!mActivePanel)
+    {
+        return;
+    }
+
+    // Only the item type bits change; the rest of the tab's filter (folders on Recent, ...) stays.
+    U64 filter_types = mFilterMask;
+    LLFloaterInventoryFinder* finder = getFinder();
+
+    auto it = mFilterMap.find(filter_type_name);
+    if (it != mFilterMap.end())
+    {
+        filter_types = it->second;
+    }
+    else if (filter_type_name == "filter_type_all")
+    {
+        if (finder)
+        {
+            finder->selectAllTypes();
+        }
+    }
+    else if (filter_type_name == "filter_type_custom")
+    {
+        // open the filter window, or bring it forward
+        if (!finder)
+        {
+            toggleFindOptions();
+        }
+        else
+        {
+            finder->setFocus(true);
+        }
+        return;
+    }
+    else
+    {
+        LL_WARNS("Inventory") << "Invalid filter selection: " << filter_type_name << LL_ENDL;
+        return;
+    }
+
+    const U64 other_bits = getCurrentFilter().getFilterObjectTypes() & ~mFilterMask;
+    mActivePanel->setFilterTypes(other_bits | filter_types);
+    if (finder)
+    {
+        finder->updateElementsFromFilter();
+    }
+    setFilterTextFromFilter();
+}
+
+void LLPanelMainInventory::updateFilterDropdown(const LLInventoryFilter* filter)
+{
+    if (!mFilterComboBox || !filter || mFilterMask == 0)
+    {
+        return;
+    }
+
+    const U64 filter_types = filter->getFilterObjectTypes() & mFilterMask;
+    std::string control_name;
+    if (filter_types == mFilterMask)
+    {
+        control_name = "filter_type_all";
+    }
+    else
+    {
+        for (const auto& entry : mFilterMap)
+        {
+            if (entry.second == filter_types)
+            {
+                control_name = entry.first;
+                break;
+            }
+        }
+        if (control_name.empty())
+        {
+            control_name = "filter_type_custom";
+        }
+    }
+
+    if (mFilterComboBox->getValue().asString() != control_name)
+    {
+        mFilterComboBox->setValue(control_name);
+    }
+}
+
+void LLPanelMainInventory::onTrashButtonClick()
+{
+    onClipboardAction("delete");
+}
+
+bool LLPanelMainInventory::handleDragAndDropToTrash(bool drop, EDragAndDropType /*cargo_type*/, EAcceptance* accept)
+{
+    *accept = ACCEPT_NO;
+
+    const bool is_enabled = isActionEnabled("delete");
+    if (is_enabled)
+    {
+        *accept = ACCEPT_YES_MULTI;
+    }
+
+    if (is_enabled && drop)
+    {
+        onClipboardAction("delete");
+    }
+    return true;
+}
+// </Prestige>

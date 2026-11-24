@@ -55,6 +55,8 @@ public:
         Params();
     };
 
+    void drawFirestormTab(); // <Prestige> Firestorm vertical-tab look for the list row
+
 protected:
     friend class LLUICtrlFactory;
     LLConversationViewSession( const Params& p );

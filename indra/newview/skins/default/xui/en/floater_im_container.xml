@@ -4,7 +4,7 @@
  can_close="true"  
  can_minimize="true"
  can_resize="true"
- height="210"
+ height="390"
  min_height="210"
  layout="topleft"
  name="floater_im_box"
@@ -16,8 +16,10 @@
  title="Conversations"
  bottom="-50"
  left="5"
- width="450"
+ width="396"
  min_width="38">
+    <!-- <Prestige> Firestorm look: Firestorm's default size (396 x 390, was 450 x 210); the list is the
+         tab column (names, 120 px) under a slim 20 px icon row that lines up with the chat's tool row -->
     <string
      name="collapse_icon"
      value="Conv_toolbar_collapse"/>
@@ -43,11 +45,11 @@
          user_resize="true"        
          name="conversations_layout_panel"
          min_dim="43"
-         expanded_min_dim="140">
+         expanded_min_dim="110">
             <layout_stack
              animate="false" 
              follows="left|top|right"
-             height="27"
+             height="22"
              layout="topleft"
              left="0"
              name="conversations_pane_buttons_stack"
@@ -59,7 +61,7 @@
                  name="conversations_pane_buttons_expanded">
                     <menu_button
                      follows="top|left"
-                     height="25"
+                     height="20"
                      image_hover_unselected="Toolbar_Middle_Over"
                      image_overlay="Conv_toolbar_sort"
                      image_selected="Toolbar_Middle_Selected"
@@ -70,10 +72,10 @@
                      name="sort_btn"
                      tool_tip="View/sort options"
                      top="1"
-                     width="31" />
+                     width="24" />
                     <button
                      follows="top|left"
-                     height="25"
+                     height="20"
                      image_hover_unselected="Toolbar_Middle_Over"
                      image_overlay="Conv_toolbar_plus"
                      image_selected="Toolbar_Middle_Selected"
@@ -83,10 +85,10 @@
                      left_pad="2"
                      name="add_btn"
                      tool_tip="Start a new conversation"
-                     width="31"/>
+                     width="24"/>
                     <button
                      follows="top|left"
-                     height="25"
+                     height="20"
                      image_hover_unselected="Toolbar_Middle_Over"
                      image_overlay="Command_Speak_Icon"
                      image_selected="Toolbar_Middle_Selected"
@@ -96,25 +98,25 @@
                      left_pad="2"
                      name="speak_btn"
                      tool_tip="Speak with people using your microphone"
-                     width="31"/>	
+                     width="24"/>	
                 </layout_panel>
                 <layout_panel
                  auto_resize="false"
                  name="conversations_pane_buttons_collapsed"
-                 width="35">
+                 width="28">
                     <button
                      follows="right|top"
-                     height="25"
+                     height="20"
                      image_hover_unselected="Toolbar_Middle_Over"
                      image_overlay="Conv_toolbar_collapse"
                      image_selected="Toolbar_Middle_Selected"
                      image_unselected="Toolbar_Middle_Off"
                      layout="topleft"
                      top="1"
-                     left="4"
+                     left="2"
                      name="expand_collapse_btn"
                      tool_tip="Collapse/Expand this list"
-                     width="35" />
+                     width="24" />
                 </layout_panel>
             </layout_stack>
             <panel
@@ -149,7 +151,7 @@
                  right="-1">
                     <button
                      follows="right|top"
-                     height="25"
+                     height="20"
                      image_hover_unselected="Toolbar_Middle_Over"
                      image_overlay="Conv_toolbar_collapse"
                      image_selected="Toolbar_Middle_Selected"
@@ -159,7 +161,7 @@
                      right="-10"
                      name="stub_collapse_btn"
                      tool_tip="Collapse this pane"
-                     width="31" />
+                     width="24" />
                     <text
                      type="string"
                      clip_partial="false"
@@ -179,4 +181,5 @@
             </panel_container>
         </layout_panel>
     </layout_stack>
+    <!-- </Prestige> -->
 </multi_floater>

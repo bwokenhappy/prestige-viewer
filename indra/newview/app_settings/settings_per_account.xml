@@ -13,6 +13,19 @@
         <key>Value</key>
         <integer>0</integer>
         </map>
+    <key>PrestigeFirestormConversationsApplied</key>
+        <map>
+        <key>Comment</key>
+        <string>Prestige: the Firestorm look for Conversations (list showing names at Firestorm width, Nearby Chat under Contacts) was applied once to this account's saved layout.</string>
+        <key>Persist</key>
+        <integer>1</integer>
+        <key>HideFromEditor</key>
+        <integer>1</integer>
+        <key>Type</key>
+        <string>Boolean</string>
+        <key>Value</key>
+        <integer>0</integer>
+        </map>
     <key>RLVaLoginLastLocation</key>
         <map>
         <key>Comment</key>
@@ -169,8 +182,8 @@
         <key>Type</key>
             <string>Boolean</string>
         <key>Value</key>
-            <!-- <Prestige> readable chat: the conversations list starts as a narrow column of icons, the chat text gets the width (was 0) -->
-            <integer>1</integer>
+            <!-- <Prestige> Firestorm look: the conversations list shows names, like Firestorm's tab column (was 1, LL 0) -->
+            <integer>0</integer>
     </map>
     <key>ConversationsListPaneWidth</key>
     <map>
@@ -181,7 +194,8 @@
         <key>Type</key>
             <string>S32</string>
         <key>Value</key>
-            <integer>205</integer>
+            <!-- <Prestige> Firestorm tab column width (115) plus the list's 5 px margin (was 205) -->
+            <integer>120</integer>
     </map>
     <key>ConversationsMessagePaneCollapsed</key>
     <map>

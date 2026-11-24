@@ -582,6 +582,11 @@ with the same filename but different name
   <texture name="Inv_VersionFolderOpen" file_name="icons/Inv_VersionFolderOpen.png" preload="false" vector_file="phosphor/folder-simple-plus.svg" vector_color="#C0AD88" vector_box="0.000,0.000,1.000,0.938" />
 
   <texture name="Inv_Toolbar_SearchVisibility" file_name="icons/Inv_Toolbar_SearchVisibility.png" preload="false" vector_file="phosphor/eye.svg" vector_color="#B0B0B0" />
+  <!-- <Prestige> Firestorm inventory button bar (new inventory window, show filters) and chat transcript button -->
+  <texture name="Inv_NewWindow" file_name="icons/TrashItem_Off.png" preload="false" vector_file="phosphor/copy.svg" vector_color="IconColor@BF" vector_box="0.111,0.111,0.889,0.889" />
+  <texture name="Inv_ShowFilters" file_name="icons/TrashItem_Off.png" preload="false" vector_file="phosphor/sliders-horizontal.svg" vector_color="IconColor@BF" vector_box="0.111,0.111,0.889,0.889" />
+  <texture name="Prestige_Chat_History" file_name="icons/TrashItem_Off.png" preload="false" vector_file="phosphor/clock-counter-clockwise.svg" vector_color="IconColor@BF" vector_box="0.111,0.111,0.889,0.889" />
+  <!-- </Prestige> -->
 
   <texture name="Landmarks_overlay" file_name="navbar/Landmarks.png" preload="false" vector_file="phosphor/map-pin.svg" vector_color="IconColor" vector_box="0.071,0.000,0.857,1.000" />
 

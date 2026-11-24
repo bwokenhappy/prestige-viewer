@@ -5503,4 +5503,38 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="CameraModeTipRailResetWhat">Puts this setting back to its default value.</string>
   <string name="CameraModeSwitchedTv">Shutter priority (Tv): you set the shutter, the camera the aperture</string>
   <string name="CameraModeSwitchedAv">Aperture priority (Av): you set the aperture, the camera the shutter</string>
+  <!-- <Prestige> camera mode's viewfinder: display levels, lens rings, camera pad, light readouts, photo roll -->
+  <string name="PrestigeCameraDisplay0">Display: everything</string>
+  <string name="PrestigeCameraDisplay1">Display: essentials</string>
+  <string name="PrestigeCameraDisplay2">Display: picture only</string>
+  <string name="PrestigeCameraPictureHint">Picture only · [KEY] or the top-left corner brings the overlay back</string>
+  <string name="PrestigeCameraPictureHintNoKey">Picture only · the top-left corner brings the overlay back</string>
+  <string name="PrestigeCameraKeyDisplay">everything / essentials / picture</string>
+  <string name="PrestigeCameraRingZoom">Zoom</string>
+  <string name="PrestigeCameraRingAperture">Aperture</string>
+  <string name="PrestigeCameraRingExposure">Exposure</string>
+  <string name="PrestigeCameraRingMeter">Meter (M: set by aperture, shutter, ISO)</string>
+  <string name="PrestigeCameraPadOrbit">Orbit</string>
+  <string name="PrestigeCameraPadFree">Free</string>
+  <string name="PrestigeCameraPadFirst">First person</string>
+  <string name="PrestigeCameraPadHintOrbit">Drag: orbit · wheel: in / out</string>
+  <string name="PrestigeCameraPadHintFree">Drag: move · wheel: up / down</string>
+  <string name="PrestigeCameraPadHintFirst">Drag: look around · wheel: zoom</string>
+  <string name="PrestigeCameraLightTitle">Light</string>
+  <string name="PrestigeCameraClipHigh">[HIGH]% blown</string>
+  <string name="PrestigeCameraClipLow">[LOW]% black</string>
+  <string name="PrestigeCameraClipBoth">[HIGH]% blown · [LOW]% black</string>
+  <string name="PrestigeCameraLevelText">Tilt [ROLL] · pitch [PITCH]</string>
+  <string name="PrestigeCameraRollInventory">Save to inventory…</string>
+  <string name="PrestigeCameraRollProfile">Share to profile feed…</string>
+  <string name="PrestigeCameraRollEmail">Send by e-mail…</string>
+  <string name="PrestigeCameraRollDelete">Delete…</string>
+  <string name="PrestigeCameraRollDeleteGo">Delete</string>
+  <string name="PrestigeCameraRollConfirmFile">Delete this photo? Its file on disk is deleted too.</string>
+  <string name="PrestigeCameraRollConfirmNoFile">Remove this photo from the roll? It was not saved to disk.</string>
+  <string name="PrestigeCameraRollDeleted">Photo deleted</string>
+  <string name="PrestigeCameraRollNotDeleted">The file could not be deleted: the photo stays</string>
+  <string name="PrestigeCameraRollNoImage">This photo's image is no longer available</string>
+  <string name="PrestigeCameraRollPreviewOnly">Not saved to disk: its 1280-pixel preview is sent</string>
+  <!-- </Prestige> -->
 </strings>

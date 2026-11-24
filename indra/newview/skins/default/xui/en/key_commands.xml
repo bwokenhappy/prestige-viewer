@@ -153,6 +153,14 @@
    label="Camera mode: take the bar out of the frame, or bring it back"
    context="camera_mode"
    shortcut="H" />
+  <!-- <Prestige> the viewfinder's display levels (everything, essentials, the picture alone), like a camera's INFO button -->
+  <command
+   name="camera_display"
+   group="camera"
+   label="Camera mode: what the viewfinder shows (everything, essentials, the picture alone)"
+   context="camera_mode"
+   shortcut="I" />
+  <!-- </Prestige> -->
   <!-- #1668: Video Studio. Only while the studio is up (the interface is hidden); the movement keys keep working. -->
   <command
    name="studio_exit"

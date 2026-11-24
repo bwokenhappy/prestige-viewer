@@ -37,6 +37,13 @@
 #include "slcamerarail.h"
 #include "slcamerareview.h"
 #include "slkeycommands.h"
+// <Prestige> display levels, lens rings, camera pad, live histogram, photo roll
+#include "prestigecamerapad.h"
+#include "slphotostudioscopes.h"
+#include "slscopedata.h"
+#include "llfocusmgr.h"
+#include "pipeline.h"
+// </Prestige>
 
 #include "llfile.h"
 #include "llfloaterpreference.h"
@@ -337,8 +344,18 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div id="histscale"><div class="l">{{histDark}}</div><div class="r">{{histBright}}</div></div>
   <div class="meta"><div class="t">{{cardTitle}}</div><div class="caption">{{cardMeta}}</div></div>
   <div class="caption">{{cardLabel}}</div>
-  <div class="acts"><div class="btn" data-event-click="folder()">{{folderLabel}}</div>    <div class="spacer"></div><div class="btn" data-event-click="cardmore()"><ic name="more"/></div></div>
-  <div id="cardmenu" class="popover" data-if="cardMore"><div class="opt" data-event-click="del()"><div class="col">{{deleteLabel}}</div></div></div>
+  <div class="acts"><div class="btn" data-event-click="folder()">{{folderLabel}}</div>    <div class="spacer"></div><!-- <Prestige> -->
+    <div class="btn" data-event-click="rollsend(1)"><ic name="box"/></div><div class="btn" data-event-click="rollsend(2)"><ic name="person"/></div>
+    <div class="btn" data-event-click="rollsend(3)"><ic name="mail"/></div><!-- </Prestige> --><div class="btn" data-event-click="cardmore()"><ic name="more"/></div></div>
+  <div id="cardmenu" class="popover" data-if="cardMore"><!-- <Prestige> send again; delete asks first -->
+    <div class="opt" data-event-click="rollsend(1)"><ic name="box"/><div class="col">{{rollInventory}}</div></div>
+    <div class="opt" data-event-click="rollsend(2)"><ic name="person"/><div class="col">{{rollProfile}}</div></div>
+    <div class="opt" data-event-click="rollsend(3)"><ic name="mail"/><div class="col">{{rollEmail}}</div></div>
+    <div class="sep"></div>
+    <div class="opt" data-event-click="rolldelask()"><div class="col">{{rollDelete}}</div></div><!-- </Prestige> --></div>
+  <!-- <Prestige> --><div class="pconfirm" data-if="rollConfirm"><div class="caption">{{rollConfirmText}}</div>
+    <div class="acts"><div class="spacer"></div><div class="btn" data-event-click="rolldelno()">{{cancelLabel}}</div>
+      <div class="btn accent" data-event-click="rolldel()">{{rollDeleteGo}}</div></div></div><!-- </Prestige> -->
   </div>
   <div id="thumbs">
   <div class="tw" data-for="t : thumbs"><img class="thumb" data-attr-src="t.src" data-class-sel="t.sel" data-event-click="thumb(t.index)"/></div>
@@ -491,7 +508,9 @@ struct Tick
     bool on = false, major = false;
 };
 constexpr int kTicks = 13;
-constexpr size_t kMaxThumbs = 3; // board 29; four reach the bar on a 1280-wide window
+// <Prestige> the photo roll: the card's strip shows the last ten (two rows); closed, the pile stands for them
+constexpr size_t kMaxThumbs = 10; // board 29 had 3 in a row beside the bar
+// </Prestige>
 
 // The Photo Studio rail as the document shows it (`id`: "rrow-S-R", `track`: "rtrack-S-R").
 struct RailRow
@@ -518,6 +537,7 @@ struct Finder
     S32    roll10 = INT_MIN, pitch10 = INT_MIN; // tenths of a degree
     F32    afX = -1.f, afY = -1.f;
     S32    rootH = 0;
+    S32    display = -1; // <Prestige> the display level
 };
 
 // Size presets (the "Window" row and "Custom..." around them).
@@ -607,6 +627,180 @@ struct View
     F64                   hintSince = 0.0, nextRefresh = 0.0;
 };
 View gView;
+
+// <Prestige> ---- display levels, lens rings, camera pad, live light readouts, photo roll ----
+// Their markup and styles are added to the document when it loads (prestigeRml), so the camera
+// document above stays as it is.
+struct PrestigeRingTick
+{
+    std::string x, label; // x: from the band's left edge ("37.5dp"); label: a named step's
+    bool        major = false;
+    bool operator==(const PrestigeRingTick& o) const { return x == o.x && label == o.label && major == o.major; }
+};
+struct PrestigeRing
+{
+    std::string                   id, name, value; // id: "pring-N"
+    std::vector<PrestigeRingTick> ticks;
+    bool                          drag = false, dim = false;
+    bool operator==(const PrestigeRing& o) const
+    {
+        return id == o.id && name == o.name && value == o.value && ticks == o.ticks && drag == o.drag && dim == o.dim;
+    }
+};
+struct PrestigePileCard
+{
+    std::string src, x, y;
+    bool        top = false;
+    bool operator==(const PrestigePileCard& o) const { return src == o.src && x == o.x && y == o.y && top == o.top; }
+};
+struct PrestigeView
+{
+    int                           display = 0; // PrestigeCameraDisplayLevel: 0 everything, 1 essentials, 2 the picture
+    std::string                   rootSig;     // the root's classes as last set
+    std::string                   dispLabel, minLine, picHintText, lumTitle, lumClip, levelText, levelTf, padHint;
+    std::string                   rollConfirmText, rollDeleteGo, rollInventory, rollProfile, rollEmail, rollDelete, rollCount;
+    std::string                   padKnobX = "48dp", padKnobY = "48dp";
+    bool                          picHint = false, levelOk = false, pileShown = false, rollConfirm = false;
+    F64                           picHintAt = -100.0, nextLight = 0.0;
+    std::vector<Bar>              lumBars;
+    std::vector<PrestigeRing>     rings;
+    std::vector<Choice>           padModes;
+    std::vector<PrestigePileCard> pile;
+    U32                           confirmSerial = 0;
+    bool                          scopeHeld = false; // the live histogram holds the scope sampling
+    // a lens ring being dragged (its index), the pointer's last x (UI units), the pull not yet a step (dp)
+    int                           ringDrag = -1;
+    S32                           ringLastX = 0;
+    F32                           ringAcc = 0.f;
+    // the camera pad's knob held, and its pull (-1..1, y up)
+    bool                          padDrag = false;
+    F32                           padX = 0.f, padY = 0.f;
+    U32                           padModeShown = U32(-1);
+};
+PrestigeView gPrestige;
+
+constexpr int    kPrestigeRings = 3;    // zoom, aperture, exposure
+constexpr float  kRingUnitDp    = 10.f; // one fine step of a ring: on its scale and under the pointer
+constexpr float  kRingCentreDp  = 99.f; // the index mark, from the band's left edge (the band is 198 dp)
+constexpr size_t kRollShown     = 10;   // the photo roll: the session's last ten shots
+constexpr float  kPadTravelDp   = 33.f; // the knob's reach from the pad's centre (the pad is 96 dp)
+
+const char* kPrestigeCss = R"rcss(
+/* <Prestige> display levels: 1 essentials (the frame, AF point, shutter, one readout line), 2 the picture alone.
+   Popovers, menus and cards the user opens (quick settings, help, the send card, the review card) show in every level. */
+.plv1 #helpbtn, .plv1 #status, .plv1 #hints, .plv1 #stripwrap, .plv1 #chips, .plv1 #rail, .plv1 #notice,
+.plv1 #readout, .plv1 #handle { display: none; }
+.plv1 #bar { background-color: transparent; border-color: transparent; pointer-events: none; }
+.plv1 #bar .bb { display: none; }
+.plv1 #bar #shutter { pointer-events: auto; }
+.plv2 #helpbtn, .plv2 #status, .plv2 #hints, .plv2 #stripwrap, .plv2 #chips, .plv2 #rail, .plv2 #notice,
+.plv2 #readout, .plv2 #handle, .plv2 #bar, .plv2 #toast, .plv2 #saved, .plv2 #drive, .plv2 #tipwrap, .plv2 .corner { display: none; }
+#pdisp { position: absolute; left: 36dp; top: 68dp; pointer-events: auto; cursor: pointer; font-size: $fontCaption; } /* .cbtn */
+.plv2 #pdisp { opacity: 0; } .plv2 #pdisp:hover { opacity: 1; } /* the picture alone: the corner still brings it back */
+#pminline { position: absolute; left: 0; right: 0; bottom: 92dp; text-align: center; }
+.top #pminline { bottom: auto; top: 92dp; }
+#pminline .capsule { padding: 3dp 12dp; white-space: nowrap; }
+#ppichint { position: absolute; left: 0; right: 0; bottom: 40dp; text-align: center; }
+/* the live light readouts: the frame's luminance histogram, the level and tilt */
+#plumen { position: absolute; right: 24dp; top: 64dp; width: 196dp; padding: 6dp 8dp; pointer-events: auto; }
+.prailr #plumen { right: 324dp; }
+#plumen .phead { display: flex; flex-direction: row; }
+#plumen .phead .caption { flex: 1 1 0; }
+#plumen .pclip { text-align: right; color: $warn; }
+#plhist { display: flex; flex-direction: row; align-items: flex-end; height: 40dp; margin: 4dp 0; background-color: $histogram; border-radius: 4dp; }
+#plhist .b { flex: 1 1 0; background-color: $muted; }
+#plumen .plev { display: flex; flex-direction: row; align-items: center; }
+#plevgauge { position: relative; width: 34dp; height: 14dp; margin-right: 8dp; }
+#plevline { position: absolute; left: 0; top: 6dp; width: 34dp; height: 2dp; background-color: $text; }
+#plevline.ok { background-color: $ok; }
+/* the lens rings: drag sideways or turn the wheel over one */
+#prings { position: absolute; right: 24dp; bottom: 28dp; width: 216dp; }
+.pnarrow #prings { bottom: auto; top: 200dp; }
+.pring { display: block; margin-top: 6dp; padding: 4dp 8dp 6dp 8dp; background-color: $bar; border: 1dp $border;
+         border-radius: $radiusControl; pointer-events: auto; cursor: pointer; }
+.pring:hover { border-color: $borderStrong; }
+.pring.drag { border-color: $accent; }
+.pring.dim .prv { color: $muted; }
+.prhd { display: flex; flex-direction: row; height: 16dp; line-height: 16dp; }
+.prn { flex: 1 1 0; font-size: $fontCaption; color: $muted; }
+.prv { font-weight: bold; }
+.prband { position: relative; height: 22dp; margin-top: 2dp; overflow: hidden; clip: always; background-color: $chip; border-radius: 4dp; }
+.prtk { position: absolute; top: 0; width: 1dp; height: 5dp; background-color: $muted; }
+.prtk.major { width: 2dp; height: 8dp; background-color: $text; }
+.prtl { position: absolute; top: 9dp; left: -15dp; width: 32dp; text-align: center; font-size: 9dp; line-height: 12dp; color: $text; }
+.pridx { position: absolute; left: 98dp; top: 0; bottom: 0; width: 2dp; background-color: $accent; }
+/* the camera pad */
+#ppad { position: absolute; left: 24dp; bottom: 96dp; width: 200dp; padding: 6dp; pointer-events: auto; }
+#ppad .segmented .seg { flex: 1 1 auto; padding: 0 6dp; white-space: nowrap; }
+#ppadring { position: relative; width: 96dp; height: 96dp; margin: 8dp auto 2dp auto; cursor: pointer;
+            decorator: radial-gradient(circle closest-side, $chip 90%, $borderStrong 94%, $borderStrong 97%, $disc00 100%); }
+#ppadknob { position: absolute; width: 30dp; height: 30dp; margin-left: -15dp; margin-top: -15dp; pointer-events: none;
+            decorator: radial-gradient(circle closest-side, $accent 78%, $accent00 100%); }
+#ppad .pcap { text-align: center; font-size: $fontCaption; color: $muted; }
+/* the rail stops above the rings (docked right) or the pad (docked left) */
+.plv0.prailr #rail { bottom: 200dp; }
+.plv0.praill #rail { bottom: 270dp; }
+/* a narrow window: the pad rises clear of the strip, the rings stay clear of the rail */
+.pnarrow #ppad { bottom: 160dp; }
+.pnarrow.plv0.praill #rail { bottom: 330dp; }
+.pnarrow.prailr #prings { right: 324dp; }
+/* the photo roll: the last ten shots as a pile; a click opens the review card with all of them */
+#ppile { position: absolute; left: 24dp; bottom: 28dp; width: 96dp; height: 64dp; pointer-events: auto; cursor: pointer; }
+#ppile .pcw { position: absolute; }
+#ppile .pcw img { display: block; width: 72dp; border: 2dp $finderStrong; border-radius: 3dp; }
+#ppile:hover .pcw.ptop img { border-color: $accent; }
+#ppile .pcount { position: absolute; right: 0; top: 0; min-width: 18dp; height: 18dp; line-height: 18dp; padding: 0 5dp; text-align: center;
+                 font-size: $fontCaption; border-radius: 9dp; background-color: $accent; color: $onAccent; }
+#review { display: none; } #review.open { display: block; } /* closed, the pile stands for it */
+#review.open #thumbs { flex-wrap: wrap; }
+#review.open .thumb { width: 50dp; height: 28dp; }
+#cardmenu { width: 220dp; }
+#card .pconfirm { margin-top: 8dp; padding-top: 8dp; border-top: 1dp $border; }
+/* </Prestige> */
+)rcss";
+
+const char* kPrestigeRml = R"rml(
+<!-- <Prestige> display levels, light readouts, lens rings, camera pad, photo roll -->
+<div id="pdisp" class="cbtn" data-event-click="pdisplay()">{{dispLabel}}</div>
+<div id="pminline" data-if="display == 1"><span class="capsule">{{minLine}}</span></div>
+<div id="ppichint" data-if="picHint"><span class="capsule">{{picHintText}}</span></div>
+<div id="plumen" class="panel" data-if="display == 0">
+  <div class="phead"><div class="caption">{{lumTitle}}</div><div class="caption pclip">{{lumClip}}</div></div>
+  <div id="plhist"><div class="b" data-for="b : lumBars" data-style-height="b.h"></div></div>
+  <div class="plev"><div id="plevgauge"><div id="plevline" data-class-ok="levelOk" data-style-transform="levelTf"></div></div><div class="caption">{{levelText}}</div></div>
+</div>
+<div id="prings" data-if="display == 0">
+  <div class="pring" data-for="r : rings" data-attr-id="r.id" data-class-drag="r.drag" data-class-dim="r.dim">
+    <div class="prhd"><div class="prn">{{r.name}}</div><div class="prv">{{r.value}}</div></div>
+    <div class="prband"><div class="prtk" data-for="t : r.ticks" data-class-major="t.major" data-style-left="t.x"><div class="prtl" data-if="t.label != ''">{{t.label}}</div></div><div class="pridx"></div></div>
+  </div>
+</div>
+<div id="ppad" class="panel" data-if="display == 0">
+  <div class="segmented"><div class="seg" data-for="m : padModes" data-class-on="m.on" data-event-click="padmode(it_index)">{{m.label}}</div></div>
+  <div id="ppadring"><div id="ppadknob" data-style-left="padKnobX" data-style-top="padKnobY"></div></div>
+  <div class="pcap">{{padHint}}</div>
+</div>
+<div id="ppile" data-if="pileShown" data-event-click="pile()">
+  <div class="pcw" data-for="p : pile" data-class-ptop="p.top" data-style-left="p.x" data-style-top="p.y"><img data-attr-src="p.src"/></div>
+  <div class="pcount">{{rollCount}}</div>
+</div>
+<!-- </Prestige> -->
+)rml";
+
+// The camera document with the Prestige parts added: the styles at the end of its sheet, the
+// elements at the end of its root.
+std::string prestigeRml(const char* rml)
+{
+    std::string s = rml;
+    const size_t style = s.find("</style>");
+    if (style != std::string::npos)
+        s.insert(style, kPrestigeCss);
+    const size_t end = s.rfind("</div></body>");
+    if (end != std::string::npos)
+        s.insert(end, kPrestigeRml);
+    return s;
+}
+// </Prestige>
 
 F64 now() { return LLTimer::getTotalSeconds(); }
 
@@ -718,6 +912,10 @@ void buildHelp()
         if (!k.empty()) // an unbound command has nothing to show
             v.helpKeys.push_back({ k, str(text) });
     }
+    // <Prestige> the display levels' key
+    if (const std::string k = key("camera_display"); !k.empty())
+        v.helpKeys.push_back({ k, LLTrans::getString("PrestigeCameraKeyDisplay") });
+    // </Prestige>
     dirty("helpMouse");
     dirty("helpKeys");
     dirty("helpTitle");
@@ -1361,6 +1559,21 @@ void updateFinder()
               : v.gridPreview >= 0 ? (U32)v.gridPreview : SLCameraModel::grid();
     f.level = v.controlsOpen && SLCameraModel::level();
     f.tilt  = v.controlsOpen;
+    // <Prestige> display levels: everything shows the level and the tilt with Controls closed too;
+    // essentials keep the frame and the AF point; the picture alone shows none of it.
+    f.display = gPrestige.display;
+    if (f.display == 0)
+    {
+        f.level = SLCameraModel::level();
+        f.tilt  = true;
+    }
+    else
+    {
+        f.grid  = (U32)SLCameraExposure::GRID_OFF;
+        f.level = false;
+        f.tilt  = false;
+    }
+    // </Prestige>
     f.held  = SLCameraModel::focusHeld();
     F32 roll = 0.f, pitch = 0.f;
     SLCameraModel::levelAngles(roll, pitch);
@@ -1372,10 +1585,20 @@ void updateFinder()
     f.rootH = ll_round(v.H * 100.f);
     const Finder& o = v.finder;
     if (f.frame == o.frame && f.grid == o.grid && f.level == o.level && f.levelOk == o.levelOk && f.held == o.held && f.locked == o.locked && f.tilt == o.tilt
-        && f.roll10 == o.roll10 && f.pitch10 == o.pitch10 && f.afX == o.afX && f.afY == o.afY && f.rootH == o.rootH)
+        && f.roll10 == o.roll10 && f.pitch10 == o.pitch10 && f.afX == o.afX && f.afY == o.afY && f.rootH == o.rootH
+        && f.display == o.display) // <Prestige>
         return;
     v.finder = f;
     markChanged();
+    // <Prestige> the picture alone: no crop mask, grid, AF point, level or tilt
+    if (f.display == 2)
+    {
+        for (const char* id : { "m-t", "m-b", "m-l", "m-r", "g-v1", "g-v2", "g-h1", "g-h2", "g-d1", "g-d2", "g-cx", "g-cy", "af",
+                                "level", "levelinfo", "tiltband", "tilthit", "tiltknob", "tiltlabel" })
+            hide(id);
+        return;
+    }
+    // </Prestige>
     // The frame comes in UI units (y up); the document wants dp from the top-left.
     const float W = v.W, H = v.H, k = v.k;
     const float l = (float)f.frame.mLeft / k, t = H - (float)f.frame.mTop / k, w = (float)f.frame.getWidth() / k,
@@ -1650,7 +1873,9 @@ Rml::ElementDocument* loadDocument(Rml::Context* context)
     v.theme = gSavedSettings.getU32("UIKitTheme") == 1 ? 1u : 0u;
     // Every text of this document sits on a surface (>= 0.92 alpha): no outline (the kit's rule).
     const LLNewUIKit::Tokens tokens = LLNewUIKit::tokens(v.theme == 1 ? LLNewUIKit::Theme::Light : LLNewUIKit::Theme::Dark, true);
-    return context->LoadDocumentFromMemory(LLNewUIKit::themed(kCameraRml, tokens), "slcamera.rml");
+    // <Prestige> the display levels, rings, pad, light readouts and photo roll go in with it
+    return context->LoadDocumentFromMemory(LLNewUIKit::themed(prestigeRml(kCameraRml).c_str(), tokens), "slcamera.rml");
+    // </Prestige>
 }
 
 // A theme switch: the document again under the new tokens; the data model and every state stay.
@@ -1671,6 +1896,642 @@ void retheme()
         v.model.DirtyAllVariables();
     markChanged();
 }
+
+// <Prestige> ---- display levels, lens rings, camera pad, live light readouts, photo roll ----
+S32 displaySetting()
+{
+    static LLCachedControl<S32> s_level(gSavedSettings, "PrestigeCameraDisplayLevel", 0);
+    return llclamp((S32)s_level, 0, 2);
+}
+
+// The document's root (the data model's element): it carries the level's class.
+Rml::Element* rootElement()
+{
+    View& v = gView;
+    if (!v.document)
+        return nullptr;
+    for (int i = 0; i < v.document->GetNumChildren(); ++i)
+        if (Rml::Element* e = v.document->GetChild(i); e && e->HasAttribute("data-model"))
+            return e;
+    return v.document->GetFirstChild();
+}
+
+// plv0..2: the display level; prailr / praill: the rail is open on that side (the readouts make
+// room); pnarrow: the rings go up beside the frame, clear of the bar.
+void applyRootClasses()
+{
+    View&          v    = gView;
+    PrestigeView&  p    = gPrestige;
+    Rml::Element*  root = rootElement();
+    if (!root)
+        return;
+    const bool        rail   = p.display == 0 && v.controlsOpen && v.studioOn && !v.barAway;
+    const bool        narrow = v.W < 1150.f;
+    const std::string sig    = llformat("%d|%d|%d|%d", p.display, rail && v.railRight, rail && !v.railRight, narrow);
+    // (a theme switch loads a fresh document: its root has none of the classes yet)
+    if (sig == p.rootSig && root->IsClassSet(llformat("plv%d", p.display)))
+        return;
+    p.rootSig = sig;
+    for (int i = 0; i < 3; ++i)
+        root->SetClass(llformat("plv%d", i), p.display == i);
+    root->SetClass("prailr", rail && v.railRight);
+    root->SetClass("praill", rail && !v.railRight);
+    root->SetClass("pnarrow", narrow);
+    markChanged();
+}
+
+void refreshDisplayLabel()
+{
+    PrestigeView& p = gPrestige;
+    set(p.dispLabel, LLTrans::getString(llformat("PrestigeCameraDisplay%d", p.display)), "dispLabel");
+    const std::string k = key("camera_display");
+    LLStringUtil::format_map_t args;
+    args["[KEY]"] = k;
+    set(p.picHintText, LLTrans::getString(k.empty() ? "PrestigeCameraPictureHintNoKey" : "PrestigeCameraPictureHint", args), "picHintText");
+}
+
+// The live histogram samples the presented frame while it shows (the Photo Studio scopes' capture).
+void holdScopes(bool on)
+{
+    PrestigeView& p = gPrestige;
+    if (on == p.scopeHeld)
+        return;
+    p.scopeHeld = on;
+    SLPanelPhotoStudioScopes::holdCapture(on);
+}
+
+// ---- the lens rings: 0 zoom, 1 aperture, 2 exposure ----
+SLCameraModel::Value ringValueOf(int ring)
+{
+    return ring == 0 ? SLCameraModel::Value::Focal : ring == 1 ? SLCameraModel::Value::Aperture : SLCameraModel::Value::EV;
+}
+
+std::string ringValueText(int ring)
+{
+    const SLCameraModel::Cell c = SLCameraModel::cell(ringValueOf(ring));
+    return c.unit.empty() ? c.value : c.value + " " + c.unit;
+}
+
+// The ring rests on a named step: a prime focal length, a full f-stop, 0 EV (every 1/3 EV clicks
+// the same); leaving one takes a longer pull.
+bool ringOnDetent(int ring)
+{
+    switch (ring)
+    {
+        case 0:
+        {
+            const F32 f = SLCameraModel::focalLength();
+            for (F32 prime : SLCameraExposure::primeFocalLengths())
+                if (std::fabs(f - prime) < 0.5f)
+                    return true;
+            return false;
+        }
+        case 1: return SLCameraExposure::nearestStop(SLCameraExposure::apertureStops(), SLCameraModel::fnumber()) % 3 == 0;
+        default: return std::fabs(SLCameraModel::exposureStops()) < 0.05f;
+    }
+}
+
+// One click of a ring (dir +1: up its scale). The zoom ring stops on a prime it would pass; the
+// aperture and exposure turn as their strip cells do (the aperture switches P / Tv to Av).
+void ringStep(int ring, int dir)
+{
+    if (ring == 0)
+    {
+        const F32 f    = SLCameraModel::focalLength();
+        const F32 next = SLCameraExposure::stepFocalLength(f, dir);
+        bool passes    = false;
+        for (F32 prime : SLCameraExposure::primeFocalLengths())
+            passes |= dir > 0 ? (prime > f + 0.5f && prime < next - 0.5f) : (prime < f - 0.5f && prime > next + 0.5f);
+        if (passes)
+            SLCameraModel::step(SLCameraModel::Value::Focal, dir); // the next prime: the one it passes
+        else
+            SLCameraModel::turn(SLCameraModel::Value::Focal, dir);
+        return;
+    }
+    SLCameraModel::turnValue(ringValueOf(ring), dir);
+}
+
+// To the next named step (Shift + wheel): the next prime, full stop or whole EV.
+void ringDetent(int ring, int dir)
+{
+    if (ring == 0)
+    {
+        const std::vector<F32>& primes = SLCameraExposure::primeFocalLengths();
+        const F32 f = SLCameraModel::focalLength();
+        if (!primes.empty() && ((dir > 0 && f < primes.back() - 0.5f) || (dir < 0 && f > primes.front() + 0.5f)))
+            SLCameraModel::step(SLCameraModel::Value::Focal, dir); // (it would wrap past the last)
+        return;
+    }
+    for (int i = 0; i < 3; ++i)
+    {
+        const std::string before = ringValueText(ring);
+        SLCameraModel::turnValue(ringValueOf(ring), dir);
+        if (ringValueText(ring) == before)
+            break; // the end of the scale (or M: the exposure follows the settings)
+        if (ring == 1 ? ringOnDetent(1) : std::fabs(SLCameraModel::exposureStops() - std::round(SLCameraModel::exposureStops())) < 0.05f)
+            break;
+    }
+}
+
+// A ring as the document shows it: its name, its value, and the marks of its scale around the
+// index (one fine step every 10 dp; named steps taller, with their number).
+PrestigeRing buildRing(int i)
+{
+    PrestigeRing r;
+    r.id    = llformat("pring-%d", i);
+    r.drag  = gPrestige.ringDrag == i;
+    r.value = ringValueText(i);
+    std::vector<std::pair<F32, std::string>> marks; // where on the scale (fine steps), the named step's number
+    F32 u = 0.f;
+    if (i == 0)
+    {
+        // The zoom ring: 1/6 of a doubling a step; the primes named.
+        u      = log2f(llmax(SLCameraModel::focalLength(), 1.f)) * 6.f;
+        r.name = LLTrans::getString("PrestigeCameraRingZoom");
+        for (int k = (int)floorf(u) - 11; k <= (int)ceilf(u) + 11; ++k)
+            marks.push_back({ (F32)k, std::string() });
+        for (F32 prime : SLCameraExposure::primeFocalLengths())
+            marks.push_back({ log2f(prime) * 6.f, llformat("%d", ll_round(prime)) });
+    }
+    else if (i == 1)
+    {
+        // The aperture ring: 1/3 stop a step (f-numbers double every two stops); full stops named.
+        u      = log2f(llmax(SLCameraModel::fnumber(), 0.5f)) * 6.f;
+        r.name = LLTrans::getString("PrestigeCameraRingAperture");
+        const std::vector<F32>& stops = SLCameraExposure::apertureStops();
+        for (size_t k = 0; k < stops.size(); ++k)
+        {
+            std::string label;
+            if (k % 3 == 0)
+            {
+                label = SLCameraExposure::apertureLabel(stops[k]);
+                if (label.rfind("f/", 0) == 0)
+                    label = label.substr(2);
+            }
+            marks.push_back({ log2f(stops[k]) * 6.f, label });
+        }
+    }
+    else
+    {
+        // The exposure ring: 1/3 EV a step, whole stops named. In M it reads the meter (the
+        // exposure follows the aperture, shutter and ISO there).
+        const bool manual = SLCameraModel::exposureMode() == SLCameraExposure::MODE_MANUAL;
+        u      = SLCameraModel::exposureStops() * 3.f;
+        r.name = LLTrans::getString(manual ? "PrestigeCameraRingMeter" : "PrestigeCameraRingExposure");
+        r.dim  = manual;
+        for (int k = (int)floorf(u) - 11; k <= (int)ceilf(u) + 11; ++k)
+            marks.push_back({ (F32)k, k % 3 != 0 ? std::string() : k == 0 ? std::string("0") : llformat("%+d", k / 3) });
+    }
+    for (const auto& [pos, label] : marks)
+    {
+        const F32 x = kRingCentreDp + (pos - u) * kRingUnitDp;
+        if (x >= -1.f && x <= 2.f * kRingCentreDp + 1.f)
+            r.ticks.push_back({ llformat("%.1fdp", x - (label.empty() ? 0.5f : 1.f)), label, !label.empty() });
+    }
+    return r;
+}
+
+void refreshRings()
+{
+    PrestigeView& p = gPrestige;
+    std::vector<PrestigeRing> rings;
+    for (int i = 0; i < kPrestigeRings; ++i)
+        rings.push_back(buildRing(i));
+    if (rings != p.rings)
+    {
+        p.rings = std::move(rings);
+        dirty("rings");
+    }
+}
+
+// While a ring is dragged: the sideways pull turns it, a click per 10 dp (a longer pull off a
+// named step); dragging left brings the higher numbers to the index, as turning a lens does.
+void followRing()
+{
+    View&         v = gView;
+    PrestigeView& p = gPrestige;
+    if (p.ringDrag < 0 || !gViewerWindow || v.k <= 0.f)
+        return;
+    const S32 mx = gViewerWindow->getCurrentMouse().mX;
+    p.ringAcc -= (F32)(mx - p.ringLastX) / v.k;
+    p.ringLastX = mx;
+    const F32 need = kRingUnitDp * (ringOnDetent(p.ringDrag) ? 2.2f : 1.f);
+    if (std::fabs(p.ringAcc) < need)
+        return;
+    // One click a frame: the settings it writes take effect before the next is measured.
+    const int         dir    = p.ringAcc > 0.f ? 1 : -1;
+    const std::string before = ringValueText(p.ringDrag);
+    ringStep(p.ringDrag, dir);
+    p.ringAcc -= (F32)dir * need;
+    if (ringValueText(p.ringDrag) == before)
+        p.ringAcc = 0.f; // the end of its scale: nothing kept for the way back
+    p.ringAcc = llclamp(p.ringAcc, -need, need);
+    refreshControls();
+}
+
+// ---- the camera pad ----
+void refreshPadModes()
+{
+    PrestigeView& p = gPrestige;
+    static const char* const labels[] = { "PrestigeCameraPadOrbit", "PrestigeCameraPadFree", "PrestigeCameraPadFirst" };
+    static const char* const hints[]  = { "PrestigeCameraPadHintOrbit", "PrestigeCameraPadHintFree", "PrestigeCameraPadHintFirst" };
+    const U32 mode = PrestigeCameraPad::mode();
+    if (mode == p.padModeShown && !p.padModes.empty())
+        return; // (every frame: only a change of mode rebuilds)
+    p.padModeShown = mode;
+    std::vector<Choice> modes;
+    for (U32 i = 0; i < PrestigeCameraPad::MODE_COUNT; ++i)
+        modes.push_back({ LLTrans::getString(labels[i]), "", i == mode });
+    bool same = modes.size() == p.padModes.size();
+    for (size_t i = 0; same && i < modes.size(); ++i)
+        same = modes[i].label == p.padModes[i].label && modes[i].on == p.padModes[i].on;
+    if (!same)
+    {
+        p.padModes = std::move(modes);
+        dirty("padModes");
+    }
+    set(p.padHint, LLTrans::getString(hints[llmin(mode, 2u)]), "padHint");
+}
+
+// While the knob is held: its pull from the pad's centre, kept inside the circle; let go (or the
+// window lost the button): back to the centre.
+void followPad()
+{
+    View&         v = gView;
+    PrestigeView& p = gPrestige;
+    if (p.padDrag && (!gViewerWindow || !gViewerWindow->getLeftMouseDown() || !gFocusMgr.getAppHasFocus()))
+        p.padDrag = false;
+    Rml::Element* ring = p.padDrag ? v.document->GetElementById("ppadring") : nullptr;
+    if (ring && ring->GetOffsetWidth() > 0.f && v.density > 0.f)
+    {
+        const LLCoordGL m  = gViewerWindow->getCurrentMouse();
+        const float     r  = ring->GetOffsetWidth() * 0.5f;
+        const float     cx = ring->GetAbsoluteLeft() + r, cy = ring->GetAbsoluteTop() + ring->GetOffsetHeight() * 0.5f;
+        F32 x = ((float)m.mX * v.density - cx) / r, y = -((float)(v.rootH - m.mY) * v.density - cy) / r;
+        const F32 len = sqrtf(x * x + y * y);
+        if (len > 1.f)
+        {
+            x /= len;
+            y /= len;
+        }
+        p.padX = x;
+        p.padY = y;
+    }
+    else
+    {
+        p.padDrag = false;
+        p.padX = p.padY = 0.f;
+    }
+    set(p.padKnobX, llformat("%.1fdp", 48.f + p.padX * kPadTravelDp), "padKnobX");
+    set(p.padKnobY, llformat("%.1fdp", 48.f - p.padY * kPadTravelDp), "padKnobY");
+}
+
+// ---- the light readouts: the frame's luminance (64 bars of the scopes' 256 bins), clipping, level ----
+void refreshLight(F64 t)
+{
+    PrestigeView& p = gPrestige;
+    if (t >= p.nextLight)
+    {
+        p.nextLight = t + 0.125;
+        const SLScopeData& d = gPipeline.getScopeData();
+        std::vector<Bar>   bars;
+        std::string        clip;
+        if (!d.isEmpty())
+        {
+            constexpr int kBars = 64, kPer = SLScopeData::BIN_COUNT / kBars;
+            F32 sums[kBars] = {};
+            F32 peak = 0.f;
+            for (S32 b = 0; b < SLScopeData::BIN_COUNT; ++b)
+                sums[b / kPer] += d.getBin(SLScopeData::CH_LUMA, b);
+            for (F32 s : sums)
+                peak = llmax(peak, s);
+            // Square-rooted, as the review's histogram: a sparse tail still reads.
+            for (F32 s : sums)
+                bars.push_back({ llformat("%d%%", llclamp(ll_round(sqrtf(peak > 0.f ? s / peak : 0.f) * 100.f), 1, 100)) });
+            const S32 lo = ll_round(d.getClippedLow(SLScopeData::CH_LUMA) * 100.f), hi = ll_round(d.getClippedHigh(SLScopeData::CH_LUMA) * 100.f);
+            LLStringUtil::format_map_t args;
+            args["[LOW]"]  = llformat("%d", lo);
+            args["[HIGH]"] = llformat("%d", hi);
+            if (hi >= 1 && lo >= 1)
+                clip = LLTrans::getString("PrestigeCameraClipBoth", args);
+            else if (hi >= 1)
+                clip = LLTrans::getString("PrestigeCameraClipHigh", args);
+            else if (lo >= 1)
+                clip = LLTrans::getString("PrestigeCameraClipLow", args);
+        }
+        bool same = bars.size() == p.lumBars.size();
+        for (size_t i = 0; same && i < bars.size(); ++i)
+            same = bars[i].h == p.lumBars[i].h;
+        if (!same)
+        {
+            p.lumBars = std::move(bars);
+            dirty("lumBars");
+        }
+        set(p.lumClip, clip, "lumClip");
+        // The level and the tilt: the horizon's roll (the knob on the frame's arc sets it) and the pitch.
+        F32 roll = 0.f, pitch = 0.f;
+        SLCameraModel::levelAngles(roll, pitch);
+        const S32 roll10 = ll_round(roll * RAD_TO_DEG * 10.f), pitch10 = ll_round(pitch * RAD_TO_DEG * 10.f);
+        LLStringUtil::format_map_t level;
+        level["[ROLL]"]  = roll10 == 0 ? std::string("0.0°") : llformat("%+.1f°", roll10 / 10.f);
+        level["[PITCH]"] = pitch10 == 0 ? std::string("0.0°") : llformat("%+.1f°", pitch10 / 10.f);
+        set(p.levelText, LLTrans::getString("PrestigeCameraLevelText", level), "levelText");
+        set(p.levelTf, llformat("rotate(%.1fdeg)", -roll10 / 10.f), "levelTf");
+        set(p.levelOk, fabsf(roll) < SLCameraModel::levelTolerance(), "levelOk");
+    }
+}
+
+// Essentials: the shot's settings on one line.
+void refreshMinLine()
+{
+    std::string line;
+    for (SLCameraModel::Value value : { SLCameraModel::Value::Mode, SLCameraModel::Value::Shutter, SLCameraModel::Value::Aperture,
+                                        SLCameraModel::Value::ISO, SLCameraModel::Value::EV, SLCameraModel::Value::Focal,
+                                        SLCameraModel::Value::Focus })
+    {
+        const SLCameraModel::Cell c = SLCameraModel::cell(value);
+        if (!line.empty())
+            line += "   ";
+        line += c.value;
+        if (value == SLCameraModel::Value::EV || value == SLCameraModel::Value::Focal)
+            line += " " + c.unit;
+    }
+    set(gPrestige.minLine, line, "minLine");
+}
+
+// ---- the photo roll: the last ten as a pile, the newest on top ----
+void refreshPile()
+{
+    View&         v = gView;
+    PrestigeView& p = gPrestige;
+    const size_t  n = SLCameraReview::count();
+    const size_t  shown = llmin(n, kRollShown);
+    std::vector<PrestigePileCard> pile;
+    for (size_t depth = shown; depth-- > 0;) // the deepest (oldest of the ten) first: the document draws in order
+    {
+        const size_t i = n - 1 - depth;
+        if (!SLCameraReview::thumbnail(i))
+            continue;
+        pile.push_back({ shotSource(SLCameraReview::serial(i), "thumb"), llformat("%ddp", (int)depth * 2),
+                         llformat("%ddp", 18 - (int)depth * 2), depth == 0 });
+    }
+    if (pile != p.pile)
+    {
+        p.pile = std::move(pile);
+        dirty("pile");
+    }
+    set(p.rollCount, shown ? llformat("%d", (int)shown) : std::string(), "rollCount");
+    set(p.pileShown, p.display == 0 && !v.cardOpen && !v.barAway && !p.pile.empty(), "pileShown");
+    // The delete question belongs to the shot it was asked for.
+    if (p.rollConfirm && (!v.cardOpen || v.cardSerial != p.confirmSerial))
+        set(p.rollConfirm, false, "rollConfirm");
+}
+
+// A press on a ring or on the pad's circle: their drag follows (not an RmlUi click). True: taken.
+bool prestigePress(Rml::Element* hover, S32 x)
+{
+    PrestigeView& p = gPrestige;
+    if (p.display != 0)
+        return false;
+    for (int i = 0; i < kPrestigeRings; ++i)
+        if (within(hover, llformat("pring-%d", i).c_str()))
+        {
+            p.ringDrag  = i;
+            p.ringLastX = x;
+            p.ringAcc   = 0.f;
+            refreshRings();
+            return true;
+        }
+    if (within(hover, "ppadring"))
+    {
+        p.padDrag = true;
+        followPad();
+        return true;
+    }
+    return false;
+}
+
+// The press's release. True: it was a ring's or the pad's.
+bool prestigeRelease()
+{
+    PrestigeView& p = gPrestige;
+    if (p.ringDrag >= 0)
+    {
+        p.ringDrag = -1;
+        refreshRings();
+        return true;
+    }
+    if (p.padDrag)
+    {
+        p.padDrag = false;
+        followPad();
+        return true;
+    }
+    return false;
+}
+
+// The wheel over a ring (a click; with Shift, to the next named step) or the pad. True: taken.
+bool prestigeWheel(Rml::Element* hover, S32 clicks, MASK mask)
+{
+    PrestigeView& p = gPrestige;
+    if (p.display != 0 || clicks == 0)
+        return false;
+    for (int i = 0; i < kPrestigeRings; ++i)
+        if (within(hover, llformat("pring-%d", i).c_str()))
+        {
+            const int dir = clicks < 0 ? 1 : -1; // wheel up: up the scale
+            if (mask & MASK_SHIFT)
+                ringDetent(i, dir);
+            else
+                for (S32 k = 0; k < llabs(clicks); ++k)
+                    ringStep(i, dir);
+            refreshRings();
+            refreshControls();
+            markChanged();
+            return true;
+        }
+    if (within(hover, "ppad"))
+    {
+        PrestigeCameraPad::wheel(clicks);
+        markChanged();
+        return true;
+    }
+    return false;
+}
+
+void prestigeStart()
+{
+    PrestigeView& p = gPrestige;
+    p.display    = displaySetting();
+    p.picHintAt  = p.display == 2 ? now() : -100.0;
+    p.ringDrag   = -1;
+    p.padDrag    = false;
+    p.padX = p.padY = 0.f;
+    p.rootSig.clear();
+    p.padModeShown = U32(-1);
+    p.rollConfirm = false;
+    p.nextLight   = 0.0;
+    p.lumTitle        = LLTrans::getString("PrestigeCameraLightTitle");
+    p.rollInventory   = LLTrans::getString("PrestigeCameraRollInventory");
+    p.rollProfile     = LLTrans::getString("PrestigeCameraRollProfile");
+    p.rollEmail       = LLTrans::getString("PrestigeCameraRollEmail");
+    p.rollDelete      = LLTrans::getString("PrestigeCameraRollDelete");
+    p.rollDeleteGo    = LLTrans::getString("PrestigeCameraRollDeleteGo");
+    refreshDisplayLabel();
+    refreshPadModes();
+}
+
+void prestigeStop()
+{
+    PrestigeView& p = gPrestige;
+    holdScopes(false);
+    p.ringDrag = -1;
+    p.padDrag  = false;
+    p.padX = p.padY = 0.f;
+}
+
+// Each frame from sync.
+void prestigeSync(F64 t)
+{
+    PrestigeView& p = gPrestige;
+    const int display = displaySetting();
+    if (display != p.display)
+    {
+        p.display = display; // (set elsewhere: the setting itself)
+        p.ringDrag = -1;
+        p.padDrag  = false;
+        dirty("display");
+        refreshDisplayLabel();
+    }
+    applyRootClasses();
+    set(p.picHint, p.display == 2 && t - p.picHintAt >= 0.0 && t - p.picHintAt < 3.0, "picHint");
+    holdScopes(p.display == 0);
+    if (p.display == 0)
+    {
+        followRing();
+        refreshRings();
+        followPad();
+        refreshPadModes();
+        refreshLight(t);
+        if (p.ringDrag >= 0 || p.padDrag)
+            markChanged(); // keep following
+    }
+    else if (p.display == 1)
+        refreshMinLine();
+    refreshPile();
+}
+
+void bindPrestige(Rml::DataModelConstructor& m)
+{
+    PrestigeView& p = gPrestige;
+    if (auto t = m.RegisterStruct<PrestigeRingTick>())
+    {
+        t.RegisterMember("x", &PrestigeRingTick::x);
+        t.RegisterMember("label", &PrestigeRingTick::label);
+        t.RegisterMember("major", &PrestigeRingTick::major);
+    }
+    m.RegisterArray<std::vector<PrestigeRingTick>>();
+    if (auto r = m.RegisterStruct<PrestigeRing>())
+    {
+        r.RegisterMember("id", &PrestigeRing::id);
+        r.RegisterMember("name", &PrestigeRing::name);
+        r.RegisterMember("value", &PrestigeRing::value);
+        r.RegisterMember("ticks", &PrestigeRing::ticks);
+        r.RegisterMember("drag", &PrestigeRing::drag);
+        r.RegisterMember("dim", &PrestigeRing::dim);
+    }
+    m.RegisterArray<std::vector<PrestigeRing>>();
+    if (auto c = m.RegisterStruct<PrestigePileCard>())
+    {
+        c.RegisterMember("src", &PrestigePileCard::src);
+        c.RegisterMember("x", &PrestigePileCard::x);
+        c.RegisterMember("y", &PrestigePileCard::y);
+        c.RegisterMember("top", &PrestigePileCard::top);
+    }
+    m.RegisterArray<std::vector<PrestigePileCard>>();
+    m.Bind("display", &p.display);
+    m.Bind("rings", &p.rings);
+    m.Bind("lumBars", &p.lumBars);
+    m.Bind("padModes", &p.padModes);
+    m.Bind("pile", &p.pile);
+    for (auto [name, field] : { std::make_pair("dispLabel", &PrestigeView::dispLabel), std::make_pair("minLine", &PrestigeView::minLine),
+                                std::make_pair("picHintText", &PrestigeView::picHintText), std::make_pair("lumTitle", &PrestigeView::lumTitle),
+                                std::make_pair("lumClip", &PrestigeView::lumClip), std::make_pair("levelText", &PrestigeView::levelText),
+                                std::make_pair("levelTf", &PrestigeView::levelTf), std::make_pair("padHint", &PrestigeView::padHint),
+                                std::make_pair("padKnobX", &PrestigeView::padKnobX), std::make_pair("padKnobY", &PrestigeView::padKnobY),
+                                std::make_pair("rollConfirmText", &PrestigeView::rollConfirmText),
+                                std::make_pair("rollDeleteGo", &PrestigeView::rollDeleteGo),
+                                std::make_pair("rollInventory", &PrestigeView::rollInventory),
+                                std::make_pair("rollProfile", &PrestigeView::rollProfile), std::make_pair("rollEmail", &PrestigeView::rollEmail),
+                                std::make_pair("rollDelete", &PrestigeView::rollDelete), std::make_pair("rollCount", &PrestigeView::rollCount) })
+        m.Bind(name, &(p.*field));
+    m.Bind("picHint", &p.picHint);
+    m.Bind("levelOk", &p.levelOk);
+    m.Bind("pileShown", &p.pileShown);
+    m.Bind("rollConfirm", &p.rollConfirm);
+    m.BindEventCallback("pdisplay", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) { SLCameraView::cycleDisplay(); });
+    m.BindEventCallback("padmode", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& args)
+                        {
+                            if (!args.empty())
+                                PrestigeCameraPad::setMode((U32)llmax(args[0].Get<int>(), 0));
+                            refreshPadModes();
+                        });
+    m.BindEventCallback("pile", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                        {
+                            // The newest shot's card, with the roll's strip under it.
+                            if (SLCameraReview::count())
+                                fillCard((int)SLCameraReview::count() - 1);
+                            refreshReview();
+                        });
+    m.BindEventCallback("rollsend", [](Rml::DataModelHandle, Rml::Event& ev, const Rml::VariantList& args)
+                        {
+                            // Upload, share or e-mail the card's shot: the send card asks (and says the L$).
+                            if (Rml::Element* e = ev.GetCurrentElement())
+                                e->Blur();
+                            set(gView.cardMore, false, "cardMore");
+                            const int i = shotIndex(gView.cardSerial);
+                            if (i >= 0 && !args.empty())
+                                SLCameraModel::sendShot((size_t)i, (U32)llmax(args[0].Get<int>(), 0));
+                        });
+    m.BindEventCallback("rolldelask", [](Rml::DataModelHandle, Rml::Event& ev, const Rml::VariantList&)
+                        {
+                            if (Rml::Element* e = ev.GetCurrentElement())
+                                e->Blur();
+                            set(gView.cardMore, false, "cardMore");
+                            const int i = shotIndex(gView.cardSerial);
+                            if (i < 0)
+                                return;
+                            const std::string& path = SLCameraReview::path((size_t)i);
+                            const bool         file = !path.empty() && LLFile::isfile(path);
+                            gPrestige.confirmSerial = gView.cardSerial;
+                            set(gPrestige.rollConfirmText,
+                                LLTrans::getString(file ? "PrestigeCameraRollConfirmFile" : "PrestigeCameraRollConfirmNoFile"), "rollConfirmText");
+                            set(gPrestige.rollConfirm, true, "rollConfirm");
+                        });
+    m.BindEventCallback("rolldelno", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                        { set(gPrestige.rollConfirm, false, "rollConfirm"); });
+    m.BindEventCallback("rolldel", [](Rml::DataModelHandle, Rml::Event& ev, const Rml::VariantList&)
+                        {
+                            // Confirmed: out of the roll, and its file off the disk when it was saved.
+                            if (Rml::Element* e = ev.GetCurrentElement())
+                                e->Blur(); // (it hides: Space never deletes the next shot)
+                            set(gPrestige.rollConfirm, false, "rollConfirm");
+                            const int i = shotIndex(gPrestige.confirmSerial);
+                            if (i < 0)
+                                return;
+                            const std::string path = SLCameraReview::path((size_t)i);
+                            if (!path.empty() && LLFile::isfile(path) && !SLCameraReview::deleteFile((size_t)i))
+                            {
+                                // The file stays (in use, read-only): so does the photo, and it says so.
+                                SLCameraModel::toast(LLTrans::getString("PrestigeCameraRollNotDeleted"), 3.0);
+                                return;
+                            }
+                            SLCameraModel::toast(LLTrans::getString("PrestigeCameraRollDeleted"));
+                            SLCameraReview::remove((size_t)i);
+                            refreshReview();
+                        });
+}
+// </Prestige>
 
 bool createDocument(Rml::Context* context)
 {
@@ -2133,6 +2994,7 @@ bool createDocument(Rml::Context* context)
                             { SLCameraView::setControlsOpen(!gView.controlsOpen); });
         m.BindEventCallback("help", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
                             { SLCameraView::showHelp(!gView.helpOpen); });
+        bindPrestige(m); // <Prestige> display levels, rings, pad, light readouts, photo roll
         v.model = m.GetModelHandle();
     }
     catch (const std::bad_alloc&)
@@ -2241,6 +3103,7 @@ bool SLCameraView::start(Rml::Context* context)
     v.lastHover       = nullptr;
     buildHints();
     buildHelp();
+    prestigeStart(); // <Prestige>
     if (v.model)
         v.model.DirtyAllVariables();
     v.document->Show(Rml::ModalFlag::None, Rml::FocusFlag::None);
@@ -2263,6 +3126,7 @@ void setTextInput(bool on)
 
 void SLCameraView::stop()
 {
+    prestigeStop(); // <Prestige> the scopes' sampling and any drag let go
     setTextInput(false);
     if (gView.document && gView.shown)
         gView.document->Hide();
@@ -2276,6 +3140,10 @@ void SLCameraView::release()
 {
     LLRmlUiAtlas::instance().setExternalSource("llext:camshot/", {});
     gView = View();
+    // <Prestige>
+    prestigeStop();
+    gPrestige = PrestigeView();
+    // </Prestige>
 }
 
 float SLCameraView::dpScale()
@@ -2635,6 +3503,7 @@ bool SLCameraView::sync(float density)
     }
     set(v.hintShown, slcambar::hintVisible(t, v.hintSince), "hintShown");
     set(v.toast, SLCameraModel::toastText(), "toast");
+    prestigeSync(t); // <Prestige> display levels, rings, pad, light readouts, photo roll
     // Values that can change from elsewhere (settings, the old Photo Studio rail): 4 Hz.
     if (t >= v.nextRefresh)
     {
@@ -2706,6 +3575,10 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
             v.handleDownY = y;
             return true;
         }
+        // <Prestige> the lens rings and the camera pad take a press and follow its drag
+        if (prestigePress(hover, x))
+            return true;
+        // </Prestige>
         for (Rml::Element* e = hover; e; e = e->GetParentNode())
             if (e->GetId().rfind("rtrack-", 0) == 0 && railIds(e->GetId(), v.railDragSec, v.railDragRow))
             {
@@ -2741,6 +3614,8 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
     if (!v.pressedInDoc)
         return false;
     v.pressedInDoc = false;
+    if (prestigeRelease()) // <Prestige>
+        return true;
     if (v.tilting)
     {
         v.tilting = false;
@@ -2784,6 +3659,8 @@ bool SLCameraView::handleWheel(S32 x, S32 y, S32 clicks, MASK mask)
 {
     if (!toRml(x, y, mask))
         return false;
+    if (prestigeWheel(gView.context->GetHoverElement(), clicks, mask)) // <Prestige> a lens ring, the camera pad
+        return true;
     // A rail row under the pointer turns (wheel up: forward).
     for (Rml::Element* e = gView.context->GetHoverElement(); e; e = e->GetParentNode())
     {
@@ -3007,7 +3884,8 @@ bool SLCameraView::popupOpen()
 
 bool SLCameraView::menuOpen()
 {
-    return gView.shown && (gView.helpOpen || !gView.popup.empty() || gView.cardMore || gView.sendOpen);
+    return gView.shown && (gView.helpOpen || !gView.popup.empty() || gView.cardMore || gView.sendOpen
+                           || gPrestige.rollConfirm); // <Prestige> the delete question
 }
 
 void SLCameraView::closePopup()
@@ -3018,6 +3896,13 @@ void SLCameraView::closePopup()
         set(v.cardMore, false, "cardMore"); // the innermost first
         return;
     }
+    // <Prestige> the photo roll's delete question: not deleted
+    if (gPrestige.rollConfirm)
+    {
+        set(gPrestige.rollConfirm, false, "rollConfirm");
+        return;
+    }
+    // </Prestige>
     if (v.sendOpen)
     {
         closeSendCard(); // the shot is not sent
@@ -3098,3 +3983,36 @@ void SLCameraView::setControlsOpen(bool open)
         v.hintSince = now(); // opening Controls teaches its wheel once more
     buildHints();
 }
+
+// <Prestige> display levels and the camera pad
+void SLCameraView::cycleDisplay()
+{
+    const S32 next = (displaySetting() + 1) % 3;
+    gSavedSettings.setS32("PrestigeCameraDisplayLevel", next);
+    View&         v = gView;
+    PrestigeView& p = gPrestige;
+    if (!v.shown)
+        return;
+    p.display  = next;
+    p.ringDrag = -1;
+    p.padDrag  = false;
+    dirty("display");
+    refreshDisplayLabel();
+    // The picture alone says once how to come back; the others name themselves.
+    if (next == 2)
+        p.picHintAt = now();
+    else
+        SLCameraModel::toast(p.dispLabel, 1.5);
+    markChanged();
+}
+
+bool SLCameraView::padDeflection(F32& x, F32& y)
+{
+    const PrestigeView& p = gPrestige;
+    if (!gView.shown || !p.padDrag || p.display != 0)
+        return false;
+    x = p.padX;
+    y = p.padY;
+    return true;
+}
+// </Prestige>

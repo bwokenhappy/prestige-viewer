@@ -103,6 +103,16 @@ public:
     // While the card is open: Left / Right show the previous / next shot. True when taken.
     static bool handleReviewKey(KEY key, MASK mask);
     static void forgetShots();
+
+    // <Prestige> What the viewfinder shows (PrestigeCameraDisplayLevel): 0 everything (readouts,
+    // histogram, level, lens rings, camera pad, photo roll), 1 essentials (the frame, AF point,
+    // shutter, one readout line), 2 the picture alone. The display key and the overlay's button
+    // cycle it.
+    static void cycleDisplay();
+    // The camera pad's knob while it is held: its pull, -1..1 each way (x right, y up). False when
+    // it is not held (SLCameraMode::draw() moves the camera, prestigecamerapad.h).
+    static bool padDeflection(F32& x, F32& y);
+    // </Prestige>
 };
 
 #endif // SL_CAMERAVIEW_H

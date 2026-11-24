@@ -28974,6 +28974,41 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <!-- <Prestige> camera mode's viewfinder: display levels, the camera pad, the 4K default -->
+    <key>PrestigeCameraDisplayLevel</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige camera mode: what the viewfinder shows (0 everything: readouts, histogram, level, lens rings, camera pad, photo roll; 1 essentials: the frame, AF point, shutter and one readout line; 2 the picture alone). Cycled with the display key (I) or the overlay's display button.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeCameraPadMode</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige camera mode: what the on-screen camera pad does (0 orbit around what the camera looks at, 1 free camera, 2 first person from the avatar's eyes).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeCamera4KDefaultApplied</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige camera mode: the one-time switch of a never-set snapshot size (SnapshotLocalWidth / Height) to 3840 x 2160 has run. Once set, the size is the user's alone.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>SnapshotQuality</key>
     <map>
       <key>Comment</key>

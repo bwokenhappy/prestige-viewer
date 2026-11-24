@@ -347,7 +347,18 @@ void LLConversationViewSession::draw()
 
     // draw highlight for selected items
     static LLUIColor alt_color = LLUIColorTable::instance().getColor("MentionFlashBgColor", DEFAULT_WHITE);
-    drawHighlight(show_context, true, sHighlightBgColor, mIsAltFlashColor ? alt_color : sFlashBgColor, sFocusOutlineColor, sMouseOverColor);
+    // <Prestige> Firestorm look: each conversation is drawn as a vertical tab, the shown one lit
+    // like a selected tab. Flashing (new messages) still uses the normal highlight on top.
+    static LLCachedControl<bool> tab_look(gSavedSettings, "PrestigeConversationTabLook", true);
+    if (tab_look)
+    {
+        drawFirestormTab();
+    }
+    if (!tab_look || isFlashing())
+    {
+        drawHighlight(show_context, true, sHighlightBgColor, mIsAltFlashColor ? alt_color : sFlashBgColor, sFocusOutlineColor, sMouseOverColor);
+    }
+    // </Prestige>
 
     // Draw children if root folder, or any other folder that is open. Do not draw children when animating to closed state or you get rendering overlap.
     bool draw_children = getRoot() == static_cast<LLFolderViewFolder*>(this) || isOpen();
@@ -376,6 +387,28 @@ void LLConversationViewSession::draw()
     }
     LLView::draw();
 }
+
+// <Prestige> Firestorm-style vertical tab behind this conversation's row (Firestorm's left tabs use
+// the SegmentedBtn_Left images, see widgets/tab_container.xml)
+void LLConversationViewSession::drawFirestormTab()
+{
+    static LLUIImagePtr tab_off = LLUI::getUIImage("SegmentedBtn_Left_Disabled");
+    static LLUIImagePtr tab_over = LLUI::getUIImage("SegmentedBtn_Left_Over");
+    static LLUIImagePtr tab_selected = LLUI::getUIImage("SegmentedBtn_Left_Selected_Over");
+
+    const LLConversationItem* item = dynamic_cast<LLConversationItem*>(getViewModelItem());
+    const bool shown = mContainer && item && mContainer->getSelectedSession() == item->getUUID();
+    const LLUIImagePtr& image = shown ? tab_selected : (mIsMouseOverTitle ? tab_over : tab_off);
+    if (image.isNull())
+    {
+        return;
+    }
+
+    const S32 top = getRect().getHeight();
+    const S32 bottom = top - getItemHeight();
+    image->draw(LLRect(1, top - 1, getRect().getWidth() - 2, bottom + 1));
+}
+// </Prestige>
 
 bool LLConversationViewSession::handleMouseDown( S32 x, S32 y, MASK mask )
 {

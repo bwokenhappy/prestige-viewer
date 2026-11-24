@@ -316,6 +316,20 @@ bool LLFloaterIMContainer::postBuild()
 
     childSetAction("add_btn", boost::bind(&LLFloaterIMContainer::onAddButtonClicked, this));
 
+    // <Prestige> Firestorm look, once per account: an earlier default left the list as a column of
+    // icons. Show names at Firestorm's tab column width, with Nearby Chat right under Contacts.
+    if (!gSavedPerAccountSettings.getBOOL("PrestigeFirestormConversationsApplied"))
+    {
+        gSavedPerAccountSettings.setBOOL("PrestigeFirestormConversationsApplied", true);
+        if (gSavedPerAccountSettings.getBOOL("ConversationsListPaneCollapsed"))
+        {
+            gSavedPerAccountSettings.setBOOL("ConversationsListPaneCollapsed", false);
+            gSavedPerAccountSettings.setS32("ConversationsListPaneWidth", 120);
+        }
+        gSavedSettings.setBOOL("ConversationsNearbyChatAtTop", true);
+    }
+    // </Prestige>
+
     collapseMessagesPane(gSavedPerAccountSettings.getBOOL("ConversationsMessagePaneCollapsed"));
     collapseConversationsPane(gSavedPerAccountSettings.getBOOL("ConversationsListPaneCollapsed"), false);
     LLAvatarNameCache::getInstance()->addUseDisplayNamesCallback(boost::bind(&LLFloaterIMSessionTab::processChatHistoryStyleUpdate, false));

@@ -182,6 +182,14 @@ protected:
 
     LLSidepanelInventory* getParentSidepanelInventory();
 
+    // <Prestige> Firestorm layout: type filter dropdown, trash button, new window / filters buttons
+    void initFirestormControls();
+    void onFilterTypeSelected(const std::string& filter_type_name);
+    void updateFilterDropdown(const LLInventoryFilter* filter);
+    void onTrashButtonClick();
+    bool handleDragAndDropToTrash(bool drop, EDragAndDropType cargo_type, EAcceptance* accept);
+    // </Prestige>
+
 private:
     enum class EFetchState
     {
@@ -218,6 +226,13 @@ private:
     LLButton* mViewModeBtn;
     LLButton* mCollapseAllBtn = nullptr; // #630
     LLButton* mExpandAllBtn = nullptr;   // #630
+    // <Prestige> Firestorm layout controls (all optional in the XUI)
+    LLComboBox* mFilterComboBox = nullptr;
+    LLDragAndDropButton* mTrashButton = nullptr;
+    LLButton* mShowFiltersBtn = nullptr;
+    std::map<std::string, U64> mFilterMap;
+    U64 mFilterMask = 0;
+    // </Prestige>
     LLLayoutPanel* mNavigationBtnsPanel;
 
     LLPanel* mDefaultViewPanel;

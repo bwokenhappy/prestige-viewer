@@ -121,6 +121,7 @@ public:
     // (world Search) only when ChatHistoryCtrlFSearch is on
     bool hasAccelerators() const override;
     void onChatSearchClicked();
+    void onChatHistoryClicked(); // <Prestige> Firestorm tool row: open this conversation's transcript
     bool handleChatSearchKey(KEY key, MASK mask);
     // Alt+Enter with FSUseAltOOC: send the input as OOC chat; false if this kind of conversation can't
     virtual bool sendOOCFromInputEditor() { return false; }

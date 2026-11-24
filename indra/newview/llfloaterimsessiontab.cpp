@@ -38,6 +38,7 @@
 #include "llavatariconctrl.h"
 #include "llchatentry.h"
 #include "llchathistory.h"
+#include "llconversationlog.h" // <Prestige/> transcript button
 #include "llfloaterchatmentionpicker.h"
 #include "llchiclet.h"
 #include "llchicletbar.h"
@@ -359,6 +360,12 @@ bool LLFloaterIMSessionTab::postBuild()
         search_btn->setCommitCallback(boost::bind(&LLFloaterIMSessionTab::onChatSearchClicked, this));
     }
     // </FS>
+    // <Prestige> Firestorm tool row: transcript button
+    if (LLButton* history_btn = findChild<LLButton>("chat_history_btn"))
+    {
+        history_btn->setCommitCallback([this](LLUICtrl*, const LLSD&) { onChatHistoryClicked(); });
+    }
+    // </Prestige>
 
     mInputEditor = getChild<LLChatEntry>("chat_editor");
     applyInputLimit();
@@ -1568,6 +1575,34 @@ void LLFloaterIMSessionTab::onChatSearchClicked()
         LLFloaterSearchReplace::show(mChatHistory->getEditor());
     }
 }
+
+// <Prestige> Firestorm tool row: open the transcript of this conversation (same as the
+// conversation list's "Chat history" menu item)
+void LLFloaterIMSessionTab::onChatHistoryClicked()
+{
+    if (mSessionID.isNull())
+    {
+        LLFloaterReg::showInstance("preview_conversation", LLSD(LLUUID::null), true);
+        return;
+    }
+
+    LLIMModel::LLIMSession* session = LLIMModel::getInstance()->findIMSession(mSessionID);
+    if (session && session->isP2PSessionType())
+    {
+        LLAvatarActions::viewChatHistory(session->mOtherParticipantID);
+        return;
+    }
+    if (session && session->isAdHocSessionType())
+    {
+        if (LLConversation* conv = LLConversationLog::instance().findConversation(session))
+        {
+            LLFloaterReg::showInstance("preview_conversation", conv->getSessionID(), true);
+        }
+        return;
+    }
+    LLFloaterReg::showInstance("preview_conversation", mSessionID, true);
+}
+// </Prestige>
 
 bool LLFloaterIMSessionTab::hasAccelerators() const
 {

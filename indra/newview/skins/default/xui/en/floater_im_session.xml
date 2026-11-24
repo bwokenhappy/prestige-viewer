@@ -83,28 +83,66 @@
          orientation="vertical"
          tab_group="1"
          top="0">
+            <!-- <Prestige> Firestorm-style slim tool row: 20 px icon buttons on one bar
+                 (transcript, view options, search, then the session buttons; window buttons right) -->
             <layout_panel
              auto_resize="false"
              name="toolbar_panel"
-             height="25">
+             height="22">
+                <icon
+                 follows="left|top|right"
+                 height="20"
+                 image_name="Toolbar_Middle_Off"
+                 layout="topleft"
+                 left="3"
+                 right="-3"
+                 top="1"
+                 mouse_opaque="false"
+                 name="toolbar_bar_icon" />
+                <button
+                 follows="top|left"
+                 height="20"
+                 image_hover_unselected="Toolbar_Middle_Over"
+                 image_overlay="Prestige_Chat_History"
+                 image_selected="Toolbar_Middle_Selected"
+                 image_unselected="Toolbar_Middle_Off"
+                 layout="topleft"
+                 left="3"
+                 top="1"
+                 name="chat_history_btn"
+                 tool_tip="Open the transcript of this conversation"
+                 width="24"/>
                 <menu_button
                  menu_filename="menu_im_session_showmodes.xml"
                  follows="top|left"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_sort"
                  image_selected="Toolbar_Middle_Selected"
                  image_unselected="Toolbar_Middle_Off"
                  layout="topleft"
-                 left="5"
+                 left_pad="2"
                  name="view_options_btn"
                  tool_tip="View/sort options"
                  top="1"
-                 width="31" />
+                 width="24" />
+                <button
+                 follows="top|left"
+                 height="20"
+                 image_hover_unselected="Toolbar_Middle_Over"
+                 image_overlay="Search_Icon"
+                 image_selected="Toolbar_Middle_Selected"
+                 image_unselected="Toolbar_Middle_Off"
+                 layout="topleft"
+                 top="1"
+                 left_pad="2"
+                 name="chat_search_btn"
+                 tool_tip="Search this conversation's history"
+                 width="24"/>
                 <menu_button
                  menu_filename="menu_im_conversation.xml"
                  follows="top|left"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="OptionsMenu_Off"
                  image_selected="Toolbar_Middle_Selected"
@@ -115,11 +153,11 @@
                  name="gear_btn"
                  visible="false"
                  tool_tip="Actions on selected person"
-                 width="31"/>
+                 width="24"/>
                 <button
                  enabled="false"
                  follows="top|left"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_add_person"
                  image_selected="Toolbar_Middle_Selected"
@@ -129,10 +167,10 @@
                  left_pad="2"
                  name="add_btn"
                  tool_tip="Add someone to this conversation"
-                 width="31"/>
+                 width="24"/>
                 <button
                  follows="top|left"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_open_call"
                  image_selected="Toolbar_Middle_Selected"
@@ -142,36 +180,23 @@
                  left_pad="2"
                  name="voice_call_btn"
                  tool_tip="Open voice connection"
-                 width="31"/>
-                <button
-                 follows="top|left"
-                 height="25"
-                 image_hover_unselected="Toolbar_Middle_Over"
-                 image_overlay="Search_Icon"
-                 image_selected="Toolbar_Middle_Selected"
-                 image_unselected="Toolbar_Middle_Off"
-                 layout="topleft"
-                 top="1"
-                 left_pad="2"
-                 name="chat_search_btn"
-                 tool_tip="Search this conversation's history"
-                 width="31"/>                
+                 width="24"/>
                 <button
                  follows="right|top"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_collapse"
                  image_selected="Toolbar_Middle_Selected"
                  image_unselected="Toolbar_Middle_Off"
                  layout="topleft"
                  top="1"
-                 right="-70"
+                 right="-55"
                  name="expand_collapse_btn"
                  tool_tip="Collapse/Expand this pane"
-                 width="31" />
+                 width="24" />
                 <button
                  follows="right|top"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_arrow_ne"
                  image_selected="Toolbar_Middle_Selected"
@@ -180,10 +205,10 @@
                  left_pad="2"
                  name="tear_off_btn"
                  top="1"
-                 width="31" />
+                 width="24" />
                 <button
                  follows="right|top"
-                 height="25"
+                 height="20"
                  image_hover_unselected="Toolbar_Middle_Over"
                  image_overlay="Conv_toolbar_close"
                  image_selected="Toolbar_Middle_Selected"
@@ -193,8 +218,9 @@
                  left_pad="2"
                  name="close_btn"
                  tool_tip="End this conversation"
-                 width="31" />
+                 width="24" />
             </layout_panel>
+            <!-- </Prestige> -->
             <layout_panel
              name="body_panel"
              height="235">

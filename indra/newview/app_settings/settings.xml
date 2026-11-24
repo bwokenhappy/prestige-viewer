@@ -2975,7 +2975,19 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <!-- <Prestige> Firestorm order: Contacts, Nearby Chat, then conversations (was 0) -->
+      <integer>1</integer>
+    </map>
+    <key>PrestigeConversationTabLook</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: draw each entry of the Conversations list as a Firestorm-style vertical tab (the selected conversation lit like a selected tab).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
     <key>ChatHideUnnamedObjectNames</key>
     <map>

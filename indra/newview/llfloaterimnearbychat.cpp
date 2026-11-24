@@ -295,13 +295,15 @@ S32 LLFloaterIMNearbyChat::getDefaultChatChannel()
 // static
 std::string LLFloaterIMNearbyChat::getChannelLabel(S32 channel)
 {
+    // <Prestige> Firestorm wording: "To nearby chat" (was NearbyChatTitle / NearbyChatTitleChannel)
     if (channel == 0)
     {
-        return LLTrans::getString("NearbyChatTitle");
+        return LLTrans::getString("PrestigeNearbyChatInputLabel");
     }
     LLStringUtil::format_map_t args;
     args["CHANNEL"] = llformat("%d", channel);
-    return LLTrans::getString("NearbyChatTitleChannel", args);
+    return LLTrans::getString("PrestigeNearbyChatInputLabelChannel", args);
+    // </Prestige>
 }
 // </FS>
 

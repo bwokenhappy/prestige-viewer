@@ -32,6 +32,9 @@
 #include "llpreviewscript.h"
 #include "lliconctrl.h"
 #include "llvoinventorylistener.h"
+// <Prestige> Markdown notecards
+#include "llframetimer.h"
+// </Prestige>
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Class LLPreviewNotecard
@@ -45,6 +48,9 @@ class LLLineEditor;
 // [SL:KB] - Patch: UI-FloaterSearchReplace | Checked: 2010-11-05 (Catznip-2.3)
 class LLTextEditor;
 // [/SL:KB]
+// <Prestige> Markdown notecards
+class LLLayoutPanel;
+// </Prestige>
 
 class LLPreviewNotecard : public LLPreview, public LLVOInventoryListener
 {
@@ -84,6 +90,17 @@ public:
     void refreshFromInventory(const LLUUID& item_id = LLUUID::null);
 
     void syncExternal();
+
+    // <Prestige> Markdown notecards: how the notecard is shown
+    enum EViewMode
+    {
+        VIEW_TEXT = 0,      // the plain editor (default)
+        VIEW_FORMATTED = 1, // rendered Markdown, read-only
+        VIEW_SPLIT = 2      // editor on the left, live preview on the right
+    };
+    void setViewMode(S32 mode, bool remember);
+    S32 getViewMode() const { return mViewMode; }
+    // </Prestige>
 
     void inventoryChanged(LLViewerObject* object,
         LLInventoryObject::object_list_t* inventory,
@@ -131,6 +148,24 @@ protected:
     LLUUID mObjectID;
 
     LLLiveLSLFile* mLiveFile = nullptr;
+
+    // <Prestige> Markdown notecards
+    void updateMarkdownView();
+    void refreshMarkdownView(bool keep_scroll);
+    void onNotecardTextLoaded();
+
+    LLTextEditor* mMarkdownView = nullptr;
+    LLLayoutPanel* mEditorPanel = nullptr;
+    LLLayoutPanel* mMarkdownPanel = nullptr;
+    LLButton* mModeTextBtn = nullptr;
+    LLButton* mModeFormattedBtn = nullptr;
+    LLButton* mModeSplitBtn = nullptr;
+    S32 mViewMode = VIEW_TEXT;
+    S32 mMarkdownGeneration = -1;        // editor text generation last rendered
+    S32 mMarkdownPendingGeneration = -1; // generation waiting for the debounce
+    LLFrameTimer mMarkdownDebounceTimer;
+    bool mMarkdownAutoChecked = false;   // the "starts with # Title" check ran
+    // </Prestige>
 };
 
 

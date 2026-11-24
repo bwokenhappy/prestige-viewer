@@ -64,6 +64,17 @@
 #include "lllineeditor.h"
 #include "lluictrlfactory.h"
 #include "llviewerassetupload.h"
+// <Prestige> Markdown notecards
+#include "lllayoutstack.h"
+#include "prestigemarkdown.h"
+#include "prestigemarkdownrenderer.h"
+
+namespace
+{
+    // How long the live preview waits after the last edit before it is redrawn.
+    const F32 MARKDOWN_PREVIEW_DELAY = 0.3f;
+}
+// </Prestige>
 
 ///----------------------------------------------------------------------------
 /// Class LLPreviewNotecard
@@ -116,6 +127,28 @@ bool LLPreviewNotecard::postBuild()
     }
     mDescEditor->setPrevalidate(&LLTextValidate::validateASCIIPrintableNoPipe);
 
+    // <Prestige> Markdown notecards: Text / Formatted / Split view
+    mMarkdownView = findChild<LLTextEditor>("markdown_view");
+    mEditorPanel = findChild<LLLayoutPanel>("editor_panel");
+    mMarkdownPanel = findChild<LLLayoutPanel>("markdown_panel");
+    mModeTextBtn = findChild<LLButton>("view_mode_text");
+    mModeFormattedBtn = findChild<LLButton>("view_mode_formatted");
+    mModeSplitBtn = findChild<LLButton>("view_mode_split");
+    if (mModeTextBtn)
+    {
+        mModeTextBtn->setCommitCallback(boost::bind(&LLPreviewNotecard::setViewMode, this, (S32)VIEW_TEXT, true));
+    }
+    if (mModeFormattedBtn)
+    {
+        mModeFormattedBtn->setCommitCallback(boost::bind(&LLPreviewNotecard::setViewMode, this, (S32)VIEW_FORMATTED, true));
+    }
+    if (mModeSplitBtn)
+    {
+        mModeSplitBtn->setCommitCallback(boost::bind(&LLPreviewNotecard::setViewMode, this, (S32)VIEW_SPLIT, true));
+    }
+    setViewMode(gSavedSettings.getS32("PrestigeNotecardViewMode"), false);
+    // </Prestige>
+
     return LLPreview::postBuild();
 }
 
@@ -152,6 +185,10 @@ void LLPreviewNotecard::draw()
 
     mSaveBtn->setEnabled(changed && getEnabled());
 
+    // <Prestige> Markdown notecards
+    updateMarkdownView();
+    // </Prestige>
+
     LLPreview::draw();
 }
 
@@ -167,6 +204,13 @@ bool LLPreviewNotecard::handleKeyHere(KEY key, MASK mask)
 // [SL:KB] - Patch: UI-FloaterSearchReplace | Checked: 2010-11-05 (Catznip-2.3)
     if (SLKeyCommands::instance().matches("find_in_floater", key, mask))
     {
+        // <Prestige> Markdown notecards: search what is on screen
+        if (mViewMode == VIEW_FORMATTED && mMarkdownView)
+        {
+            LLFloaterSearchReplace::show(mMarkdownView);
+            return true;
+        }
+        // </Prestige>
         LLFloaterSearchReplace::show(getEditor());
         return true;
     }
@@ -411,6 +455,9 @@ void LLPreviewNotecard::onLoadComplete(const LLUUID& asset_uuid,
             preview->setEnabled(modifiable);
             preview->syncExternal();
             preview->mAssetStatus = PREVIEW_ASSET_LOADED;
+            // <Prestige> Markdown notecards
+            preview->onNotecardTextLoaded();
+            // </Prestige>
         }
         else
         {
@@ -871,6 +918,113 @@ bool LLPreviewNotecard::writeToFile(const std::string& filename)
     return true;
 }
 
+
+// <Prestige> Markdown notecards
+void LLPreviewNotecard::setViewMode(S32 mode, bool remember)
+{
+    if (!mMarkdownView || !mEditorPanel || !mMarkdownPanel)
+    {
+        // Layout without the Markdown views (e.g. an old skin): text only.
+        mViewMode = VIEW_TEXT;
+        return;
+    }
+
+    mode = llclamp(mode, (S32)VIEW_TEXT, (S32)VIEW_SPLIT);
+    mViewMode = mode;
+    if (remember)
+    {
+        gSavedSettings.setS32("PrestigeNotecardViewMode", mode);
+    }
+
+    const bool show_editor = (mode != VIEW_FORMATTED);
+    const bool show_markdown = (mode != VIEW_TEXT);
+
+    // Never leave keyboard focus in an editor that is about to be hidden.
+    if (!show_editor && mEditor && mEditor->hasFocus())
+    {
+        mMarkdownView->setFocus(true);
+    }
+    if (!show_markdown && mMarkdownView->hasFocus() && mEditor)
+    {
+        mEditor->setFocus(true);
+    }
+
+    mEditorPanel->setVisible(show_editor);
+    mMarkdownPanel->setVisible(show_markdown);
+
+    if (mModeTextBtn)
+    {
+        mModeTextBtn->setToggleState(mode == VIEW_TEXT);
+    }
+    if (mModeFormattedBtn)
+    {
+        mModeFormattedBtn->setToggleState(mode == VIEW_FORMATTED);
+    }
+    if (mModeSplitBtn)
+    {
+        mModeSplitBtn->setToggleState(mode == VIEW_SPLIT);
+    }
+
+    if (show_markdown)
+    {
+        refreshMarkdownView(false);
+    }
+}
+
+void LLPreviewNotecard::updateMarkdownView()
+{
+    if (mViewMode == VIEW_TEXT || !mMarkdownView || !mEditor)
+    {
+        return;
+    }
+
+    const S32 generation = mEditor->getTextGeneration();
+    if (generation == mMarkdownGeneration)
+    {
+        return;
+    }
+    if (generation != mMarkdownPendingGeneration)
+    {
+        // The text changed again: restart the wait.
+        mMarkdownPendingGeneration = generation;
+        mMarkdownDebounceTimer.reset();
+    }
+    if (mViewMode == VIEW_SPLIT && mMarkdownDebounceTimer.getElapsedTimeF32() < MARKDOWN_PREVIEW_DELAY)
+    {
+        return;
+    }
+    refreshMarkdownView(true);
+}
+
+void LLPreviewNotecard::refreshMarkdownView(bool keep_scroll)
+{
+    if (!mMarkdownView || !mEditor)
+    {
+        return;
+    }
+    mMarkdownGeneration = mEditor->getTextGeneration();
+    mMarkdownPendingGeneration = mMarkdownGeneration;
+    PrestigeMarkdownRenderer::render(mMarkdownView, wstring_to_utf8str(mEditor->getWText()), keep_scroll);
+}
+
+void LLPreviewNotecard::onNotecardTextLoaded()
+{
+    // Notecards that start with a "# Title" line open formatted, once per window,
+    // without changing the remembered mode.
+    if (mMarkdownAutoChecked)
+    {
+        return;
+    }
+    mMarkdownAutoChecked = true;
+
+    if (mViewMode == VIEW_TEXT && mEditor
+        && gSavedSettings.getBOOL("PrestigeNotecardAutoMarkdown")
+        && PrestigeMarkdown::startsWithHeading(wstring_to_utf8str(mEditor->getWText())))
+    {
+        setViewMode(VIEW_FORMATTED, false);
+    }
+}
+// </Prestige>
 
 std::string LLPreviewNotecard::getTmpFileName()
 {

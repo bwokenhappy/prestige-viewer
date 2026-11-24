@@ -206,6 +206,8 @@ set(viewer_SOURCE_FILES
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
     prestigefloaterposestand.cpp
+    prestigemarkdown.cpp
+    prestigemarkdownrenderer.cpp
     slfloaterao.cpp
     slfloaterfirstrun.cpp
     slfloatergesturesets.cpp
@@ -1234,6 +1236,8 @@ set(viewer_HEADER_FILES
     sldaycyclelandmarks.h
     sldiscordpresence.h
     prestigefloaterposestand.h
+    prestigemarkdown.h
+    prestigemarkdownrenderer.h
     slfloaterao.h
     slfloaterfirstrun.h
     slfloatergesturesets.h

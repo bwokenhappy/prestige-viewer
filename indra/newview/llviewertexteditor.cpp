@@ -1357,6 +1357,15 @@ bool LLViewerTextEditor::hasEmbeddedInventory()
     return ! mEmbeddedItemList->empty();
 }
 
+// <Prestige> Markdown notecards: name of an embedded item, for the formatted view
+// static
+std::string LLViewerTextEditor::getEmbeddedItemName(llwchar wc)
+{
+    LLPointer<LLInventoryItem> item = LLEmbeddedItems::getEmbeddedItemPtr(wc);
+    return item.notNull() ? item->getName() : std::string();
+}
+// </Prestige>
+
 ////////////////////////////////////////////////////////////////////////////
 
 bool LLViewerTextEditor::importBuffer( const char* buffer, S32 length )

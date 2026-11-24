@@ -139,6 +139,10 @@ bool isColor(const SLFxUniformInfo& uniform)
 }
 } // namespace
 
+// <Prestige> "sl_panel_fx_effects" in XUI: the same Effects (ReShade FX) panel as a Preferences tab
+// and a window of its own, without Photo Studio (studio() is then null, which the panel handles).
+static LLPanelInjector<SLPanelPhotoStudioEffects> t_sl_panel_fx_effects("sl_panel_fx_effects");
+
 SLPanelPhotoStudioEffects::SLPanelPhotoStudioEffects(SLFloaterPhotoStudio* studio)
 :   LLPanel()
 {

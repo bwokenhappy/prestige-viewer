@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Prestige: Firestorm's compact AO bar (Firestorm floater_ao small mode: set picker, more,
+     previous / next stand, Sits), on Prestige's AO engine (SLFloaterAO). Walk-backwards and
+     swimming are in the AO editor (gear button). -->
 <floater
  positioning="cascading"
  save_rect="true"
  can_resize="false"
- height="176"
- width="300"
+ height="118"
+ width="222"
  layout="topleft"
  name="sl_ao"
  single_instance="true"
@@ -14,133 +17,112 @@
      height="16"
      label="AO"
      layout="topleft"
-     left="8"
+     left="6"
      name="ao_enabled"
      tool_tip="Turn the animation overrider on or off (/ao on, /ao off)"
-     top="24"
-     width="48" />
+     top="25"
+     width="40" />
     <combo_box
      follows="left|top|right"
-     height="22"
+     height="20"
      layout="topleft"
      left_pad="2"
      name="set_combo"
      tool_tip="Active AO set (/ao set &lt;name&gt;)"
-     top="21"
-     width="150" />
+     top="22"
+     width="120" />
     <button
      follows="top|right"
-     height="22"
-     image_overlay="Refresh_Off"
-     layout="topleft"
-     left_pad="4"
-     name="reset_btn"
-     tool_tip="Refresh / reset the AO: stops stuck animations, reloads your AO sets and starts the right one again"
-     top_delta="0"
-     width="28" />
-    <button
-     follows="top|right"
-     height="22"
+     height="20"
      image_overlay="Icon_Gear"
      layout="topleft"
-     left_pad="4"
+     left_pad="2"
      name="edit_btn"
      tool_tip="Open the AO editor: sets, states, animations, import"
      top_delta="0"
-     width="28" />
+     width="22" />
+    <button
+     follows="top|right"
+     height="20"
+     image_overlay="Refresh_Off"
+     layout="topleft"
+     left_pad="2"
+     name="reset_btn"
+     tool_tip="Refresh / reset the AO: stops stuck animations, reloads your AO sets and starts the right one again"
+     top_delta="0"
+     width="22" />
     <button
      follows="left|top"
-     height="22"
-     image_overlay="Arrow_Left_Off"
+     height="20"
+     label="&lt;&lt;"
      layout="topleft"
-     left="8"
+     left="6"
      name="prev_btn"
      tool_tip="Previous stand (or previous animation of the current state)"
-     top_pad="6"
-     width="28" />
+     top="46"
+     width="50" />
     <button
      follows="left|top"
-     height="22"
-     image_overlay="Arrow_Right_Off"
+     height="20"
+     label="&gt;&gt;"
      layout="topleft"
      left_pad="2"
      name="next_btn"
      tool_tip="Next stand (/ao next)"
      top_delta="0"
-     width="28" />
+     width="50" />
     <check_box
      follows="left|top"
      height="16"
-     label="Override sits"
+     label="Sits"
      layout="topleft"
-     left_pad="10"
+     left_pad="6"
      name="sit_override"
      tool_tip="Replace sit animations with this set's. Seats with their own animation still win when Smart sit is on (/ao sit)"
-     top_delta="3"
-     width="110" />
+     top_delta="2"
+     width="48" />
     <button
      follows="top|right"
-     height="22"
+     height="20"
      is_toggle="true"
      label="Pause"
      layout="topleft"
-     left_pad="4"
+     left_pad="2"
      name="pause_btn"
      tool_tip="Pause or resume the AO without switching it off (/ao pause, /ao resume)"
-     top_delta="-3"
-     width="80" />
-    <check_box
-     control_name="SLWalkBackwardsFacingForward"
-     follows="left|top"
-     height="16"
-     label="Walk backwards facing forward"
-     layout="topleft"
-     left="8"
-     name="back_facing_check"
-     tool_tip="On: moving backwards keeps your avatar facing forward and the AO plays its Walking Backwards animation (running: only in your own view). Off: your avatar turns round to face where it is going, walking or running, and the AO plays its forward Walking animation. Works with the AO off (then Off leaves the viewer default)."
-     top="74"
-     width="240" />
-    <check_box
-     control_name="SLSimulatedSwimming"
-     follows="left|top"
-     height="16"
-     label="Allow swimming"
-     layout="topleft"
-     left="8"
-     name="swim_check"
-     tool_tip="In deep water float at the surface, dive with crouch (C / Page Down), rise back when released, swim up with E / Page Up, and walk out onto land. Uses flying, so not where flying is blocked. Works with the AO off, but the swim animations come from the AO set."
-     top_pad="4"
-     width="240" />
+     top_delta="-2"
+     width="56" />
     <text
      follows="left|top|right"
-     height="30"
+     font="SansSerifSmall"
+     height="26"
      layout="topleft"
-     left="8"
+     left="6"
      name="status_text"
      text_color="EmphasisColor"
-     top_pad="4"
+     top="70"
      word_wrap="true"
-     width="284" />
+     width="210" />
     <button
      follows="left|top"
      height="20"
      label="Don't pause for this"
      layout="topleft"
-     left="8"
+     left="6"
      name="ignore_btn"
      tool_tip="This animation does not fight the AO (a deformer, a body fix, a small pose): never pause for it again. Manage the list in the AO editor."
-     top_pad="2"
+     top="96"
      visible="false"
-     width="160" />
+     width="150" />
     <button
      follows="left|top"
      height="20"
      label="Resume my AO"
      layout="topleft"
-     left="8"
+     left="6"
      name="resume_scripted_btn"
      tool_tip="Run this AO alongside the scripted AO you are wearing. Remembered choices can be changed under Remembered choices in the AO editor."
      top_delta="0"
      visible="false"
-     width="160" />
+     width="150" />
 </floater>

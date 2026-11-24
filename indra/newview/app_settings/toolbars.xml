@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<!-- Prestige: Firestorm-style bottom bar (icons only), fewer side buttons -->
+<!-- Prestige: Firestorm's default toolbars (skins/default/toolbars.xml in Firestorm): one bottom
+     bar of icons, Destinations on the left, nothing on the right. Prestige adds Friends, Photo
+     Studio, ReShade and Weather to the bottom bar. Everything else is in the toybox (right-click a
+     toolbar > Toolbar Buttons). Layout version 4 (PRESTIGE_TOOLBAR_LAYOUT in lltoolbarview.cpp). -->
 <toolbars>
+  <right_toolbar
+    button_display_mode="icons_only"/>
   <bottom_toolbar
-    button_display_mode="icons_only">
+    button_display_mode="icons_only"
+    button_layout_mode="fill">
     <command name="chat"/>
     <command name="speak"/>
     <command name="move"/>
@@ -11,31 +17,18 @@
     <command name="contacts"/>
     <command name="appearance"/>
     <command name="search"/>
-    <command name="places"/>
     <command name="map"/>
     <command name="minimap"/>
     <command name="snapshot"/>
     <command name="photo_studio"/>
-    <command name="weather"/>
     <command name="inventory"/>
     <command name="ao"/>
     <command name="quick_prefs"/>
+    <command name="reshade"/>
+    <command name="weather"/>
   </bottom_toolbar>
   <left_toolbar
-    button_display_mode="icons_only_small">
-    <command name="avatar"/>
-    <command name="profile"/>
-    <command name="destinations"/>
-    <command name="myenvironments"/>
-    <command name="stats"/>
-    <command name="performance"/>
-    <command name="pose_stand"/>
-    <command name="hover_height"/>
-    <command name="camera_presets"/>
-    <command name="graphics"/>
-    <command name="lightbox"/>
-  </left_toolbar>
-  <right_toolbar
     button_display_mode="icons_only">
-  </right_toolbar>
+    <command name="destinations"/>
+  </left_toolbar>
 </toolbars>

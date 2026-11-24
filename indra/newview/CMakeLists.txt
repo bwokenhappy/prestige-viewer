@@ -95,6 +95,7 @@ set(viewer_SOURCE_FILES
     slsoundscrub.cpp
     slsoundscrubbar.cpp
     slfloaterweather.cpp
+    slpanelweather.cpp                # <Prestige> the Weather controls, also the Preferences Weather tab
     slnightlight.cpp
     slnightsky.cpp
     slsoundlog.cpp
@@ -1116,6 +1117,7 @@ set(viewer_HEADER_FILES
     slsoundscrub.h
     slsoundscrubbar.h
     slfloaterweather.h
+    slpanelweather.h
     slnightlight.h
     slnightsky.h
     slnightskygrid.h

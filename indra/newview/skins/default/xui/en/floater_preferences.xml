@@ -87,6 +87,8 @@
      tab_padding_right="0"
      top="40"
      width="658">
+        <!-- Prestige: tabs in Firestorm's order and names, with ReShade and Weather after Graphics,
+             and Prestige's own extras (Combat, Building, Uploads, Safety) at the end. -->
         <panel
 	 class="panel_preference"
          filename="panel_preferences_general.xml"
@@ -94,20 +96,6 @@
          layout="topleft"
          help_topic="preferences_general_tab"
          name="general" />
-        <panel
-	 class="panel_preference_graphics"
-         filename="panel_preferences_graphics1.xml"
-         label="Graphics"
-         layout="topleft"
-         help_topic="preferences_display_tab"
-         name="display" />
-        <panel
-		 class="panel_preference"
-         filename="panel_preferences_sound.xml"
-         label="Sound &amp; Media"
-         layout="topleft"
-         help_topic="preferences_audio_tab"
-         name="audio" />
         <panel
 		 class="panel_preference"
          filename="panel_preferences_chat.xml"
@@ -117,11 +105,93 @@
          name="chat" />
         <panel
 		 class="panel_preference"
+         filename="panel_preferences_colors.xml"
+         label="Colors"
+         layout="topleft"
+         help_topic="preferences_colors_tab"
+         name="colors" />
+        <panel
+	 class="panel_preference_graphics"
+         filename="panel_preferences_graphics1.xml"
+         label="Graphics"
+         layout="topleft"
+         help_topic="preferences_display_tab"
+         name="display" />
+        <!-- Prestige: ReShade FX (Photo Studio's Effects panel, also the toolbar ReShade window) -->
+        <panel
+         class="sl_panel_fx_effects"
+         filename="panel_photo_studio_effects.xml"
+         label="ReShade"
+         layout="topleft"
+         name="reshade" />
+        <!-- Prestige: Weather (the same panel as the toolbar Weather window) -->
+        <panel
+         class="sl_panel_weather"
+         filename="panel_sl_weather.xml"
+         label="Weather"
+         layout="topleft"
+         name="weather_prefs" />
+        <panel
+		 class="panel_preference"
+         filename="panel_preferences_sound.xml"
+         label="Sound &amp; Media"
+         layout="topleft"
+         help_topic="preferences_audio_tab"
+         name="audio" />
+        <panel
+		 class="panel_preference"
+         filename="panel_preferences_setup.xml"
+         label="Network &amp; Files"
+         layout="topleft"
+         help_topic="preferences_input_tab"
+         name="input" />
+        <panel
+		 class="panel_preference"
          filename="panel_preferences_move.xml"
          label="Move &amp; View"
          layout="topleft"
          help_topic="preferences_move_tab"
          name="move" />
+        <panel
+         class="panel_preference_controls"
+         filename="panel_preferences_controls.xml"
+         label="Controls"
+         layout="topleft"
+         help_topic="preferences_controls_tab"
+         name="controls" />
+        <panel
+         class="panel_preference_game_control"
+         filename="panel_preferences_game_control.xml"
+         label="Game Controls"
+         layout="topleft"
+         help_topic="preferences_game_control_tab"
+         name="game_control" />
+        <panel
+		 class="panel_preference"
+         filename="panel_preferences_alerts.xml"
+         label="Notifications"
+         layout="topleft"
+         help_topic="preferences_msgs_tab"
+         name="msgs" />
+        <panel
+         class="panel_preference_privacy"
+         filename="panel_preferences_privacy.xml"
+         label="Privacy"
+         layout="topleft"
+         help_topic="preferences_im_tab"
+         name="im" />
+        <panel
+         class="panel_preference"
+         filename="panel_preferences_advanced.xml"
+         label="Advanced"
+         layout="topleft"
+         help_topic="preferences_advanced1_tab"
+         name="advanced1" />
+        <panel
+         filename="panel_preferences_skins.xml"
+         label="Skins"
+         layout="topleft"
+         name="skins" />
         <!-- CombatFX: ported from GunMetal-DX (squeedledorf, LGPL 2.1), v0.3.0 cf5f1f4 (<SS:Skoomastream>) -->
         <panel
          class="panel_preference"
@@ -138,34 +208,6 @@
          help_topic="preferences_building_tab"
          name="building" />
         <panel
-		 class="panel_preference"
-         filename="panel_preferences_alerts.xml"
-         label="Notifications"
-         layout="topleft"
-         help_topic="preferences_msgs_tab"
-         name="msgs" />
-        <panel
-		 class="panel_preference"
-         filename="panel_preferences_colors.xml"
-         label="Colors"
-         layout="topleft"
-         help_topic="preferences_colors_tab"
-         name="colors" />
-        <panel
-         class="panel_preference_privacy"
-         filename="panel_preferences_privacy.xml"
-         label="Privacy"
-         layout="topleft"
-         help_topic="preferences_im_tab"
-         name="im" />
-        <panel
-		 class="panel_preference"
-         filename="panel_preferences_setup.xml"
-         label="Setup"
-         layout="topleft"
-         help_topic="preferences_input_tab"
-         name="input" />
-        <panel
          class="panel_preference"
          filename="panel_preferences_uploads.xml"
          label="Uploads"
@@ -173,37 +215,11 @@
          help_topic="preferences_uploads_tab"
          name="uploads" />
         <panel
-         class="panel_preference_controls"
-         filename="panel_preferences_controls.xml"
-         label="Controls"
-         layout="topleft"
-         help_topic="preferences_controls_tab"
-         name="controls" />
-        <panel
-         class="panel_preference_game_control"
-         filename="panel_preferences_game_control.xml"
-         label="Game Controllers"
-         layout="topleft"
-         help_topic="preferences_game_control_tab"
-         name="game_control" />
-        <panel
-         filename="panel_preferences_skins.xml"
-         label="Skins"
-         layout="topleft"
-         name="skins" />
-        <panel
          class="panel_preference"
          filename="panel_preferences_safety.xml"
          label="Safety"
          layout="topleft"
          name="safety" />
-        <panel
-         class="panel_preference"
-         filename="panel_preferences_advanced.xml"
-         label="Advanced"
-         layout="topleft"
-         help_topic="preferences_advanced1_tab"
-         name="advanced1" />
     </tab_container>
     <!-- #1348: shown instead of the pages when a search finds nothing -->
     <text

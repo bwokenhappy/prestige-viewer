@@ -51,6 +51,19 @@ public:
     static bool hideSenderName(EChatSourceType source_type, const std::string& from_name);
     static bool hideSenderName(const LLChat& chat) { return hideSenderName(chat.mSourceType, chat.mFromName); }
 
+    // <Prestige> calmer chat
+    // A script error or warning (DEBUG_CHANNEL) from an object the user owns that goes in
+    // nearby chat as a red line rather than the Script Debug window (ShowScriptErrors and
+    // PrestigeOwnScriptErrorsInChat on).
+    static bool isOwnScriptErrorInChat(const LLChat& chat);
+    // Chat said by an object the user doesn't own (not llOwnerSay, llRegionSayTo or a script
+    // error) while PrestigeQuietObjectChat is on: a smaller, dimmer line in nearby chat that
+    // makes no pop-up, flash or sound.
+    static bool isQuietObjectChat(const LLChat& chat);
+    // Either of the above: nearby chat history only, no pop-up and no ping.
+    static bool isCalmChat(const LLChat& chat) { return isOwnScriptErrorInChat(chat) || isQuietObjectChat(chat); }
+    // </Prestige>
+
     static boost::signals2::connection setFontChangedCallback(const font_change_signal_t::slot_type& cb);
     static void signalChatFontChanged();
 

@@ -1474,6 +1474,12 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     LLViewerChat::getChatColor(chat, txt_color, alpha);
 
     LLFontGL* fontp = LLViewerChat::getChatFont();
+    // <Prestige> quiet object chat (PrestigeQuietObjectChat): a smaller line (and dimmer, getChatColor)
+    if (LLViewerChat::isQuietObjectChat(chat))
+    {
+        fontp = LLFontGL::getFontSansSerifSmall();
+    }
+    // </Prestige>
     std::string font_name = LLFontGL::nameFromFont(fontp);
     std::string font_size = LLFontGL::sizeFromFont(fontp);
 

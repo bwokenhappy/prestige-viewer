@@ -583,7 +583,10 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
             return;
         }
 
-        if (gSavedSettings.getS32("ShowScriptErrorsLocation") == 1)// show error in window //("ScriptErrorsAsChat"))
+        // <Prestige> PrestigeOwnScriptErrorsInChat: a red line in nearby chat instead
+        if (gSavedSettings.getS32("ShowScriptErrorsLocation") == 1 // show error in window //("ScriptErrorsAsChat"))
+            && !LLViewerChat::isOwnScriptErrorInChat(chat_msg))
+        // </Prestige>
         {
             LLUIColor txt_color;
             F32 alpha = 1.f;
@@ -646,6 +649,13 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
         }
         return;
     }
+    // <Prestige> calmer chat: own script errors (PrestigeOwnScriptErrorsInChat) and quiet object
+    // chat (PrestigeQuietObjectChat) stay in nearby chat, without a pop-up
+    if (LLViewerChat::isCalmChat(chat_msg))
+    {
+        return;
+    }
+    // </Prestige>
     if (mChannel.isDead() || !mChannel.get()->getShowToasts())
     {
         return;

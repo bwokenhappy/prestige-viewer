@@ -94,7 +94,8 @@ public:
         mPosAgent(),
         mURL(),
         mChatStyle(CHAT_STYLE_NORMAL),
-        mSessionID()
+        mSessionID(),
+        mFromTaskIM(false) // <Prestige/>
     { }
 
     std::string     mText;      // UTF-8 line of text
@@ -116,6 +117,10 @@ public:
     std::string     mURL;
     EChatStyle      mChatStyle;
     LLUUID          mSessionID;
+    // <Prestige> an IM from an object (llInstantMessage), shown in nearby chat: meant for us,
+    // so never quiet object chat (LLViewerChat::isQuietObjectChat)
+    bool            mFromTaskIM;
+    // </Prestige>
 };
 
 #endif

@@ -196,6 +196,11 @@ protected:
 
     void updateUsedEmojis(LLWStringView text);
 
+    // <Prestige> a line is being sent from the input: Ctrl+Up / Ctrl+Down bring it back
+    // in this conversation (prestigechatlinehistory.h)
+    void rememberSentLine();
+    // </Prestige>
+
     S32  mFloaterExtraWidth;
 
     bool mIsNearbyChat;

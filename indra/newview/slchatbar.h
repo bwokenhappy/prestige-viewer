@@ -103,6 +103,10 @@ protected:
     void cancelIM();                        // MMO chat log: back to nearby chat
     void sendIM(const LLWString& text);     // MMO chat log: to mIMTarget
     void resetChatLogPosition();            // MMO chat log: the gear menu puts the log and this bar back
+    // <Prestige> the conversation Ctrl+Up / Ctrl+Down recall lines from: nearby chat (null)
+    // or, in IM mode, the IM with mIMTarget (prestigechatlinehistory.h)
+    LLUUID lineHistorySession() const;
+    // </Prestige>
 
     LLChatEntry* mInputEditor;
 

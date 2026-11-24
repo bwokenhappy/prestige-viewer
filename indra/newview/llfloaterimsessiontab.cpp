@@ -53,6 +53,7 @@
 #include "lllayoutstack.h"
 #include "llpanelemojicomplete.h"
 #include "prestigefloatergifpicker.h" // <Prestige/> GIF picker
+#include "prestigechatlinehistory.h" // <Prestige/> sent lines per conversation
 #include "lltoolbarview.h"
 
 const F32 REFRESH_INTERVAL = 1.0f;
@@ -380,6 +381,14 @@ bool LLFloaterIMSessionTab::postBuild()
     mInputEditor->setPassDelete(true);
     mInputEditor->setFont(LLViewerChat::getChatFont());
     updateGifPickerBtn(); // <Prestige/> needs mInputEditor
+    // <Prestige> Ctrl+Up / Ctrl+Down: this conversation's sent lines (also those sent from
+    // another input for it, e.g. the chat bar, which is why they are fetched again on focus)
+    PrestigeChatLineHistory::restore(mSessionID, mInputEditor);
+    mInputEditor->setFocusReceivedCallback([this](LLFocusableElement*)
+    {
+        PrestigeChatLineHistory::restore(mSessionID, mInputEditor);
+    });
+    // </Prestige>
 
     mChatLayoutPanelHeight = mChatLayoutPanel->getRect().getHeight();
     mInputEditorPad = mChatLayoutPanelHeight - mInputEditor->getRect().getHeight();
@@ -805,6 +814,13 @@ void LLFloaterIMSessionTab::updateUsedEmojis(LLWStringView text)
         initEmojiRecentPanel();
     }
 }
+
+// <Prestige> sent lines per conversation (Ctrl+Up / Ctrl+Down)
+void LLFloaterIMSessionTab::rememberSentLine()
+{
+    PrestigeChatLineHistory::remember(mSessionID, mInputEditor);
+}
+// </Prestige>
 
 static LLTrace::BlockTimerStatHandle FTM_BUILD_CONVERSATION_VIEW_PARTICIPANT("Build Conversation View");
 void LLFloaterIMSessionTab::buildConversationViewParticipant()

@@ -1403,6 +1403,7 @@ void LLIMProcessing::processNewMessage(LLUUID from_id,
             }
 
             chat.mSourceType = CHAT_SOURCE_OBJECT;
+            chat.mFromTaskIM = true; // <Prestige/> llInstantMessage: not quiet object chat
 
             // To conclude that the source type of message is CHAT_SOURCE_SYSTEM it's not
             // enough to check only from name (i.e. fromName = "Second Life"). For example

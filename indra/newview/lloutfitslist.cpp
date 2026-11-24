@@ -58,6 +58,7 @@
 #include "llvoavatar.h"
 #include "llvoavatarself.h"
 #include "llwearableitemslist.h"
+#include "prestigeoutfitbackup.h" // <Prestige/> outfit backup
 
 static bool is_tab_header_clicked(LLAccordionCtrlTab* tab, S32 y);
 
@@ -2161,6 +2162,9 @@ LLContextMenu* LLOutfitContextMenu::createMenu()
     registrar.add("Outfit.Thumbnail", boost::bind(&LLOutfitContextMenu::onThumbnail, this, selected_id));
     registrar.add("Outfit.Favorite", boost::bind(&LLOutfitContextMenu::onFavorite, this, selected_id));
     registrar.add("Outfit.Save", boost::bind(&LLOutfitContextMenu::onSave, this, selected_id));
+    // <Prestige> outfit backup to a JSON file
+    registrar.add("Outfit.Backup", [selected_id](LLUICtrl*, const LLSD&) { PrestigeOutfitBackup::backupOutfit(selected_id); });
+    // </Prestige>
 
     enable_registrar.add("Outfit.OnEnable", boost::bind(&LLOutfitContextMenu::onEnable, this, _2));
     enable_registrar.add("Outfit.OnVisible", boost::bind(&LLOutfitContextMenu::onVisible, this, _2));
@@ -2293,6 +2297,11 @@ LLOutfitListGearMenuBase::LLOutfitListGearMenuBase(LLOutfitListBase* olist)
     registrar.add("Gear.RenameFolder", boost::bind(&LLOutfitListGearMenuBase::onRenameFolder, this));
     registrar.add("Gear.DeleteFolder", boost::bind(&LLOutfitListGearMenuBase::onDeleteFolder, this));
     registrar.add("Gear.GroupByPrefix", boost::bind(&LLOutfitListGearMenuBase::onGroupByPrefix, this));
+    // <Prestige> outfit backup to a JSON file, and restore from one
+    registrar.add("Gear.Backup", [this](LLUICtrl*, const LLSD&) { PrestigeOutfitBackup::backupOutfit(getSelectedOutfitID()); });
+    registrar.add("Gear.BackupCurrentLook", [](LLUICtrl*, const LLSD&) { PrestigeOutfitBackup::backupCurrentLook(); });
+    registrar.add("Gear.RestoreFromFile", [](LLUICtrl*, const LLSD&) { PrestigeOutfitBackup::restoreFromFile(); });
+    // </Prestige>
 
     enable_registrar.add("Gear.OnEnable", boost::bind(&LLOutfitListGearMenuBase::onEnable, this, _2));
     enable_registrar.add("Gear.OnVisible", boost::bind(&LLOutfitListGearMenuBase::onVisible, this, _2));

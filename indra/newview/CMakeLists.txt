@@ -210,6 +210,8 @@ set(viewer_SOURCE_FILES
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
     prestigemarkdown.cpp
     prestigemarkdownrenderer.cpp
+    prestigeoutfitbackup.cpp          # <Prestige> outfit backup to / restore from a JSON file
+    prestigeoutfitbackupformat.cpp
     slfloaterao.cpp
     slfloaterfirstrun.cpp
     slfloatergesturesets.cpp
@@ -1244,6 +1246,8 @@ set(viewer_HEADER_FILES
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)
     prestigemarkdown.h
     prestigemarkdownrenderer.h
+    prestigeoutfitbackup.h            # <Prestige> outfit backup to / restore from a JSON file
+    prestigeoutfitbackupformat.h
     slfloaterao.h
     slfloaterfirstrun.h
     slfloatergesturesets.h

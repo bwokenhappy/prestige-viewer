@@ -96,6 +96,15 @@
         <on_click
          function="Outfit.Save" />
     </menu_item_call>
+    <!-- <Prestige> outfit backup to a JSON file -->
+    <menu_item_call
+     label="Back up to file..."
+     layout="topleft"
+     name="backup_to_file">
+        <on_click
+         function="Outfit.Backup" />
+    </menu_item_call>
+    <!-- </Prestige> -->
     <menu_item_separator>
         <on_visible
         function="Outfit.OnVisible"

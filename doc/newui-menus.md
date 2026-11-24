@@ -10,10 +10,11 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Me | Profile |  | Command surface; More > Browse the classic menus |
 | Me | Inventory | Ctrl+I | Command surface; More > Browse the classic menus; tool grid: inventory (on a toolbar) |
 | Me | New Inventory Window | Ctrl+Shift+I | hidden in classic too; its keys work |
+| Me | Quick library | Ctrl+Space | Command surface; More > Browse the classic menus; tool grid: quick_library (on a toolbar) |
 | Me | Places | Alt+L | Command surface; More > Browse the classic menus; tool grid: places (on a toolbar) |
 | Me | Teleport History | Alt+H | Command surface; More > Browse the classic menus; tool grid: teleport_history (on a toolbar) |
 | Me | Picks |  | Command surface; More > Browse the classic menus |
-| Me | Experiences |  | Command surface; More > Browse the classic menus |
+| Me | Experiences |  | Command surface; More > Browse the classic menus; tool grid: experiences (on a toolbar) |
 | Me | Music Ticker |  | Command surface; More > Browse the classic menus |
 | Me | Camera Controls | Ctrl+K | Command surface; More > Browse the classic menus; tool grid: view (on a toolbar) |
 | Me | Camera Recorder |  | Command surface; More > Browse the classic menus; tool grid: recorder (on a toolbar) |
@@ -21,14 +22,14 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Me | Recenter VR View | Alt+Shift+V | Command surface (while shown, as in classic); More > Browse the classic menus |
 | Me | Show UI Wall in VR |  | Command surface (while shown, as in classic); More > Browse the classic menus |
 | Me | Import from Another Viewer |  | Command surface; More > Browse the classic menus |
-| Me | Set up Slipstream like my old viewer |  | Command surface; More > Browse the classic menus |
+| Me | Set up Prestige like my old viewer |  | Command surface; More > Browse the classic menus |
 | Me | Quick Preferences |  | Command surface; More > Browse the classic menus; tool grid: quick_prefs (on a toolbar) |
-| Me | Photo Studio | F1 | Command surface; More > Browse the classic menus; tool grid: lightbox (on a toolbar) |
+| Me | Photo Studio | F1 | Command surface; More > Browse the classic menus; tool grid: photo_studio (on a toolbar) |
 | Me | Effects (ReShade FX) |  | Command surface; More > Browse the classic menus |
 | Me > Depth of Field | Depth of Field |  | Command surface; More > Browse the classic menus |
 | Me > Depth of Field | Focus Under Cursor |  | Command surface; More > Browse the classic menus |
 | Me > Depth of Field | Lock Focus |  | Command surface; More > Browse the classic menus |
-| Me | Notifications | Alt+Shift+N | Command surface; More > Browse the classic menus |
+| Me | Notifications | Alt+Shift+N | Command surface; More > Browse the classic menus; tool grid: notifications (on a toolbar) |
 | Me | Away |  | Command surface; More > Browse the classic menus |
 | Me | Do Not Disturb |  | Command surface; More > Browse the classic menus |
 | Me | Buy L$ |  | Command surface; More > Browse the classic menus; L$ menu: Buy L$ (status bar) |
@@ -37,9 +38,10 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Me | Marketplace listings |  | Command surface; More > Browse the classic menus |
 | Me | Account dashboard |  | Command surface; More > Browse the classic menus |
 | Me | [Membership] |  | Command surface (while shown, as in classic); More > Browse the classic menus |
+| Me | Pose stand |  | Command surface; More > Browse the classic menus; tool grid: pose_stand (on a toolbar) |
 | Me | Pose Studio |  | Command surface; More > Browse the classic menus; tool grid: poser (on a toolbar) |
-| Me | Classic Poser |  | Command surface; More > Browse the classic menus |
-| Me | Pose Creator (animations) |  | Command surface; More > Browse the classic menus |
+| Me | Classic Poser |  | Command surface; More > Browse the classic menus; tool grid: classic_poser (on a toolbar) |
+| Me | Pose Creator (animations) |  | Command surface; More > Browse the classic menus; tool grid: pose_creator (on a toolbar) |
 | Me | Preferences | Ctrl+P | Command surface; More > Browse the classic menus; More menu; tool grid: preferences (on a toolbar) |
 | Me | Toolbar buttons |  | Command surface; More > Browse the classic menus |
 | Me | Hide all controls | Ctrl+Shift+U | Command surface; More > Browse the classic menus |
@@ -77,7 +79,7 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Avatar | Avatar alignment |  | Command surface; More > Browse the classic menus |
 | Avatar | Controller overlay |  | Command surface; More > Browse the classic menus |
 | Avatar | Gestures | Ctrl+G | Command surface; More > Browse the classic menus; tool grid: gestures (on a toolbar) |
-| Avatar | Gesture Sets |  | Command surface; More > Browse the classic menus; status bar: gesture sets |
+| Avatar | Gesture Sets |  | Command surface; More > Browse the classic menus; status bar: gesture sets; tool grid: gesture_sets (on a toolbar) |
 | Avatar | Animation Overrider |  | Command surface; More > Browse the classic menus |
 | Avatar | AO Control |  | Command surface; More > Browse the classic menus; tool grid: ao (on a toolbar) |
 | Avatar | AO Editor |  | Command surface; More > Browse the classic menus |
@@ -89,45 +91,47 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Avatar | Clear Viewer Effects |  | Command surface; More > Browse the classic menus |
 | Avatar | Attachment scripts |  | Command surface; More > Browse the classic menus; tool grid: scripts (on a toolbar) |
 | Avatar | Help with avatars |  | Command surface; More > Browse the classic menus |
-| Communicate | Conversations | Ctrl+T | Command surface; More > Browse the classic menus; tool grid: chat (on a toolbar) |
-| Communicate | Nearby Chat | Ctrl+H | Command surface; More > Browse the classic menus |
-| Communicate | Speak |  | Command surface; More > Browse the classic menus |
-| Communicate | Conversation Log |  | Command surface; More > Browse the classic menus |
-| Communicate | Gestures | Ctrl+G | Command surface; More > Browse the classic menus; tool grid: gestures (on a toolbar) |
-| Communicate | Gesture Sets |  | Command surface; More > Browse the classic menus; status bar: gesture sets |
-| Communicate | Animation Overrider |  | Command surface; More > Browse the classic menus |
-| Communicate | AO Control |  | Command surface; More > Browse the classic menus; tool grid: ao (on a toolbar) |
-| Communicate | AO Editor |  | Command surface; More > Browse the classic menus |
-| Communicate | Favorite Wearables |  | Command surface; More > Browse the classic menus; tool grid: favorite_wearables (on a toolbar) |
-| Communicate | Friends |  | Command surface; More > Browse the classic menus |
-| Communicate | Groups | Ctrl+Shift+G | Command surface; More > Browse the classic menus |
-| Communicate | Contacts | Ctrl+Alt+Shift+F | Command surface; More > Browse the classic menus |
-| Communicate | Nearby people | Ctrl+Shift+A | Command surface; More > Browse the classic menus |
-| Communicate | Group Titles |  | Command surface; More > Browse the classic menus; tool grid: group_titles (on a toolbar) |
-| Communicate | Radar |  | Command surface; More > Browse the classic menus; tool grid: radar (on a toolbar) |
-| Communicate | Block List |  | Command surface; More > Browse the classic menus |
-| Communicate | Derender / Blacklist List |  | Command surface; More > Browse the classic menus |
-| Communicate | Do Not Disturb |  | Command surface; More > Browse the classic menus |
-| Communicate | Reject teleport offers and requests |  | Command surface; More > Browse the classic menus |
-| Communicate | Reject all group invites |  | Command surface; More > Browse the classic menus |
-| Communicate | Reject all friendship requests |  | Command surface; More > Browse the classic menus |
-| Communicate | Autorespond |  | Command surface; More > Browse the classic menus |
-| Communicate | AutoRespond to non-friends |  | Command surface; More > Browse the classic menus |
+| Comm | Conversations | Ctrl+T | Command surface; More > Browse the classic menus; tool grid: chat (on a toolbar) |
+| Comm | Nearby Chat | Ctrl+H | Command surface; More > Browse the classic menus |
+| Comm | Speak |  | Command surface; More > Browse the classic menus |
+| Comm | Conversation Log |  | Command surface; More > Browse the classic menus; tool grid: conversation_log (on a toolbar) |
+| Comm | Notification Center |  | Command surface; More > Browse the classic menus; tool grid: notification_center (on a toolbar) |
+| Comm | Gestures | Ctrl+G | Command surface; More > Browse the classic menus; tool grid: gestures (on a toolbar) |
+| Comm | Gesture Sets |  | Command surface; More > Browse the classic menus; status bar: gesture sets; tool grid: gesture_sets (on a toolbar) |
+| Comm | Animation Overrider |  | Command surface; More > Browse the classic menus |
+| Comm | AO Control |  | Command surface; More > Browse the classic menus; tool grid: ao (on a toolbar) |
+| Comm | AO Editor |  | Command surface; More > Browse the classic menus |
+| Comm | Favorite Wearables |  | Command surface; More > Browse the classic menus; tool grid: favorite_wearables (on a toolbar) |
+| Comm | Friends |  | Command surface; More > Browse the classic menus |
+| Comm | Groups | Ctrl+Shift+G | Command surface; More > Browse the classic menus |
+| Comm | Contacts | Ctrl+Alt+Shift+F | Command surface; More > Browse the classic menus |
+| Comm | Nearby people | Ctrl+Shift+A | Command surface; More > Browse the classic menus |
+| Comm | Group Titles |  | Command surface; More > Browse the classic menus; tool grid: group_titles (on a toolbar) |
+| Comm | Radar |  | Command surface; More > Browse the classic menus; tool grid: radar (on a toolbar) |
+| Comm | Block List |  | Command surface; More > Browse the classic menus; tool grid: blocked (on a toolbar) |
+| Comm | Derender / Blacklist List |  | Command surface; More > Browse the classic menus |
+| Comm | Do Not Disturb |  | Command surface; More > Browse the classic menus |
+| Comm | Reject teleport offers and requests |  | Command surface; More > Browse the classic menus |
+| Comm | Reject all group invites |  | Command surface; More > Browse the classic menus |
+| Comm | Reject all friendship requests |  | Command surface; More > Browse the classic menus |
+| Comm | Autorespond |  | Command surface; More > Browse the classic menus |
+| Comm | AutoRespond to non-friends |  | Command surface; More > Browse the classic menus |
 | World | Resync Animations | Ctrl+S | Command surface; More > Browse the classic menus |
 | World | Landmark This Place |  | Command surface; More > Browse the classic menus |
 | World | Destinations |  | Command surface; More > Browse the classic menus; tool grid: destinations (on a toolbar) |
 | World | World map | Ctrl+M | Command surface; More > Browse the classic menus; tool grid: map (on a toolbar) |
 | World | Mini-map | Ctrl+Shift+M | Command surface; More > Browse the classic menus; tool grid: minimap (on a toolbar) |
-| World | Sound Explorer |  | Command surface; More > Browse the classic menus |
+| World | Sound Explorer |  | Command surface; More > Browse the classic menus; tool grid: sound_explorer (on a toolbar) |
 | World | Sound Emitter Blacklist |  | Command surface (while shown, as in classic); More > Browse the classic menus |
-| World | Animation Explorer |  | Command surface; More > Browse the classic menus |
+| World | Animation Explorer |  | Command surface; More > Browse the classic menus; tool grid: animation_explorer (on a toolbar) |
 | World | Events | Ctrl+E | Command surface; More > Browse the classic menus |
 | World | Region Tracker |  | Command surface; More > Browse the classic menus; tool grid: regiontracker (on a toolbar) |
 | World | Search | Ctrl+F | Command surface; More > Browse the classic menus |
 | World | Teleport home | Ctrl+Shift+H | Command surface; More > Browse the classic menus |
 | World | Set home to here |  | Command surface; More > Browse the classic menus |
-| World | Snapshot | Ctrl+Shift+S | Command surface; More > Browse the classic menus |
+| World | Snapshot (camera mode) | Ctrl+Shift+S | Command surface; More > Browse the classic menus |
 | World | 360 snapshot | Ctrl+Alt+Shift+S | Command surface; More > Browse the classic menus; tool grid: 360capture (on a toolbar) |
+| World | ReShade |  | Command surface; More > Browse the classic menus; tool grid: reshade (on a toolbar) |
 | World | Video Studio | Ctrl+Shift+V | Command surface; More > Browse the classic menus |
 | World | Instant Replay |  | Command surface; More > Browse the classic menus |
 | World | Save Replay | Alt+F10 | Command surface; More > Browse the classic menus |
@@ -137,14 +141,14 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | World > Zoom level | Zoom in | Ctrl+0 | Command surface; More > Browse the classic menus |
 | World | Place profile |  | Command surface; More > Browse the classic menus |
 | World | About land |  | Command surface; More > Browse the classic menus; status bar: parcel (click); tool grid: aboutland (on a toolbar) |
-| World | Region / Estate | Alt+R | Command surface; More > Browse the classic menus |
+| World | Region / Estate | Alt+R | Command surface; More > Browse the classic menus; tool grid: region_info (on a toolbar) |
 | World | My Linden Home |  | Command surface; More > Browse the classic menus |
 | World | My land holdings |  | Command surface; More > Browse the classic menus |
 | World | Buy this land |  | Command surface; More > Browse the classic menus |
 | World > Show | Hide Ban Lines |  | Command surface; More > Browse the classic menus |
 | World > Show | Show Ban Lines On Collision |  | Command surface; More > Browse the classic menus |
 | World > Show | Show Ban Lines On Proximity |  | Command surface; More > Browse the classic menus |
-| World > Show | Beacons | Ctrl+Alt+Shift+N | Command surface; More > Browse the classic menus |
+| World > Show | Beacons | Ctrl+Alt+Shift+N | Command surface; More > Browse the classic menus; tool grid: beacons (on a toolbar) |
 | World > Show | Property Lines | Ctrl+Alt+Shift+P | Command surface; More > Browse the classic menus |
 | World > Show | Land Owners |  | Command surface; More > Browse the classic menus |
 | World > Show | Coordinates |  | Command surface; More > Browse the classic menus |
@@ -185,6 +189,7 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Build | Area Search |  | Command surface; More > Browse the classic menus; tool grid: area_search (on a toolbar) |
 | Build | Focus on Selection | H | Command surface; More > Browse the classic menus |
 | Build | Zoom to Selection | Shift+H | Command surface; More > Browse the classic menus |
+| Build | Place on Surface | P | Command surface; More > Browse the classic menus |
 | Build > Object | Buy |  | Command surface (while shown, as in classic); More > Browse the classic menus |
 | Build > Object | Take |  | Command surface (while shown, as in classic); More > Browse the classic menus |
 | Build > Object | Take Copy |  | Command surface; More > Browse the classic menus |
@@ -227,6 +232,7 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Build > Options > Selection level of detail | Low |  | Command surface; More > Browse the classic menus |
 | Build > Options > Selection level of detail | Lowest |  | Command surface; More > Browse the classic menus |
 | Build > Options | Snap to Grid | G | Command surface; More > Browse the classic menus |
+| Build > Options | Snap to Objects |  | Command surface; More > Browse the classic menus |
 | Build > Options | Snap Object XY to Grid | Shift+X | Command surface; More > Browse the classic menus |
 | Build > Options | Use Selection for Grid | Shift+G | Command surface; More > Browse the classic menus |
 | Build > Options | Grid Options | Ctrl+Shift+B | Command surface; More > Browse the classic menus |
@@ -243,9 +249,11 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Build > Upload | Script (.lsl / .txt) |  | Command surface; More > Browse the classic menus |
 | Build | Undo | Ctrl+Z | Command surface; More > Browse the classic menus |
 | Build | Redo | Ctrl+Y | Command surface; More > Browse the classic menus |
-| Help | Slipstream Help (wiki) |  | Command surface; More > Browse the classic menus; More menu |
-| Help | Slipstream website |  | Command surface; More > Browse the classic menus |
-| Help | Set up Slipstream like my old viewer |  | Command surface; More > Browse the classic menus |
+| Help | Slipstream Wiki (feature guide) |  | Command surface; More > Browse the classic menus; More menu |
+| Help | Keyboard shortcuts | Ctrl+Shift+/ | Command surface; More > Browse the classic menus |
+| Help | Where is everything? |  | Command surface; More > Browse the classic menus |
+| Help | Slipstream website |  | hidden in classic too |
+| Help | Set up Prestige like my old viewer |  | Command surface; More > Browse the classic menus |
 | Help | Report Bug |  | Command surface; More > Browse the classic menus; More menu |
 | Help | Performance timings |  | Command surface; More > Browse the classic menus |
 | Help | Check for updates |  | Command surface; More > Browse the classic menus |
@@ -332,203 +340,203 @@ command surface (Ctrl+K) lists it with its keys and its enabled / checked state.
 | Advanced | RestrainedLove API |  | Command surface (while shown, as in classic) while the Advanced menu is on (Ctrl+Alt+D; More menu) |
 | Advanced | Show Debug Settings |  | Command surface while the Advanced menu is on (Ctrl+Alt+D; More menu) |
 | Advanced | Show Develop Menu | Ctrl+Alt+Q | Command surface while the Advanced menu is on (Ctrl+Alt+D; More menu); More menu |
-| Develop | Load Local Mesh |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Capture Scene |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Start Camera Path Recording |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Add Camera Path Keyframe |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Stop and Save Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Run Last Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Restart Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Benchmark | Stop Benchmark |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Texture Console | Ctrl+Shift+3 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Debug Console | Ctrl+Shift+4 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Notifications Console | Ctrl+Shift+5 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Fast Timers | Ctrl+Shift+9 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Memory | Ctrl+Shift+0 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Scene Statistics |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Game Controller Debug |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Region Debug Console | Ctrl+Shift+` | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Region Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Group Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Capabilities Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | View Simulator Features |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Wind |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | FOV |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Consoles | Badge |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Time |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Upload Cost |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Render Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Avatar Render Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Texture Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Matrices |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Color Under Cursor |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Memory |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Show Info | Show Updates to Objects | Ctrl+Alt+Shift+U | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Breakpoint |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force LLError And Crash |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force LLError, Message And Crash |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Bad Memory Access |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Bad Memory Access in Coroutine |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Infinite Loop |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Software Exception |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force OS Exception |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force a Crash in a Coroutine |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force a Crash in a Coroprocedure |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force a Crash in a Work Queue |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force an LLError Crash in a Thread |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force an Exception Crash in a Thread |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Force Disconnect Viewer |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Force an Error | Simulate a Memory Leak |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > GLTF | Open |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > GLTF | Save As |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > GLTF | Upload |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > GLTF | Edit |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Video | 1080x1920 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Video | 1920x1080 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Video | 1280x720 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Video | 720x1280 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Tests | Camera Offset |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Tests | Randomize Framerate |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Tests | Periodic Slow Frame |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Bounding Boxes |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Physics Shapes |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Texture Priority |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Texture Area |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Face Area |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | LOD Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Triangle Count |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Particles |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Raycast |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata | Sculpt |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata > Texture Density | None |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata > Texture Density | Current |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata > Texture Density | Desired |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Render Metadata > Texture Density | Full |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Freeze culling camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Texture Mip Level View |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Texture Request vs Resident View |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Texture Inspector (Hover) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering > Texture Mip Map Shown | Base Colour |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering > Texture Mip Map Shown | Normal |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering > Texture Mip Map Shown | Metal-Rough / ORM |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering > Texture Mip Map Shown | Emissive |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Selected Texture Info Basis | Ctrl+Alt+Shift+T | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Selected Material Info | Ctrl+Alt+Shift+M | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Wireframe | Ctrl+Shift+R | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Object-Object Occlusion | Ctrl+Alt+Shift+O | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Shadows from Sun/Moon/Projectors |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | SSAO and Shadow Smoothing |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Enable Vulkan validation on next run |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Automatic Alpha Masks (deferred) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Automatic Alpha Masks (non-deferred) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Disable Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Full Res Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Render Attached Lights |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Render Attached Particles |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Collect Font Vertex Buffers |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Rendering | Clear Cache Immediately |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Pause Agent |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Enable Message Log |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Disable Message Log |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Velocity Interpolate Objects |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Ping Interpolate Object Positions |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Network | Drop a Packet | Ctrl+Alt+L | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Purge Disk Cache |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: Log Stats |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: Verify All Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: List GPU-ready Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: List All Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: Extract Record (CacheStoreDumpKey) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: Cache Metrics Report |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Cache | Cache Store: Reset Cache Metrics |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Dump Scripted Camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Start event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Stop event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Playback event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Start Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Stop Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Loop Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Start Record |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Recorder | Stop Record |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Sim Sun Override |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Fixed Weather |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Dump Region Object Cache |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Record Stats to File |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Interest Lists 360 Mode | Alt+Shift+I | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > World | Reset Interest Lists |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Terrain | Rebuild Terrain |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Terrain | Delete Local Paintmap |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Media Browser | Ctrl+Alt+Shift+Z | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Inventory Thumbnails Helper | Ctrl+Alt+Shift+X | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | FB Connect Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Fonts |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Font Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump SelectMgr |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Inventory |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Inventory Summary (counts + checksum) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Timers |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Dump Focus Holder |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Print Selected Object Info | Ctrl+Shift+P | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Print Agent Info | Shift+P | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug SelectMgr |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Clicks |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Views |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Unicode |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Camera Controls |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Name Tooltips |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Mouse Events |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug Keys |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > UI | Debug WindowProc |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | XUI Preview Tool |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Show Color settings |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Reload Color Settings |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Show Font Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Show SLapps Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Show XUI Names |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Send Test IMs |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > XUI / Colors | Flush Names Caches |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Grab Baked Texture | Iris |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Grab Baked Texture | Head |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Grab Baked Texture | Upper Body |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Grab Baked Texture | Lower Body |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Grab Baked Texture | Skirt |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Appearance To XML |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Toggle Character Geometry |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Test Male |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Test Female |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Allow Select Avatar |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Disable Look At Animation |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Character Tests | Render Only Friends |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Animation Speed | All Animations 10% Faster |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Animation Speed | All Animations 10% Slower |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Animation Speed | Reset All Animation Speed |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar > Animation Speed | Slow Motion Animations |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Force Params to Default |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Animation Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Show Look At |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Show Point At |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Debug Joint Updates |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Disable LOD |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Debug Character Vis |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Debug Character Rez State |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Show Impostor Extents |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Dump Attachments |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Debug Avatar Textures | Ctrl+Alt+Shift+K | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Avatar | Dump Local Textures | Alt+Shift+M | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Compress Images |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Compress File Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Enable Visual Leak Detector |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Output Debug Minidump |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Console Window on next Run |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Set Logging Level | Debug |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Set Logging Level | Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Set Logging Level | Warning |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Set Logging Level | Error |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop > Set Logging Level | None |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Request Admin Status | Ctrl+Alt+G | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Leave Admin Status | Ctrl+Alt+Shift+G | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
-| Develop | Show Admin Menu |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Load Local Mesh |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Capture Scene |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Start Camera Path Recording |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Add Camera Path Keyframe |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Stop and Save Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Run Last Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Restart Camera Path |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Benchmark | Stop Benchmark |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Texture Console | Ctrl+Shift+3 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Debug Console | Ctrl+Shift+4 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Notifications Console | Ctrl+Shift+5 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Fast Timers | Ctrl+Shift+9 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Memory | Ctrl+Shift+0 | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Scene Statistics |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Game Controller Debug |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Region Debug Console | Ctrl+Shift+` | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Region Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Group Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Capabilities Info to Debug Console |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | View Simulator Features |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Wind |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | FOV |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Consoles | Badge |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Time |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Upload Cost |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Render Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Avatar Render Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Texture Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Matrices |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Color Under Cursor |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Memory |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Show Info | Show Updates to Objects | Ctrl+Alt+Shift+U | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Breakpoint |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force LLError And Crash |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force LLError, Message And Crash |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Bad Memory Access |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Bad Memory Access in Coroutine |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Infinite Loop |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Software Exception |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force OS Exception |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force a Crash in a Coroutine |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force a Crash in a Coroprocedure |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force a Crash in a Work Queue |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force an LLError Crash in a Thread |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force an Exception Crash in a Thread |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Force Disconnect Viewer |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Force an Error | Simulate a Memory Leak |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > GLTF | Open |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > GLTF | Save As |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > GLTF | Upload |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > GLTF | Edit |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Video | 1080x1920 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Video | 1920x1080 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Video | 1280x720 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Video | 720x1280 |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Tests | Camera Offset |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Tests | Randomize Framerate |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Tests | Periodic Slow Frame |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Bounding Boxes |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Physics Shapes |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Texture Priority |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Texture Area |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Face Area |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | LOD Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Triangle Count |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Particles |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Raycast |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata | Sculpt |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata > Texture Density | None |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata > Texture Density | Current |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata > Texture Density | Desired |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Render Metadata > Texture Density | Full |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Freeze culling camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Texture Mip Level View |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Texture Request vs Resident View |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Texture Inspector (Hover) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering > Texture Mip Map Shown | Base Colour |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering > Texture Mip Map Shown | Normal |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering > Texture Mip Map Shown | Metal-Rough / ORM |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering > Texture Mip Map Shown | Emissive |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Selected Texture Info Basis | Ctrl+Alt+Shift+T | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Selected Material Info | Ctrl+Alt+Shift+M | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Wireframe | Ctrl+Shift+R | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Object-Object Occlusion | Ctrl+Alt+Shift+O | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Shadows from Sun/Moon/Projectors |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | SSAO and Shadow Smoothing |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Enable Vulkan validation on next run |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Automatic Alpha Masks (deferred) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Automatic Alpha Masks (non-deferred) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Disable Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Full Res Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Render Attached Lights |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Render Attached Particles |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Collect Font Vertex Buffers |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Rendering | Clear Cache Immediately |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Pause Agent |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Enable Message Log |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Disable Message Log |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Velocity Interpolate Objects |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Ping Interpolate Object Positions |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Network | Drop a Packet | Ctrl+Alt+L | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Purge Disk Cache |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: Log Stats |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: Verify All Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: List GPU-ready Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: List All Records |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: Extract Record (CacheStoreDumpKey) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: Cache Metrics Report |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Cache | Cache Store: Reset Cache Metrics |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Dump Scripted Camera |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Start event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Stop event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Playback event recording |  | Command surface (while shown, as in classic) while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Start Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Stop Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Loop Playback |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Start Record |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Recorder | Stop Record |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Sim Sun Override |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Fixed Weather |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Dump Region Object Cache |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Record Stats to File |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Interest Lists 360 Mode | Alt+Shift+I | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > World | Reset Interest Lists |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Terrain | Rebuild Terrain |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Terrain | Delete Local Paintmap |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Media Browser | Ctrl+Alt+Shift+Z | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Inventory Thumbnails Helper | Ctrl+Alt+Shift+X | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | FB Connect Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Fonts |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Font Textures |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump SelectMgr |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Inventory |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Inventory Summary (counts + checksum) |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Timers |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Dump Focus Holder |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Print Selected Object Info | Ctrl+Shift+P | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Print Agent Info | Shift+P | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug SelectMgr |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Clicks |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Views |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Unicode |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Camera Controls |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Name Tooltips |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Mouse Events |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug Keys |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > UI | Debug WindowProc |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | XUI Preview Tool |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Show Color settings |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Reload Color Settings |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Show Font Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Show SLapps Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Show XUI Names |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Send Test IMs |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > XUI / Colors | Flush Names Caches |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Grab Baked Texture | Iris |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Grab Baked Texture | Head |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Grab Baked Texture | Upper Body |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Grab Baked Texture | Lower Body |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Grab Baked Texture | Skirt |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Appearance To XML |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Toggle Character Geometry |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Test Male |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Test Female |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Allow Select Avatar |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Disable Look At Animation |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Character Tests | Render Only Friends |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Animation Speed | All Animations 10% Faster |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Animation Speed | All Animations 10% Slower |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Animation Speed | Reset All Animation Speed |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar > Animation Speed | Slow Motion Animations |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Force Params to Default |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Animation Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Show Look At |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Show Point At |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Debug Joint Updates |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Disable LOD |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Debug Character Vis |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Debug Character Rez State |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Show Impostor Extents |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Dump Attachments |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Debug Avatar Textures | Ctrl+Alt+Shift+K | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Avatar | Dump Local Textures | Alt+Shift+M | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Compress Images |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Compress File Test |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Enable Visual Leak Detector |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Output Debug Minidump |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Console Window on next Run |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Set Logging Level | Debug |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Set Logging Level | Info |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Set Logging Level | Warning |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Set Logging Level | Error |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer > Set Logging Level | None |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Request Admin Status | Ctrl+Alt+G | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Leave Admin Status | Ctrl+Alt+Shift+G | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
+| Developer | Show Admin Menu |  | Command surface while the Develop menu is on (Ctrl+Alt+Q; More menu) |
 | Admin > Object | Take Copy | Ctrl+Alt+Shift+O | Command surface while shown (god mode) |
 | Admin > Object | Force Owner To Me |  | Command surface while shown (god mode) |
 | Admin > Object | Force Owner Permissive |  | Command surface while shown (god mode) |

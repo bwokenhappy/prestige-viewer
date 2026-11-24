@@ -120,6 +120,12 @@ private:
     void                    onRecentViewClearHistoryMenuItemClicked();
 
     bool                    onFriendsViewSortMenuItemCheck(const LLSD& userdata);
+
+    // <Prestige> Firestorm-style friend permission icons (eye button + view menu) and sub-tabs
+    void                    setFriendsPermissionMode(U32 sp_type); // EShowPermissionType
+    void                    onFriendsPermissionsBtnClicked();
+    void                    onFriendsSubTabSelected();
+    // </Prestige>
     bool                    onRecentViewSortMenuItemCheck(const LLSD& userdata);
 
     // misc callbacks
@@ -167,6 +173,10 @@ private:
     LLAccordionCtrl*        mFriendsAccordion = nullptr;
     LLAccordionCtrlTab*     mFriendsAllTab = nullptr;
     LLAccordionCtrlTab*     mFriendsOnlineTab = nullptr;
+    // <Prestige> Firestorm layout: Online (N) / All (N) sub-tabs replace the accordion
+    LLTabContainer*         mFriendsTabContainer = nullptr;
+    LLButton*               mFriendsPermissionsBtn = nullptr;
+    // </Prestige>
 
     LLButton*               mFriendsGearBtn = nullptr;
     LLButton*               mRecentGearBtn = nullptr;

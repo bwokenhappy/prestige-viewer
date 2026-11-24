@@ -64,6 +64,7 @@ void LLAvatarList::ShowPermissionTypeNames::declareValues()
     declare("never", SP_NEVER);
     declare("hover", SP_HOVER);
     declare("nondefault", SP_NONDEFAULT);
+    declare("always", SP_ALWAYS); // <Prestige/> Firestorm-style always-visible permission icons
 }
 
 bool LLAvatarList::contains(const LLUUID& id)

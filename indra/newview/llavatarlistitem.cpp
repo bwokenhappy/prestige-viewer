@@ -855,6 +855,24 @@ bool LLAvatarListItem::refreshPermissions()
 
     const LLRelationship* relation = LLAvatarTracker::instance().getBuddyInfo(getAvatarId());
 
+    // <Prestige> Firestorm-style: all icons on every friend row, at fixed positions; the colour
+    // says whether the right is granted (see refreshPermissionColors())
+    refreshPermissionColors(relation);
+    if ((relation) && (SP_ALWAYS == mShowPermissions))
+    {
+        mIconPermissionOnline->setImageOverlay(LLStringUtil::null);
+        mIconPermissionMap->setImageOverlay(LLStringUtil::null);
+        mIconPermissionEditMine->setImageOverlay(LLStringUtil::null);
+
+        mIconPermissionOnline->setVisible(true);
+        mIconPermissionMap->setVisible(true);
+        mIconPermissionEditMine->setVisible(true);
+        mIconPermissionEditTheirs->setVisible(true);
+        mIconPermissionOnlineTheirs->setVisible(true);
+        mIconPermissionMapTheirs->setVisible(true);
+    }
+    else
+    // </Prestige>
     if( (relation) && (((SP_HOVER == mShowPermissions) && (mHovered)) || (SP_NONDEFAULT == mShowPermissions)) )
     {
         bool fGrantedOnline = relation->isRightGrantedTo(LLRelationship::GRANT_ONLINE_STATUS);
@@ -885,6 +903,26 @@ bool LLAvatarListItem::refreshPermissions()
 
     return nullptr != relation;
 }
+
+// <Prestige> Firestorm-style permission icons: bright when granted, dimmed when not
+void LLAvatarListItem::refreshPermissionColors(const LLRelationship* relation)
+{
+    static const LLUIColor granted_color = LLUIColorTable::instance().getColor("White");
+    // Firestorm dims with White_10; a skin can tune it with FriendsListPermissionUngrantedColor
+    static const LLUIColor ungranted_color = LLUIColorTable::instance().getColor("FriendsListPermissionUngrantedColor",
+                                                                                   LLColor4(1.f, 1.f, 1.f, 0.25f));
+
+    const bool dim = (relation != nullptr) && (SP_ALWAYS == mShowPermissions);
+    auto pick = [&](bool granted) -> const LLUIColor& { return (!dim || granted) ? granted_color : ungranted_color; };
+
+    mIconPermissionOnline->setImageColor(pick(dim && relation->isRightGrantedTo(LLRelationship::GRANT_ONLINE_STATUS)));
+    mIconPermissionMap->setImageColor(pick(dim && relation->isRightGrantedTo(LLRelationship::GRANT_MAP_LOCATION)));
+    mIconPermissionEditMine->setImageColor(pick(dim && relation->isRightGrantedTo(LLRelationship::GRANT_MODIFY_OBJECTS)));
+    mIconPermissionEditTheirs->setColor(pick(dim && relation->isRightGrantedFrom(LLRelationship::GRANT_MODIFY_OBJECTS)));
+    mIconPermissionMapTheirs->setColor(pick(dim && relation->isRightGrantedFrom(LLRelationship::GRANT_MAP_LOCATION)));
+    mIconPermissionOnlineTheirs->setColor(pick(dim && relation->isRightGrantedFrom(LLRelationship::GRANT_ONLINE_STATUS)));
+}
+// </Prestige>
 
 LLView* LLAvatarListItem::getItemChildView(EAvatarListItemChildIndex child_view_index)
 {

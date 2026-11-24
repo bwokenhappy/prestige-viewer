@@ -614,6 +614,14 @@ bool LLPanelPeople::postBuild()
     mFriendsGearBtn = friends_tab->getChild<LLButton>("gear_btn");
     mFriendsDelFriendBtn = friends_tab->getChild<LLUICtrl>("friends_del_btn");
 
+    // <Prestige> Firestorm-style friend permissions: every icon on every row by default (applied once,
+    // later choices from the eye button / view menu are kept)
+    if (!gSavedSettings.getBOOL("PrestigeFriendsPermsApplied"))
+    {
+        gSavedSettings.setU32("FriendsListShowPermissions", (U32)SP_ALWAYS);
+        gSavedSettings.setBOOL("PrestigeFriendsPermsApplied", true);
+    }
+    // </Prestige>
     EShowPermissionType spType = (EShowPermissionType)gSavedSettings.getU32("FriendsListShowPermissions");
     if (spType >= SP_COUNT)
         spType = SP_NEVER;
@@ -628,6 +636,15 @@ bool LLPanelPeople::postBuild()
     mAllFriendList->setShowIcons("FriendsListShowIcons");
     mAllFriendList->showPermissions(spType);
     mAllFriendList->setShowCompleteName(!gSavedSettings.getBOOL("FriendsListHideUsernames"));
+
+    // <Prestige> Firestorm's eye toggle in the Friends button row: permission icons on every row / hidden
+    mFriendsPermissionsBtn = friends_tab->findChild<LLButton>("friends_permissions_btn");
+    if (mFriendsPermissionsBtn)
+    {
+        mFriendsPermissionsBtn->setToggleState(SP_ALWAYS == spType);
+        mFriendsPermissionsBtn->setCommitCallback(boost::bind(&LLPanelPeople::onFriendsPermissionsBtnClicked, this));
+    }
+    // </Prestige>
 
     LLPanel* nearby_tab = getChild<LLPanel>(NEARBY_TAB_NAME);
 
@@ -750,6 +767,16 @@ bool LLPanelPeople::postBuild()
     mAllFriendList->setUseContactSetColors(true);
     // [/FS:CR]
 
+    // <Prestige> Firestorm layout: "friends_accordion" is a tab container (Online (N) / All (N) sub-tabs);
+    // the LL accordion still works if a skin brings it back.
+    mFriendsTabContainer = friends_tab->findChild<LLTabContainer>("friends_accordion");
+    if (mFriendsTabContainer)
+    {
+        mFriendsTabContainer->setCommitCallback(boost::bind(&LLPanelPeople::onFriendsSubTabSelected, this));
+    }
+    else
+    {
+    // </Prestige>
     mFriendsAccordion = friends_tab->getChild<LLAccordionCtrl>("friends_accordion");
 
     mFriendsAllTab = mFriendsAccordion->getChild<LLAccordionCtrlTab>("tab_all");
@@ -759,6 +786,7 @@ bool LLPanelPeople::postBuild()
     mFriendsOnlineTab = mFriendsAccordion->getChild<LLAccordionCtrlTab>("tab_online");
     mFriendsOnlineTab->setDropDownStateChangedCallback(
         boost::bind(&LLPanelPeople::onFriendsAccordionExpandedCollapsed, this, _1, _2, mOnlineFriendList));
+    } // <Prestige/>
 
     // Must go after setting commit callback and initializing all pointers to children.
     mTabContainer->selectTabByName(NEARBY_TAB_NAME);
@@ -789,6 +817,23 @@ void LLPanelPeople::updateFriendAccordionTitles()
 {
     // NOTE: changed name from `updateAccordionTabTitles` to `updateFriendAccordionTitles`
     // Friends list is only one that uses the accordions -- Fallen
+    // <Prestige> Firestorm sub-tabs: titles carry the friend totals. Counted from the ID lists, as a
+    // list on a hidden tab is only rebuilt once it's drawn.
+    if (mFriendsTabContainer)
+    {
+        if (mOnlineFriendList && mAllFriendList)
+        {
+            LLStringUtil::format_map_t args_online;
+            args_online["[COUNT]"] = std::to_string(mOnlineFriendList->getIDs().size());
+            mFriendsTabContainer->setPanelTitle(0, getString("online_friends_count", args_online));
+
+            LLStringUtil::format_map_t args_all;
+            args_all["[COUNT]"] = std::to_string(mAllFriendList->getIDs().size());
+            mFriendsTabContainer->setPanelTitle(1, getString("all_friends_count", args_all));
+        }
+        return;
+    }
+    // </Prestige>
     if (mOnlineFriendList)
     {
         LLStringUtil::format_map_t args_online;
@@ -889,6 +934,7 @@ void LLPanelPeople::updateFriendList()
     //update trash and other buttons according to a selected item
     updateButtons();
     showFriendsAccordionsIfNeeded();
+    updateFriendAccordionTitles(); // <Prestige/> keep Online (N) / All (N) current even while filtered or hidden
 }
 
 void LLPanelPeople::updateRecentList()
@@ -1124,8 +1170,11 @@ void LLPanelPeople::onFilterEdit(const std::string& search_string)
         mOnlineFriendList->setNameFilter(filter);
         mAllFriendList->setNameFilter(filter);
 
-        setAccordionCollapsedByUser(mFriendsOnlineTab, false);
-        setAccordionCollapsedByUser(mFriendsAllTab, false);
+        if (mFriendsAccordion) // <Prestige/> sub-tabs have no collapsed state
+        {
+            setAccordionCollapsedByUser(mFriendsOnlineTab, false);
+            setAccordionCollapsedByUser(mFriendsAllTab, false);
+        }
         showFriendsAccordionsIfNeeded();
 
         // restore accordion tabs state _after_ all manipulations
@@ -1382,17 +1431,19 @@ void LLPanelPeople::onFriendsViewSortMenuItemClicked(const LLSD& userdata)
     }
     else if ( ("view_permissions_never" == chosen_item) ||
               ("view_permissions_hover" == chosen_item) ||
-              ("view_permissions_nondefault" == chosen_item) )
+              ("view_permissions_nondefault" == chosen_item) ||
+              ("view_permissions_always" == chosen_item) ) // <Prestige/>
     {
         EShowPermissionType spType = SP_NEVER;
         if ("view_permissions_hover" == chosen_item)
             spType = SP_HOVER;
         else if ("view_permissions_nondefault" == chosen_item)
             spType = SP_NONDEFAULT;
-        gSavedSettings.setU32("FriendsListShowPermissions", (U32)spType);
-
-        mAllFriendList->showPermissions(spType);
-        mOnlineFriendList->showPermissions(spType);
+        // <Prestige> Firestorm-style always-visible icons; shared with the eye button
+        else if ("view_permissions_always" == chosen_item)
+            spType = SP_ALWAYS;
+        setFriendsPermissionMode((U32)spType);
+        // </Prestige>
     }
     else if (chosen_item == "view_usernames")
     {
@@ -1456,9 +1507,48 @@ bool LLPanelPeople::onFriendsViewSortMenuItemCheck(const LLSD& userdata)
         return SP_HOVER == spType;
     if ("view_permissions_nondefault" == item)
         return SP_NONDEFAULT == spType;
+    if ("view_permissions_always" == item) // <Prestige/>
+        return SP_ALWAYS == spType;
 
     return false;
 }
+
+// <Prestige> Firestorm-style friend permission icons
+void LLPanelPeople::setFriendsPermissionMode(U32 sp_type)
+{
+    EShowPermissionType spType = (sp_type < SP_COUNT) ? (EShowPermissionType)sp_type : SP_NEVER;
+    gSavedSettings.setU32("FriendsListShowPermissions", (U32)spType);
+
+    mAllFriendList->showPermissions(spType);
+    mOnlineFriendList->showPermissions(spType);
+
+    if (mFriendsPermissionsBtn)
+    {
+        mFriendsPermissionsBtn->setToggleState(SP_ALWAYS == spType);
+    }
+}
+
+void LLPanelPeople::onFriendsPermissionsBtnClicked()
+{
+    // Eye button: all icons on every row <-> hidden (hover / per-user stay in the view menu)
+    const bool showing = (SP_ALWAYS == gSavedSettings.getU32("FriendsListShowPermissions"));
+    setFriendsPermissionMode((U32)(showing ? SP_NEVER : SP_ALWAYS));
+}
+
+void LLPanelPeople::onFriendsSubTabSelected()
+{
+    // Only the visible sub-tab's list may hold the selection the buttons act on
+    if (mFriendsTabContainer && mFriendsTabContainer->getCurrentPanelIndex() == 0)
+    {
+        mAllFriendList->resetSelection(true);
+    }
+    else
+    {
+        mOnlineFriendList->resetSelection(true);
+    }
+    updateButtons();
+}
+// </Prestige>
 
 bool LLPanelPeople::onRecentViewSortMenuItemCheck(const LLSD& userdata)
 {
@@ -1522,6 +1612,12 @@ bool LLPanelPeople::notifyChildren(const LLSD& info)
 
 void LLPanelPeople::showAccordion(LLAccordionCtrlTab* tab, bool show)
 {
+    // <Prestige> no accordion tabs with the Firestorm sub-tab layout
+    if (!tab)
+    {
+        return;
+    }
+    // </Prestige>
     tab->setVisible(show);
     if(show)
     {
@@ -1538,12 +1634,21 @@ void LLPanelPeople::showFriendsAccordionsIfNeeded()
 {
     if(FRIENDS_TAB_NAME == getActiveTabName())
     {
+        // <Prestige> Firestorm sub-tabs: shown while any friend matches, else the help text shows
+        if (mFriendsTabContainer)
+        {
+            mFriendsTabContainer->setVisible(mAllFriendList->filterHasMatches());
+        }
+        else
+        {
+        // </Prestige>
         // Expand and show accordions if needed, else - hide them
         showAccordion(mFriendsOnlineTab, mOnlineFriendList->filterHasMatches());
         showAccordion(mFriendsAllTab, mAllFriendList->filterHasMatches());
 
         // Rearrange accordions
         mFriendsAccordion->arrange();
+        } // <Prestige/>
 
         // *TODO: new no_matched_tabs_text attribute was implemented in accordion (EXT-7368).
         // this code should be refactored to use it

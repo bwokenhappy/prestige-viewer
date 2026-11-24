@@ -65,6 +65,8 @@
      use_ellipses="true"
      value="(loading)"
      width="180" />
+    <!-- <Prestige> Firestorm spacing: permission icons evenly 19px apart (16px icon + 3px),
+         image_pressed so a click on an icon doesn't flash a push-button frame -->
     <icon
      enabled="false"
      height="16"
@@ -72,7 +74,7 @@
      image_name="Permission_Visible_Them_Online"
      layout="topleft"
      left_pad="3"
-     right="-215"
+     right="-212"
      name="permission_online_theirs_icon"
      tool_tip="You can see when this friend is online"
      top="4"
@@ -84,7 +86,7 @@
      image_name="Permission_Visible_Them_Map"
      layout="topleft"
      left_pad="3"
-     right="-196"
+     right="-193"
      name="permission_map_theirs_icon"
      tool_tip="You can locate this friend on the map"
      top="4"
@@ -96,7 +98,7 @@
      image_name="Permission_Edit_Objects_Theirs"
      layout="topleft"
      left_pad="3"
-     right="-177"
+     right="-174"
      name="permission_edit_theirs_icon"
      tool_tip="You can edit this friend&apos;s objects"
      top="4"
@@ -105,10 +107,11 @@
      enabled="false"
      height="16"
      follows="right"
+     image_pressed="Permission_Edit_Objects_Mine"
      image_unselected="Permission_Edit_Objects_Mine"
      layout="topleft"
      left_pad="3"
-     right="-158"
+     right="-155"
      name="permission_edit_mine_icon"
      tool_tip="This friend can edit, delete or take your objects"
      top_delta="0"
@@ -117,6 +120,7 @@
      enabled="false"
      height="16"
      follows="right"
+     image_pressed="Permission_Visible_Map"
      image_unselected="Permission_Visible_Map"
      layout="topleft"
      left_pad="3"
@@ -129,6 +133,7 @@
      enabled="false"
      height="16"
      follows="right"
+     image_pressed="Permission_Visible_Online"
      image_unselected="Permission_Visible_Online"
      layout="topleft"
      left_pad="3"
@@ -137,6 +142,7 @@
      tool_tip="This friend can see when you&apos;re online"
      top_delta="0"
      width="16" />
+    <!-- </Prestige> -->
     <button
      follows="right"
      height="16"

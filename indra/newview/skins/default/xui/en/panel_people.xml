@@ -181,7 +181,7 @@ Learn about [https://community.secondlife.com/knowledgebase/joining-and-particip
                  name="friends_filter_input"
                  text_pad_left="10"
                  top="4"
-                 width="177" />
+                 width="144" /> <!-- <Prestige/> Firestorm width, room for the eye button -->
                 <button
                  commit_callback.function="People.Gear"
                  follows="right"
@@ -227,6 +227,22 @@ Learn about [https://community.secondlife.com/knowledgebase/joining-and-particip
                     <commit_callback
                      function="People.AddFriendWizard" />
                 </button>
+                <!-- <Prestige> Firestorm's eye toggle: permission icons on every friend row (highlighted) or hidden -->
+                <button
+                 follows="right"
+                 height="25"
+                 image_hover_unselected="Toolbar_Middle_Over"
+                 image_overlay="Permission_Visible_Online"
+                 image_selected="Toolbar_Middle_Selected"
+                 image_unselected="Toolbar_Middle_Off"
+                 is_toggle="true"
+                 layout="topleft"
+                 left_pad="2"
+                 name="friends_permissions_btn"
+                 tool_tip="Show the permissions you and each friend have granted on every row"
+                 top_delta="0"
+                 width="31" />
+                <!-- </Prestige> -->
                 <dnd_button
                  follows="right"
                  height="25"
@@ -244,55 +260,64 @@ Learn about [https://community.secondlife.com/knowledgebase/joining-and-particip
                      function="People.DelFriend" />
                 </dnd_button>
             </panel>
-            <accordion
-       		 background_visible="true"
-       		 bg_alpha_color="PanelDefaultBackgroundColor"
-       		 bg_opaque_color="PanelDefaultBackgroundColor"
+            <!-- <Prestige> Firestorm layout: Online (N) / All (N) sub-tabs instead of the LL accordion
+                 (same names, the C++ finds either) -->
+            <tab_container
+             name="friends_accordion"
              follows="all"
+             background_visible="false"
+             bg_alpha_color="Transparent"
+             bg_opaque_color="Transparent"
              height="408"
              layout="topleft"
-             left="3"
-             name="friends_accordion"
-             right="-2"
-             top_pad="2">
-                <accordion_tab
+             left="2"
+             tab_group="1"
+             tab_position="top"
+             halign="center"
+             top_pad="0"
+             right="-2">
+                <panel
                  layout="topleft"
-                 height="172"
-                 min_height="150"
+                 height="385"
+                 width="317"
                  name="tab_online"
+                 follows="all"
                  title="Online">
                         <avatar_list
                          allow_select="true"
                          follows="all"
-                         height="172"
+                         height="383"
                          layout="topleft"
                          left="0"
                          multi_select="true"
                          name="avatars_online"
                          keep_one_selected="false"
-                         show_permissions_granted="hover"
+                         show_permissions_granted="always"
                          top="0"
-                         width="307" />
-                </accordion_tab>
-                <accordion_tab
+                         width="317" />
+                </panel>
+                <panel
                  layout="topleft"
-                 height="173"
+                 height="385"
+                 width="317"
                  name="tab_all"
+                 follows="all"
                  title="All">
                         <avatar_list
                          allow_select="true"
                          follows="all"
-                         height="173"
+                         height="383"
                          layout="topleft"
                          left="0"
                          multi_select="true"
                          name="avatars_all"
                          keep_one_selected="false"
-                         show_permissions_granted="hover"
+                         show_permissions_granted="always"
                          top="0"
-                         width="307" />
-                </accordion_tab>           
-            </accordion>
+                         width="317" />
+                </panel>
+            </tab_container>
+            <!-- </Prestige> -->
             <text
              follows="all"
              height="450"

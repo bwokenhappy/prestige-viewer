@@ -13,4 +13,14 @@
          function="NotificationWellChicletMenu.EnableItem"
          parameter="can close all" />
     </menu_item_call>
+    <!-- <Prestige> Notification Center -->
+    <menu_item_call
+     label="Notification Center..."
+     layout="topleft"
+     name="Notification Center">
+        <menu_item_call.on_click
+         function="Floater.ToggleOrBringToFront"
+         parameter="notification_center" />
+    </menu_item_call>
+    <!-- </Prestige> -->
 </context_menu>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Prestige: Notification Center (PrestigeFloaterNotificationCenter) -->
+<floater
+ name="notification_center"
+ title="Notification Center"
+ help_topic="notification_center"
+ min_width="520"
+ min_height="300"
+ width="760"
+ height="460"
+ save_rect="true"
+ single_instance="true"
+ reuse_instance="false"
+ can_resize="true"
+ can_minimize="true"
+ can_close="true">
+	<floater.string name="cat_system">
+		System
+	</floater.string>
+	<floater.string name="cat_alert">
+		Alert
+	</floater.string>
+	<floater.string name="cat_group">
+		Group notice
+	</floater.string>
+	<floater.string name="cat_friendship">
+		Friendship
+	</floater.string>
+	<floater.string name="cat_teleport">
+		Teleport
+	</floater.string>
+	<floater.string name="cat_inventory">
+		Inventory offer
+	</floater.string>
+	<floater.string name="cat_script">
+		Script
+	</floater.string>
+	<floater.string name="cat_tip">
+		Tip
+	</floater.string>
+	<floater.string name="state_waiting">
+		Waiting for you
+	</floater.string>
+	<floater.string name="state_answered">
+		Answered
+	</floater.string>
+	<floater.string name="state_answered_with">
+		Answered: [ANSWER]
+	</floater.string>
+	<floater.string name="state_dismissed">
+		Dismissed
+	</floater.string>
+	<floater.string name="state_closed">
+		Closed
+	</floater.string>
+	<floater.string name="state_expired">
+		Expired
+	</floater.string>
+	<floater.string name="state_missed">
+		Not answered
+	</floater.string>
+	<floater.string name="time_day_key">
+		[year,datetime,slt]-[mthnum,datetime,slt]-[day,datetime,slt]
+	</floater.string>
+	<floater.string name="time_today">
+		[hour,datetime,slt]:[min,datetime,slt]
+	</floater.string>
+	<floater.string name="time_older">
+		[mth,datetime,slt] [day,datetime,slt] [hour,datetime,slt]:[min,datetime,slt]
+	</floater.string>
+	<floater.string name="counter">
+		[WAITING] waiting, [HISTORY] in history
+	</floater.string>
+	<floater.string name="empty_list">
+		No notifications yet.
+	</floater.string>
+	<floater.string name="empty_filter">
+		No notifications of this kind.
+	</floater.string>
+	<combo_box
+	 name="filter_combo"
+	 tool_tip="Show only some kinds of notifications"
+	 follows="left|top"
+	 height="22"
+	 width="200"
+	 left="8"
+	 top="6">
+		<combo_box.item
+		 label="All notifications"
+		 name="filter_all"
+		 value="all" />
+		<combo_box.item
+		 label="Waiting for an answer"
+		 name="filter_waiting"
+		 value="waiting" />
+		<combo_box.item
+		 label="Group notices"
+		 name="filter_group"
+		 value="group" />
+		<combo_box.item
+		 label="Friendship, teleport and inventory offers"
+		 name="filter_offers"
+		 value="offers" />
+		<combo_box.item
+		 label="Script dialogs and permissions"
+		 name="filter_scripts"
+		 value="scripts" />
+		<combo_box.item
+		 label="Alerts"
+		 name="filter_alerts"
+		 value="alerts" />
+		<combo_box.item
+		 label="System messages and tips"
+		 name="filter_system"
+		 value="system" />
+	</combo_box>
+	<text
+	 name="counter"
+	 follows="right|top"
+	 height="16"
+	 width="260"
+	 right="-10"
+	 top="10"
+	 halign="right" />
+	<scroll_list
+	 name="notification_list"
+	 follows="all"
+	 left="6"
+	 right="-6"
+	 top="34"
+	 bottom="-150"
+	 column_padding="0"
+	 draw_heading="true"
+	 multi_select="true"
+	 search_column="3">
+		<scroll_list.columns
+		 name="icon"
+		 width="22" />
+		<scroll_list.columns
+		 name="time"
+		 label="Time (SLT)"
+		 width="96" />
+		<scroll_list.columns
+		 name="type"
+		 label="Type"
+		 width="104" />
+		<scroll_list.columns
+		 name="title"
+		 label="From / subject"
+		 width="170" />
+		<scroll_list.columns
+		 name="status"
+		 label="Status"
+		 width="120" />
+		<scroll_list.columns
+		 name="message"
+		 label="Message"
+		 dynamic_width="true" />
+	</scroll_list>
+	<text_editor
+	 name="detail_text"
+	 follows="left|right|bottom"
+	 left="6"
+	 right="-6"
+	 height="104"
+	 bottom="-38"
+	 read_only="true"
+	 parse_urls="true"
+	 word_wrap="true"
+	 max_length="65536" />
+	<button
+	 name="open_btn"
+	 label="Answer..."
+	 tool_tip="Show the selected notification again so you can answer it (double-click works too)"
+	 follows="left|bottom"
+	 height="22"
+	 width="100"
+	 left="8"
+	 bottom="-8" />
+	<button
+	 name="remove_btn"
+	 label="Remove"
+	 tool_tip="Remove the selected notifications from this list (one still waiting stays available where it was shown)"
+	 follows="left|bottom"
+	 height="22"
+	 width="90"
+	 left_pad="6" />
+	<button
+	 name="clear_all_btn"
+	 label="Clear all"
+	 tool_tip="Remove every handled notification from the history. Notifications still waiting for your answer stay in the list."
+	 follows="right|bottom"
+	 height="22"
+	 width="90"
+	 right="-8"
+	 bottom="-8" />
+</floater>

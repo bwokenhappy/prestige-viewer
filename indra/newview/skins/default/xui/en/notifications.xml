@@ -7366,6 +7366,36 @@ Quit Prestige, or log out and go back to the login screen?
     </form>
   </notification>
 
+  <!-- <Prestige> outfit backup to a JSON file, and restore from one -->
+  <notification
+   icon="alertmodal.tga"
+   name="PrestigeOutfitBackupError"
+   type="alertmodal">
+[MESSAGE]
+    <tag>fail</tag>
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="PrestigeOutfitBackupSaved"
+   type="notifytip">
+Backed up [COUNT] items of "[NAME]" to [FILE].
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="PrestigeOutfitRestoreReport"
+   type="alertmodal">
+Restored [FOUND] of [TOTAL] items into the new outfit "[FOLDER]".[DETAILS]
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+  <!-- </Prestige> -->
+
   <notification
    icon="alertmodal.tga"
    name="ConfirmQuit"

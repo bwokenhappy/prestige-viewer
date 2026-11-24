@@ -55,6 +55,7 @@
 #include "llviewermenufile.h"
 #include "llviewertexturelist.h"
 #include "llwearableitemslist.h"
+#include "prestigeoutfitbackup.h" // <Prestige/> outfit backup
 
 static LLPanelInjector<LLOutfitGallery> t_outfit_gallery("outfit_gallery");
 
@@ -1756,6 +1757,9 @@ LLContextMenu* LLOutfitGalleryContextMenu::createMenu()
     registrar.add("Outfit.Thumbnail", boost::bind(&LLOutfitGalleryContextMenu::onThumbnail, this, selected_id));
     registrar.add("Outfit.Favorite", boost::bind(&LLOutfitGalleryContextMenu::onFavorite, this, selected_id));
     registrar.add("Outfit.Save", boost::bind(&LLOutfitGalleryContextMenu::onSave, this, selected_id));
+    // <Prestige> outfit backup to a JSON file
+    registrar.add("Outfit.Backup", [selected_id](LLUICtrl*, const LLSD&) { PrestigeOutfitBackup::backupOutfit(selected_id); });
+    // </Prestige>
     enable_registrar.add("Outfit.OnEnable", boost::bind(&LLOutfitGalleryContextMenu::onEnable, this, _2));
     enable_registrar.add("Outfit.OnVisible", boost::bind(&LLOutfitGalleryContextMenu::onVisible, this, _2));
 

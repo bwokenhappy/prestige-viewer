@@ -47,6 +47,7 @@
 #include "pipeline.h"
 // </Prestige>
 #include "prestigecamerafiltersview.h" // <Prestige> camera filters </Prestige>
+#include "prestigecameralayout.h" // <Prestige> the overlay's parts kept clear of each other </Prestige>
 
 #include "llfile.h"
 #include "llfloaterpreference.h"
@@ -338,7 +339,7 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div class="tc" data-if="tipClick != ''"><span class="hk">{{clickWord}}</span>{{tipClick}}</div>
 </div></div>
 <div id="toast" data-if="toast != ''"><div id="toastpill" class="capsule raised">{{toast}}</div></div>
-<div id="hints" data-if="hintShown && tip == ''" data-class-up="controlsOpen"><div id="hintpill" class="capsule"><span data-for="h : hints"><span class="hk">{{h.key}}</span><span class="ht" data-class-end="h.end">{{h.text}}</span></span></div></div>
+<!-- <Prestige> data-if: not under the wheel's readout </Prestige> --><div id="hints" data-if="hintShown && tip == '' && !readoutShown" data-class-up="controlsOpen"><div id="hintpill" class="capsule"><span data-for="h : hints"><span class="hk">{{h.key}}</span><span class="ht" data-class-end="h.end">{{h.text}}</span></span></div></div>
 <div id="stripwrap" data-if="controlsOpen && !barAway"><div id="strip">
   <div class="cell" data-for="c : cells" data-attr-id="c.id" data-class-marked="c.marked" data-class-off="c.off" data-event-click="cell(it_index)">
     <div class="v"><span class="arr up" data-event-click="cellstep(it_index, 1)"><span class="chev"></span></span>{{c.value}}<span data-if="c.unit != ''"> {{c.unit}}</span><span class="arr dn" data-event-click="cellstep(it_index, -1)"><span class="chev down"></span></span></div><div class="n">{{c.name}}</div></div>
@@ -533,6 +534,7 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
   <div id="keys"><div class="krow" data-for="k : helpKeys"><span class="hk">{{k.key}}</span>{{k.text}}</div></div>
   <div class="sep"></div>
   <div class="foot iso">{{isoHelpLine}}</div><!-- <Prestige> isolate your subject -->
+  <div class="foot iso">{{escHelpLine}}</div><!-- <Prestige> camera layout: what Esc closes, in order </Prestige> -->
   <div class="foot">{{helpFooter}} <span class="link" data-event-click="changekeys()">{{changeKeysLabel}}</span></div>
 </div>
 </div></body></rml>)rml";
@@ -612,6 +614,7 @@ struct Finder
     F32    afX = -1.f, afY = -1.f;
     S32    rootH = 0;
     S32    display = -1; // <Prestige> the display level
+    std::string clear;   // <Prestige> layout: what the tilt arc keeps clear of (the side panels' boxes)
 };
 
 // Size presets (the "Window" row and "Custom..." around them).
@@ -757,6 +760,7 @@ struct PrestigeView
     std::string                   dispLabel, minLine, picHintText, lumTitle, lumClip, levelText, levelTf, padHint;
     std::string                   rollConfirmText, rollDeleteGo, rollInventory, rollProfile, rollEmail, rollDelete, rollCount;
     std::string                   padKnobX = "48dp", padKnobY = "48dp";
+    std::string                   escHelpLine; // <Prestige> camera layout: the help card's line on Esc </Prestige>
     bool                          picHint = false, levelOk = false, pileShown = false, rollConfirm = false;
     F64                           picHintAt = -100.0, nextLight = 0.0;
     std::vector<Bar>              lumBars;
@@ -800,7 +804,7 @@ const char* kPrestigeCss = R"rcss(
 #ppichint { position: absolute; left: 0; right: 0; bottom: 40dp; text-align: center; }
 /* the live light readouts: the frame's luminance histogram, the level and tilt */
 #plumen { position: absolute; right: 24dp; top: 64dp; width: 196dp; padding: 6dp 8dp; pointer-events: auto; }
-.prailr #plumen { right: 324dp; }
+/* (beside the rail: placed from C++, prestigeArrange) */
 #plumen .phead { display: flex; flex-direction: row; }
 #plumen .phead .caption { flex: 1 1 0; }
 #plumen .pclip { text-align: right; color: $warn; }
@@ -835,7 +839,7 @@ const char* kPrestigeCss = R"rcss(
             decorator: radial-gradient(circle closest-side, $accent 78%, $accent00 100%); }
 #ppad .pcap { text-align: center; font-size: $fontCaption; color: $muted; }
 /* the rail stops above the rings (docked right) or the pad (docked left) */
-.plv0.prailr #rail { bottom: 200dp; }
+.plv0.prailr #rail { bottom: 210dp; } /* <Prestige> layout: 200 ran 2 dp into the rings </Prestige> */
 .plv0.praill #rail { bottom: 270dp; }
 /* a narrow window: the pad rises clear of the strip, the rings stay clear of the rail */
 .pnarrow #ppad { bottom: 160dp; }
@@ -853,6 +857,13 @@ const char* kPrestigeCss = R"rcss(
 #review.open .thumb { width: 50dp; height: 28dp; }
 #cardmenu { width: 220dp; }
 #card .pconfirm { margin-top: 8dp; padding-top: 8dp; border-top: 1dp $border; }
+/* </Prestige> */
+/* <Prestige> layout (prestigecameralayout.h): the top-right chips and the status pills wrap at the
+   width C++ gives them (max-width), the hint row wraps a whole hint at a time */
+#status { flex-wrap: wrap; row-gap: 6dp; }
+#chips, #shotchips { flex-wrap: wrap; justify-content: flex-end; row-gap: 8dp; }
+#hintpill > span { display: inline-block; }
+#tipwrap { z-index: 11; } /* the help under the pointer over the readouts, pad and rings added after it */
 /* </Prestige> */
 )rcss";
 
@@ -1524,28 +1535,271 @@ void placeLight()
     markChanged();
 }
 
-// The setup chips in the chips' row, left of them (the rail docks under the row); with the bar at
-// the top edge (it would run into it) under the chips, above the rail.
+// <Prestige> layout (prestigecameralayout.h): an element's box in dp (empty when it is not shown)
+pcamlayout::Rect rectOf(Rml::Element* e)
+{
+    View& v = gView;
+    if (!e || v.density <= 0.f || !e->IsVisible(true) || e->GetOffsetWidth() <= 0.f || e->GetOffsetHeight() <= 0.f)
+        return pcamlayout::Rect();
+    const float px = v.density * v.k;
+    return { e->GetAbsoluteLeft() / px, e->GetAbsoluteTop() / px, e->GetOffsetWidth() / px, e->GetOffsetHeight() / px };
+}
+
+pcamlayout::Rect rectOf(const char* id)
+{
+    return gView.document ? rectOf(gView.document->GetElementById(id)) : pcamlayout::Rect();
+}
+
+// The Filters panel's document shares the context (prestigecamerafiltersview.cpp): its parts by id.
+Rml::Element* filtersElement(const char* id)
+{
+    View& v = gView;
+    if (!v.context)
+        return nullptr;
+    for (int i = 0; i < v.context->GetNumDocuments(); ++i)
+        if (Rml::ElementDocument* d = v.context->GetDocument(i); d && d != v.document && d->GetTitle() == "camera filters")
+            return d->GetElementById(id);
+    return nullptr;
+}
+
+// The widths (dp) of a row's shown children, as they are whether the row wraps or not.
+std::vector<float> childWidths(Rml::Element* row)
+{
+    std::vector<float> widths;
+    const float px = gView.density * gView.k;
+    if (!row || px <= 0.f || !row->IsVisible(true))
+        return widths;
+    for (int i = 0; i < row->GetNumChildren(); ++i)
+        if (Rml::Element* c = row->GetChild(i); c && c->IsVisible() && c->GetOffsetWidth() > 0.f)
+            widths.push_back(c->GetOffsetWidth() / px);
+    return widths;
+}
+
+// A property set from C++ only when it changes ("": back to the style sheet's).
+void setPlaced(Rml::Element* e, const char* name, const std::string& value)
+{
+    if (!e)
+        return;
+    const std::string mark = std::string("pl-") + name;
+    if (e->HasAttribute(mark) && e->GetAttribute<Rml::String>(mark, "") == value)
+        return;
+    e->SetAttribute(mark, value);
+    if (value.empty())
+        e->RemoveProperty(name);
+    else
+        e->SetProperty(name, value);
+    markChanged();
+}
+
+std::string dpText(float value)
+{
+    return llformat("%.1fdp", value);
+}
+// </Prestige>
+
+// <Prestige> layout: the chips at the top right (Controls' chips, then the shot chips) in rows no
+// wider than the room the status pills (or the bar and the strip at the top edge) leave: the shot
+// chips beside the chips when they fit on one row, else under them; the status pills wrap when
+// the chips need the room, and the Display chip stays under them.
 void placeShotChips()
 {
     View& v = gView;
     if (!v.document || v.density <= 0.f)
         return;
-    Rml::Element* row   = v.document->GetElementById("shotchips");
-    Rml::Element* chips = v.document->GetElementById("chips");
-    if (!row || !chips || chips->GetOffsetWidth() <= 0.f)
-        return;
-    const float px    = v.density * v.k;
-    const float right = v.barTop ? 24.f : v.W - chips->GetAbsoluteLeft() / px + 8.f;
-    const float top   = v.barTop ? (chips->GetAbsoluteTop() + chips->GetOffsetHeight()) / px + 8.f : 24.f;
-    const std::string placed = llformat("%.1f|%.1f", right, top);
-    if (row->GetAttribute<Rml::String>("data-placed", "") == placed)
-        return;
-    row->SetAttribute("data-placed", placed);
-    row->SetProperty("right", llformat("%.1fdp", right));
-    row->SetProperty("top", llformat("%.1fdp", top));
-    markChanged();
+    Rml::Element* row    = v.document->GetElementById("shotchips");
+    Rml::Element* chips  = v.document->GetElementById("chips");
+    Rml::Element* status = v.document->GetElementById("status");
+    pcamlayout::TopIn in;
+    in.W       = v.W;
+    in.chips   = childWidths(chips);
+    in.shots   = childWidths(row);
+    in.status  = childWidths(status);
+    in.barTop  = v.barTop && !v.barAway;
+    in.bar     = rectOf("bar");
+    in.strip   = rectOf("strip");
+    const pcamlayout::TopOut o = pcamlayout::placeTop(in);
+    setPlaced(chips, "max-width", dpText(o.maxW));
+    setPlaced(row, "max-width", dpText(o.maxW));
+    setPlaced(row, "right", dpText(o.shotsRight));
+    setPlaced(row, "top", dpText(o.shotsTop));
+    setPlaced(status, "max-width", dpText(o.statusMaxW));
+    // (one row: the style sheet's 24 dp, centred on the ?; more: as tall as they are)
+    setPlaced(status, "height", o.statusRows > 1 ? std::string("auto") : std::string());
+    const pcamlayout::Rect st = rectOf(status);
+    setPlaced(v.document->GetElementById("pdisp"), "top", dpText(o.statusRows > 1 && !st.empty() ? llmax(68.f, st.bottom() + 8.f) : 68.f));
 }
+
+// How far down the top-right chips and the top-left (?, status pills, Display chip) reach (dp).
+void topReach(float& right, float& left)
+{
+    right = pcamlayout::kMargin;
+    for (const char* id : { "chips", "shotchips" })
+        if (const pcamlayout::Rect r = rectOf(id); !r.empty())
+            right = llmax(right, r.bottom());
+    left = pcamlayout::kMargin;
+    for (const char* id : { "helpbtn", "status", "pdisp" })
+        if (const pcamlayout::Rect r = rectOf(id); !r.empty())
+            left = llmax(left, r.bottom());
+}
+
+// The overlay's parts a side panel stays clear of (dp boxes), but `skip`; `pad`: the camera pad and
+// the photo pile too; `overHints`: the hint row too.
+std::vector<pcamlayout::Rect> sideParts(bool pad, bool overHints, const std::string& skip = std::string())
+{
+    std::vector<pcamlayout::Rect> parts;
+    for (const char* id : { "helpbtn", "status", "pdisp", "chips", "shotchips", "plumen", "prings", "bar", "handle", "strip", "lightbtn" })
+        if (skip != id)
+            parts.push_back(rectOf(id));
+    if (pad)
+        for (const char* id : { "ppad", "ppile" })
+            parts.push_back(rectOf(id));
+    if (overHints) // (the picker, a menu; the panel stays put while the hints come and go)
+        parts.push_back(rectOf("hintpill"));
+    return parts;
+}
+
+// The room (dp from the top: y0..y1) a panel `width` wide at `fromEdge` from the left or right edge
+// has between `parts`: the tallest free stretch, within the style sheet's top and bottom.
+void sideRoom(bool left, float fromEdge, float width, const std::vector<pcamlayout::Rect>& parts, float& y0, float& y1)
+{
+    View&       v  = gView;
+    const float x0 = left ? fromEdge : v.W - fromEdge - width;
+    y0 = v.barTop ? 100.f : 70.f;
+    y1 = v.H - (v.barTop ? 28.f : 100.f);
+    pcamlayout::sideRoom(x0, x0 + width, parts, y0, y1);
+}
+
+// Each frame: the light panel on the side the Studio rail is not on, under the chips (right) or
+// the Display chip (left) -- or where there is room, keeping a Filters panel in its column usable;
+// the rail under them too; the hint row wrapped clear of the side panels; the notices at the top
+// under the chips when they would run into them.
+void prestigeArrange()
+{
+    View& v = gView;
+    if (!v.document || v.density <= 0.f)
+        return;
+    using pcamlayout::Rect;
+    float topRight = 0.f, topLeft = 0.f;
+    topReach(topRight, topLeft);
+    const bool rail = !rectOf("rail").empty();
+    if (Rml::Element* lumen = v.document->GetElementById("plumen"); lumen && lumen->IsVisible(true))
+    {
+        const Rect     now   = rectOf(lumen);
+        Rml::Element*  panel = filtersElement("fpanel");
+        const bool     panelOn = panel && panel->IsVisible(true), panelLeft = panelOn && panel->IsClassSet("left");
+        std::vector<Rect> parts = sideParts(true, false, "plumen");
+        parts.push_back(rectOf("rail"));
+        // The column over the bar that the strip, the hint row (two lines) and the Light button use.
+        Rect column = rectOf("strip");
+        if (const Rect bar = rectOf("bar"); column.empty() || (!bar.empty() && bar.w > column.w))
+            column = { bar.x, column.empty() ? bar.y : column.y, bar.w, column.empty() ? bar.h : column.h };
+        if (!column.empty())
+        {
+            const Rect light = rectOf("lightbtn");
+            if (v.barTop)
+                column.h = llmax(column.h + 110.f, light.empty() ? 0.f : light.bottom() - column.y);
+            else
+            {
+                const float top = llmin(column.y - 110.f, light.empty() ? column.y : light.y);
+                column.h += column.y - top;
+                column.y = top;
+            }
+            parts.push_back(column);
+        }
+        // Its side (the one the rail is not on), the other side when the rail is not shown, beside the rail.
+        const bool own = rail && v.railRight;
+        const std::pair<bool, float> spots[] = { { own, 24.f }, { !own, rail ? 312.f : 24.f } };
+        bool  found = false, left = own;
+        float top   = own ? topLeft + pcamlayout::kGap : llmax(64.f, topRight + 12.f);
+        for (const auto& [spotLeft, edge] : spots)
+        {
+            const float x0 = spotLeft ? edge : v.W - edge - now.w;
+            float       y  = 0.f;
+            if (!pcamlayout::firstFit(x0, x0 + now.w, spotLeft ? 24.f : 64.f, v.H - 24.f, now.h, parts, y))
+                continue;
+            if (panelOn && panelLeft == spotLeft && edge < 100.f) // the Filters panel in the same column keeps 200 dp
+            {
+                std::vector<Rect> with = sideParts(true, false, "plumen");
+                with.push_back({ x0, y, now.w, now.h });
+                float p0 = 0.f, p1 = 0.f;
+                sideRoom(spotLeft, 24.f, 320.f, with, p0, p1);
+                if (p1 - p0 < 200.f)
+                    continue;
+            }
+            found = true;
+            left  = spotLeft;
+            top   = y;
+            setPlaced(lumen, left ? "left" : "right", dpText(edge));
+            break;
+        }
+        if (!found)
+            setPlaced(lumen, left ? "left" : "right", dpText(pcamlayout::kMargin));
+        setPlaced(lumen, left ? "right" : "left", "auto");
+        setPlaced(lumen, "top", dpText(top));
+    }
+    if (Rml::Element* railEl = v.document->GetElementById("rail"); railEl && rail)
+    {
+        // (the style sheet's top: 70, or 100 / 200 with the bar at the top edge)
+        const float css = v.barTop ? (v.railShort ? 200.f : 100.f) : 70.f;
+        setPlaced(railEl, "top", dpText(llmax(css, (v.railRight ? topRight : topLeft) + pcamlayout::kGap)));
+    }
+    // The camera pad and the photo pile go beside a Filters panel docked over them that would
+    // have too little room above them (with the bar at the top edge the bottom is free).
+    {
+        bool beside = false;
+        if (Rml::Element* panel = filtersElement("fpanel"); v.barTop && panel && panel->IsVisible(true) && panel->IsClassSet("left"))
+        {
+            float y0 = 0.f, y1 = 0.f;
+            sideRoom(true, 24.f, 320.f, sideParts(false, false), y0, y1);
+            const pcamlayout::Rect pad = rectOf("ppad");
+            beside = !pad.empty() && pad.y - pcamlayout::kGap - y0 < 160.f;
+        }
+        for (const char* id : { "ppad", "ppile" })
+            setPlaced(v.document->GetElementById(id), "left", beside ? dpText(24.f + 320.f + 12.f) : std::string());
+    }
+    // The hint row: centred, as wide as the room between the side panels at its height.
+    if (Rml::Element* hint = v.document->GetElementById("hintpill"); hint && hint->IsVisible(true))
+    {
+        std::vector<Rect> sides;
+        for (const char* id : { "status", "pdisp", "chips", "shotchips", "plumen", "prings", "ppad", "ppile", "rail", "tiltband" })
+            sides.push_back(rectOf(id));
+        sides.push_back(rectOf(filtersElement("fpanel")));
+        const float natural = pcamlayout::sum(childWidths(hint), 0.f) + 26.f; // + the capsule's padding and border
+        const float edge    = v.barTop ? (v.controlsOpen ? 162.f : 96.f) : v.H - (v.controlsOpen ? 162.f : 96.f);
+        const float maxW    = pcamlayout::hintMaxWidth(v.W * 0.5f, natural, 24.f, edge, v.barTop, sides);
+        setPlaced(hint, "max-width", maxW + 0.5f >= natural ? std::string() : dpText(maxW));
+    }
+    // The help card (taller with the new keys' lines) stays inside a short window.
+    if (Rml::Element* help = v.document->GetElementById("help"); help && help->IsVisible(true))
+    {
+        const Rect card = rectOf(help); // (top: the style sheet's 70 when it fits)
+        setPlaced(help, "top", dpText(llmax(pcamlayout::kGap, llmin(70.f, v.H - card.h - pcamlayout::kGap))));
+    }
+    // The notices at the top (the bar at the bottom): the saved notice, the toast and the picking
+    // banner go down together, under the chips or the status pills they would run into.
+    {
+        const char* const ids[] = { "notice", "saved", "toast", "isopick" };
+        const float tops[]      = { 24.f, 24.f, 64.f, 104.f }; // the style sheet's
+        float shift = 0.f;
+        if (!v.barTop)
+        {
+            std::vector<Rect> pills, above;
+            for (size_t i = 0; i < 4; ++i)
+                if (Rml::Element* e = v.document->GetElementById(ids[i]); e && e->GetFirstChild())
+                    if (Rect r = rectOf(e->GetFirstChild()); !r.empty())
+                    {
+                        r.y = tops[i]; // where the style sheet puts it
+                        pills.push_back(r);
+                    }
+            for (const char* id : { "status", "chips", "shotchips" })
+                above.push_back(rectOf(id));
+            shift = pcamlayout::noticeShift(pills, above);
+        }
+        for (size_t i = 0; i < 4; ++i)
+            setPlaced(v.document->GetElementById(ids[i]), "top", shift > 0.f ? dpText(tops[i] + shift) : std::string());
+    }
+}
+// </Prestige>
 
 void refreshShot()
 {
@@ -1830,10 +2084,25 @@ void updateFinder()
     SLCameraModel::afPoint(f.afX, f.afY);
     f.locked = SLCameraModel::focusLocked();
     f.rootH = ll_round(v.H * 100.f);
+    // <Prestige> layout: the side panels the tilt arc keeps clear of
+    std::vector<pcamlayout::Rect> sides;
+    if (f.tilt)
+    {
+        for (const char* id : { "rail", "plumen", "prings", "chips", "shotchips" })
+            sides.push_back(rectOf(id));
+        for (const char* id : { "fpanel", "fpick" })
+            sides.push_back(rectOf(filtersElement(id)));
+        if (Rml::Element* banner = v.document->GetElementById("isopick")) // the picking banner, wide at the top
+            sides.push_back(rectOf(banner->GetFirstChild()));
+        for (const pcamlayout::Rect& r : sides)
+            if (!r.empty())
+                f.clear += llformat("%.0f,%.0f,%.0f,%.0f;", r.x, r.y, r.w, r.h);
+    }
+    // </Prestige>
     const Finder& o = v.finder;
     if (f.frame == o.frame && f.grid == o.grid && f.level == o.level && f.levelOk == o.levelOk && f.held == o.held && f.locked == o.locked && f.tilt == o.tilt
         && f.roll10 == o.roll10 && f.pitch10 == o.pitch10 && f.afX == o.afX && f.afY == o.afY && f.rootH == o.rootH
-        && f.display == o.display) // <Prestige>
+        && f.display == o.display && f.clear == o.clear) // <Prestige>
         return;
     v.finder = f;
     markChanged();
@@ -1914,7 +2183,18 @@ void updateFinder()
     // (level: straight right of the centre). The band along the arc takes the drag and the wheel:
     // a big target, shown with Controls whether Level is on or not (tilt is not only for levelling).
     {
-        const float cx = l + w * 0.5f, cy = t + h * 0.5f, r = llmin(w, h) * 0.42f;
+        // <Prestige> layout: smaller when a side panel (the rail, the Filters panel, the light panel,
+        // the rings) would cover it; none when none fits (the filter picker open over it)
+        const float cx = l + w * 0.5f, cy = t + h * 0.5f;
+        const float r  = pcamlayout::tiltRadius(cx, cy, llmin(w, h) * 0.42f, llmin(w, h) * 0.22f, SLCameraModel::tiltLimit(), sides);
+        if (r <= 0.f)
+        {
+            for (const char* id : { "tiltband", "tilthit", "tiltknob", "tiltlabel" })
+                hide(id);
+        }
+        else
+        // </Prestige>
+        {
         const float lim = SLCameraModel::tiltLimit(), rs = llclamp(roll, -lim, lim);
         const float bl = cx + r * cosf(lim) - 14.f, bt = cy - r * sinf(lim) - 12.f;
         const float bw = cx + r + 16.f - bl, bh = 2.f * (r * sinf(lim) + 12.f);
@@ -1953,6 +2233,7 @@ void updateFinder()
             args["[ANGLE]"] = f.roll10 == 0 ? std::string("0°") : llformat("%+.1f°", f.roll10 / 10.f);
             e->SetInnerRML("<span class=\"pill\">" + LLTrans::getString("CameraModeTiltLabel", args) + "</span>");
         }
+        } // <Prestige> layout </Prestige>
     }
     // The level: the horizon through the centre at the camera's roll (Level on).
     const float half = llmin(w, h) * 0.18f, gap = 10.f;
@@ -2008,6 +2289,9 @@ void placeChipMenus()
             menu->SetProperty("left", value);
             markChanged();
         }
+        // <Prestige> layout: under its chip, whichever row of the chips it is on (they wrap)
+        setPlaced(menu, "top", dpText((chip->GetAbsoluteTop() + chip->GetOffsetHeight()) / px + 6.f));
+        // </Prestige>
     }
 }
 
@@ -2681,6 +2965,13 @@ void prestigeStart()
     p.rollEmail       = LLTrans::getString("PrestigeCameraRollEmail");
     p.rollDelete      = LLTrans::getString("PrestigeCameraRollDelete");
     p.rollDeleteGo    = LLTrans::getString("PrestigeCameraRollDeleteGo");
+    // <Prestige> camera layout: the help card's line on Esc (the key as it is bound)
+    {
+        LLStringUtil::format_map_t args;
+        args["[KEY]"] = key("camera_exit");
+        p.escHelpLine = LLTrans::getString("PrestigeCameraHelpEsc", args);
+    }
+    // </Prestige>
     refreshDisplayLabel();
     refreshPadModes();
 }
@@ -2769,6 +3060,7 @@ void bindPrestige(Rml::DataModelConstructor& m)
                                 std::make_pair("rollProfile", &PrestigeView::rollProfile), std::make_pair("rollEmail", &PrestigeView::rollEmail),
                                 std::make_pair("rollDelete", &PrestigeView::rollDelete), std::make_pair("rollCount", &PrestigeView::rollCount) })
         m.Bind(name, &(p.*field));
+    m.Bind("escHelpLine", &p.escHelpLine); // <Prestige> camera layout </Prestige>
     m.Bind("picHint", &p.picHint);
     m.Bind("levelOk", &p.levelOk);
     m.Bind("pileShown", &p.pileShown);
@@ -4003,6 +4295,7 @@ bool SLCameraView::sync(float density)
     set(v.toast, SLCameraModel::toastText(), "toast");
     refreshShot(); // <Prestige> the chips, the light and where the camera stands
     prestigeSync(t); // <Prestige> display levels, rings, pad, light readouts, photo roll
+    prestigeArrange(); // <Prestige> layout: the light panel, the rail, the hints and the notices clear of the rest </Prestige>
     // Values that can change from elsewhere (settings, the old Photo Studio rail): 4 Hz.
     if (t >= v.nextRefresh)
     {
@@ -4530,6 +4823,22 @@ bool SLCameraView::padDeflection(F32& x, F32& y)
         return false;
     x = p.padX;
     y = p.padY;
+    return true;
+}
+// </Prestige>
+
+// <Prestige> layout: the room a side panel of the Filters document has (prestigecameralayout.h)
+bool SLCameraView::prestigeSideRoom(bool left, F32 fromEdge, F32 width, bool overHints, F32& top, F32& bottom)
+{
+    View& v = gView;
+    if (!v.shown || !v.document || v.density <= 0.f || v.W <= 0.f)
+        return false;
+    float y0 = 0.f, y1 = 0.f;
+    sideRoom(left, fromEdge, width, sideParts(true, overHints), y0, y1);
+    if (y1 - y0 < 160.f) // too little room: the panel keeps a usable height, over what is below it
+        y1 = llmin(v.H - 28.f, y0 + 160.f);
+    top    = y0;
+    bottom = v.H - y1;
     return true;
 }
 // </Prestige>

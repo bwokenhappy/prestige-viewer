@@ -1266,6 +1266,7 @@ set(viewer_HEADER_FILES
     prestigecamerapad.h               # <Prestige> camera mode: the on-screen camera pad
     prestigecamerafilters.h           # <Prestige> camera mode's live filter stack
     prestigecamerafiltersview.h       # <Prestige> camera mode's Filters panel, before / after line
+    prestigecameralayout.h            # <Prestige> camera mode's overlay: its parts kept clear of each other
     prestigecubelut.h                 # <Prestige> .cube LUT import for the camera filters
     prestigefloatergifpicker.h
     prestigefloaterposestand.h

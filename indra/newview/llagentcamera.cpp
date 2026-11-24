@@ -2881,6 +2881,10 @@ void LLAgentCamera::updateSmoothZoom()
     const F32 k = 1.f - expf(-LLFrameTimer::getFrameDeltaTimeF32() / tau);
     F32 step = mPendingWheelZoom * k;
     if (fabsf(mPendingWheelZoom) < 0.002f) step = mPendingWheelZoom;   // settle
+    // <Prestige> Reduced motion: the whole wheel step at once, no easing
+    static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
+    if (reduced_motion) step = mPendingWheelZoom;
+    // </Prestige>
     mPendingWheelZoom -= step;
     if (step != 0.f) applyWheelOrbitZoom(step);
 }
@@ -3376,6 +3380,14 @@ void LLAgentCamera::switchCameraPreset(ECameraPreset preset)
 
 void LLAgentCamera::setAnimationDuration(F32 duration)
 {
+    // <Prestige> Reduced motion: camera moves (focus, sit, appearance, mode changes) jump
+    // instead of gliding; a tiny duration rather than 0 keeps updateCamera's time / duration finite
+    static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
+    if (reduced_motion)
+    {
+        duration = llmin(duration, 0.01f);
+    }
+    // </Prestige>
     if (mCameraAnimating)
     {
         // do not cut any existing camera animation short

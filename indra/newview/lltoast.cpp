@@ -306,7 +306,10 @@ void LLToast::expire()
 {
     if (mCanFade)
     {
-        if (mIsFading)
+        // <Prestige> Reduced motion: hide when its time is up, without fading out
+        static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
+        if (mIsFading || reduced_motion)
+        // </Prestige>
         {
             // Fade timer expired. Time to hide.
             hide();

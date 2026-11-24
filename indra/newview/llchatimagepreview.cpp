@@ -486,8 +486,11 @@ bool LLChatImagePreview::isOnScreen() const
 LLViewerTexture* LLChatImagePreview::currentFrame(const LLChatImageAnim& anim, bool& live)
 {
     static LLCachedControl<S32> animate_setting(gSavedSettings, "ChatImageAnimate", 2);
+    // <Prestige> Reduced motion: animated pictures stay on their first frame ("never")
+    static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
     live = false;
-    const S32 animate = animate_setting();
+    const S32 animate = reduced_motion ? 0 : (S32)animate_setting();
+    // </Prestige>
     if (animate <= 0 || (animate == 1 && !mHovered))
     {
         // Never: the first frame. On hover: rest on the first frame and start over

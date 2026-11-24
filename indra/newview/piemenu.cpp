@@ -613,7 +613,10 @@ F32 PieMenu::getScaleFactor()
     {
         // if the timer ran past the popup time, stop the timer and set the size to 1.0
         F32 elapsedTime = mPopupTimer.getElapsedTimeF32();
-        if (elapsedTime > PIE_POPUP_TIME)
+        // <Prestige> Reduced motion: no shrink-in animation, the menu is at its size at once
+        static LLCachedControl<bool> reduced_motion(gSavedSettings, "PrestigeReducedMotion", false);
+        if (elapsedTime > PIE_POPUP_TIME || reduced_motion)
+        // </Prestige>
         {
             factor = 1.f;
             mPopupTimer.stop();

@@ -80,6 +80,7 @@
 #include "llfloaterreg.h"
 #include "llperfstats.h"
 #include "llvkautotune.h"   // #422
+#include "prestigeuicolors.h" // <Prestige> high contrast colours </Prestige>
 // [RLVa:KB] - Checked: 2015-12-27 (RLVa-1.5.0)
 #include "llvisualeffect.h"
 #include "rlvactions.h"
@@ -834,6 +835,9 @@ void settings_setup_listeners()
     setting_setup_signal_listener(gSavedSettings, "RenderFarClip", handleRenderFarClipChanged);
     setting_setup_signal_listener(gSavedSettings, "FSFontSettingsFile", [] { if (gViewerWindow) gViewerWindow->requestFontSetUpdate(); });
     setting_setup_signal_listener(gSavedSettings, "FSFontSizeAdjustment", [] { if (gViewerWindow) gViewerWindow->requestFontSetUpdate(); });
+    // <Prestige> Accessibility: high contrast colours (white text on black, bright accent) apply live
+    setting_setup_signal_listener(gSavedSettings, "PrestigeHighContrast", [](const LLSD& newvalue) { PrestigeUIColors::applyHighContrast(newvalue.asBoolean()); });
+    // </Prestige>
     // Sound cache budget (#176) applies live; evicts least recently played sounds if now over it.
     setting_setup_signal_listener(gSavedSettings, "SlipstreamSoundCacheSizeMB", [](const LLSD& newvalue)
     {

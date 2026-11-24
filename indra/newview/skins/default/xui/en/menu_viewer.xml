@@ -36,6 +36,18 @@
          function="Inventory.NewWindow"
          parameter="" />
       </menu_item_call>
+      <!-- Prestige: quick library -->
+      <menu_item_check
+       label="Quick library..."
+       name="Quick Library"
+       shortcut="control|Space">
+        <menu_item_check.on_check
+         function="Floater.Visible"
+         parameter="prestige_quick_library" />
+        <menu_item_check.on_click
+         function="Floater.ToggleOrBringToFront"
+         parameter="prestige_quick_library" />
+      </menu_item_check>
       <menu_item_check
        label="Places..."
        name="Places"

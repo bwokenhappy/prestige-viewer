@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater
+ positioning="centered"
+ save_rect="true"
+ can_resize="true"
+ height="430"
+ width="560"
+ min_height="260"
+ min_width="460"
+ layout="topleft"
+ name="prestige_quick_library"
+ help_topic="prestige_quick_library"
+ single_instance="true"
+ title="Quick library">
+    <string name="type_texture">Texture</string>
+    <string name="type_material">Material</string>
+    <string name="type_object">Object</string>
+    <string name="type_animation">Animation</string>
+    <string name="type_sound">Sound</string>
+    <string name="type_notecard">Notecard</string>
+    <string name="type_landmark">Landmark</string>
+    <string name="type_script">Script</string>
+    <string name="type_gesture">Gesture</string>
+    <string name="top_level">My Inventory</string>
+    <string name="favorite_label">Favourite</string>
+    <string name="unfavorite_label">Unfavourite</string>
+    <string name="status_count">[TOTAL] items</string>
+    <string name="status_capped">Showing the first [SHOWN] of [TOTAL] items. Type more to narrow the list.</string>
+    <string name="status_none">Nothing found.</string>
+    <string name="status_no_library">There is no "Prestige Library" folder yet.</string>
+    <string name="status_truncated">(Very large inventory: only part of it is searched.)</string>
+    <string name="comment_no_results">No matching items. Try other words or tick more types.</string>
+    <string name="comment_no_recent">Nothing used from this window yet.</string>
+    <string name="comment_no_library">Click "Create library folder" to make a "Prestige Library" folder at the top of My Inventory, then put items or links in it.</string>
+
+    <filter_editor
+     follows="left|top|right"
+     height="23"
+     layout="topleft"
+     left="8"
+     label="Search by name"
+     max_length_chars="128"
+     name="search"
+     tool_tip="Shows the items whose name contains this text (upper and lower case are the same). Up / Down choose a result, Enter opens it."
+     top="24"
+     right="-8" />
+
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left="8"
+     top_pad="6"
+     name="type_textures"
+     label="Textures"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_materials"
+     label="Materials"
+     tool_tip="PBR materials"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_objects"
+     label="Objects"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_animations"
+     label="Animations"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_sounds"
+     label="Sounds"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left="8"
+     top_pad="4"
+     name="type_notecards"
+     label="Notecards"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_landmarks"
+     label="Landmarks"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_scripts"
+     label="Scripts"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="type_gestures"
+     label="Gestures"
+     width="100" />
+
+    <combo_box
+     follows="left|top"
+     height="22"
+     layout="topleft"
+     left="8"
+     top_pad="8"
+     name="scope"
+     tool_tip="Search all of My Inventory, or only the &quot;Prestige Library&quot; folder at its top (links in that folder count too)."
+     width="150">
+        <combo_box.item label="All inventory" name="all" value="all" />
+        <combo_box.item label="Library folder" name="library" value="library" />
+    </combo_box>
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="10"
+     top_delta="3"
+     name="favorites_only"
+     label="Favourites"
+     tool_tip="Only your inventory favourites (the same ones as the inventory's Favorites), and the items in favourite folders."
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="recent_only"
+     label="Recent"
+     tool_tip="Only the last 20 items you opened, wore or dragged out from this window, newest first."
+     width="80" />
+    <button
+     follows="top|right"
+     height="22"
+     layout="topleft"
+     right="-8"
+     top_delta="-3"
+     name="create_folder"
+     label="Create library folder"
+     tool_tip="Make a folder called &quot;Prestige Library&quot; at the top of My Inventory. Put the items (or links to them) you use most in it."
+     width="150" />
+
+    <prestige_quick_library_list
+     follows="all"
+     height="250"
+     layout="topleft"
+     left="8"
+     top_pad="6"
+     right="-8"
+     name="results"
+     multi_select="false"
+     draw_heading="true"
+     column_padding="3"
+     tool_tip="Double-click or Enter opens an item as the inventory does. Drag a row into the world to rez an object, onto a face to apply a texture or material, or onto an object or avatar.">
+        <prestige_quick_library_list.columns
+         name="icon"
+         width="20" />
+        <prestige_quick_library_list.columns
+         label="Name"
+         name="name"
+         dynamic_width="true" />
+        <prestige_quick_library_list.columns
+         label="Type"
+         name="type"
+         width="80" />
+        <prestige_quick_library_list.columns
+         label="Folder"
+         name="folder"
+         width="170" />
+    </prestige_quick_library_list>
+
+    <text
+     follows="left|bottom|right"
+     height="16"
+     layout="topleft"
+     left="8"
+     top="380"
+     right="-8"
+     name="status"
+     use_ellipses="true"
+     value="" />
+    <button
+     follows="left|bottom"
+     height="22"
+     layout="topleft"
+     left="8"
+     top="402"
+     name="open"
+     label="Open"
+     tool_tip="Open the selected item as the inventory does (preview, editor, wear, teleport offer, activate gesture)."
+     width="90" />
+    <button
+     follows="left|bottom"
+     height="22"
+     layout="topleft"
+     left_pad="4"
+     name="favorite"
+     label="Favourite"
+     tool_tip="Add the selected item to your inventory favourites, or remove it."
+     width="100" />
+    <button
+     follows="left|bottom"
+     height="22"
+     layout="topleft"
+     left_pad="4"
+     name="show_in_inventory"
+     label="Show in inventory"
+     tool_tip="Open the inventory at the selected item."
+     width="130" />
+</floater>

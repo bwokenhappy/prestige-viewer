@@ -28587,6 +28587,39 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeQuickLibraryRecent</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige quick library (Ctrl+Space): the inventory item IDs last opened, worn or dragged out from it, newest first (at most 20).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>LLSD</string>
+      <key>Value</key>
+      <array />
+    </map>
+    <key>PrestigeQuickLibraryTypes</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige quick library: the item types listed, one bit each: 1 textures, 2 materials, 4 objects, 8 animations, 16 sounds, 32 notecards, 64 landmarks, 128 scripts, 256 gestures.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>511</integer>
+    </map>
+    <key>PrestigeQuickLibraryScope</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige quick library: 0 searches all of My Inventory, 1 only the "Prestige Library" folder at its top.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>SkinCurrent</key>
     <map>
       <key>Comment</key>

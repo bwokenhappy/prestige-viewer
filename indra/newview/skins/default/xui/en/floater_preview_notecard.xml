@@ -4,9 +4,9 @@
  legacy_header_height="18"
  can_resize="true"
  default_tab_group="1"
- height="361"
+ height="385"
  layout="topleft"
- min_height="243"
+ min_height="267"
  min_width="330"
  name="preview notecard"
  help_topic="preview_notecard"
@@ -60,28 +60,106 @@
      max_length_bytes="127"
      name="desc"
      width="296" />
-    <text_editor
-     type="string"
-     length="1"
-     embedded_items="true"
-     follows="left|top|right|bottom"
-     font="SansSerif"
-     height="281"
-     ignore_tab="false"
+    <button
+     follows="left|top"
+     height="20"
+     is_toggle="true"
+     label="Text"
      layout="topleft"
      left="4"
-     max_length="65536"
-     name="Notecard Editor"
-     parse_urls="false" 
-     spellcheck="true"
+     name="view_mode_text"
+     tool_tip="Show the notecard as plain text, for editing"
+     top="48"
+     width="74" />
+    <button
+     follows="left|top"
+     height="20"
+     is_toggle="true"
+     label="Formatted"
+     layout="topleft"
+     left_pad="2"
+     name="view_mode_formatted"
+     tool_tip="Show the notecard formatted as Markdown (read only)"
+     top="48"
+     width="74" />
+    <button
+     follows="left|top"
+     height="20"
+     is_toggle="true"
+     label="Split"
+     layout="topleft"
+     left_pad="2"
+     name="view_mode_split"
+     tool_tip="Edit the Markdown source with a live formatted preview beside it"
+     top="48"
+     width="74" />
+    <layout_stack
+     animate="false"
+     follows="all"
+     height="281"
+     layout="topleft"
+     left="4"
+     name="notecard_view_stack"
+     orientation="horizontal"
      tab_group="1"
-     top="46"
-     use_color="true"
-     show_emoji_helper="true"
-     width="392"
-     word_wrap="true">
-        Loading...
-    </text_editor>
+     top="70"
+     width="392">
+        <layout_panel
+         auto_resize="true"
+         height="281"
+         layout="topleft"
+         min_width="80"
+         name="editor_panel"
+         user_resize="true"
+         width="196">
+            <text_editor
+             type="string"
+             length="1"
+             embedded_items="true"
+             follows="left|top|right|bottom"
+             font="SansSerif"
+             height="281"
+             ignore_tab="false"
+             layout="topleft"
+             left="0"
+             max_length="65536"
+             name="Notecard Editor"
+             parse_urls="false" 
+             spellcheck="true"
+             tab_group="1"
+             top="0"
+             use_color="true"
+             show_emoji_helper="true"
+             width="196"
+             word_wrap="true">
+                Loading...
+            </text_editor>
+        </layout_panel>
+        <layout_panel
+         auto_resize="true"
+         height="281"
+         layout="topleft"
+         min_width="80"
+         name="markdown_panel"
+         user_resize="true"
+         visible="false"
+         width="196">
+            <text_editor
+             follows="all"
+             font="SansSerif"
+             height="281"
+             layout="topleft"
+             left="0"
+             max_length="262144"
+             name="markdown_view"
+             parse_urls="true"
+             read_only="true"
+             tab_group="1"
+             top="0"
+             width="196"
+             word_wrap="true" />
+        </layout_panel>
+    </layout_stack>
       <button
      follows="left|bottom"
      height="22"
@@ -90,7 +168,7 @@
      layout="topleft"
      left="4"
      name="Edit"
-     top="332"
+     top="356"
      width="100" />
     <button
      follows="right|bottom"
@@ -100,7 +178,7 @@
      layout="topleft"
      left="178"
      name="Save"
-     top="332"
+     top="356"
      width="100" />
     <button
      follows="right|bottom"
@@ -110,6 +188,6 @@
      layout="topleft"
      left="288"
      name="Delete"
-     top="332"
+     top="356"
      width="100" />
 </floater>

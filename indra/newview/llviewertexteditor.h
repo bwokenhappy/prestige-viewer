@@ -90,6 +90,11 @@ public:
     // rather than checking if a re-load is necessary. Phoenix 2007-02-27
     bool hasEmbeddedInventory();
 
+    // <Prestige> Markdown notecards: the name of the inventory item behind an
+    // embedded-item character, or an empty string if there is none.
+    static std::string getEmbeddedItemName(llwchar wc);
+    // </Prestige>
+
 private:
     // Embedded object operations
     void findEmbeddedItemSegments(S32 start, S32 end);

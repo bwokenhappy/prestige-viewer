@@ -207,6 +207,8 @@ set(viewer_SOURCE_FILES
     sldiscordpresence.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
+    prestigemarkdown.cpp
+    prestigemarkdownrenderer.cpp
     slfloaterao.cpp
     slfloaterfirstrun.cpp
     slfloatergesturesets.cpp
@@ -1236,6 +1238,8 @@ set(viewer_HEADER_FILES
     sldiscordpresence.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)
+    prestigemarkdown.h
+    prestigemarkdownrenderer.h
     slfloaterao.h
     slfloaterfirstrun.h
     slfloatergesturesets.h

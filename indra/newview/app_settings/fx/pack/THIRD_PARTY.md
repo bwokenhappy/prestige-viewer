@@ -66,3 +66,12 @@ Same audit rule as above: permissive licences only, unmodified files, nothing wh
 | reshade-shaders Deband | https://github.com/crosire/reshade-shaders | `fd0022170615` | MIT, Copyright (c) 2015 Niklas Haas (notice in the file) | Deband |
 | fubax-shaders | https://github.com/Fubaxiusz/fubax-shaders | `d902cc2e8216` | by Jakub Maksymilian Fober: CC BY-SA 4.0 (BeforeAfter, Chromakey, FilmicAnamorphSharpen, SimpleGrain, SunsetFilter; https://creativecommons.org/licenses/by-sa/4.0/), CC0 (Letterbox, LinearWorkflow.fxh, ColorConversion.fxh); unmodified | BeforeAfter, Chromakey, FilmicAnamorphSharpen, Letterbox, SimpleGrain, SunsetFilter |
 | brussell1 Shaders | https://github.com/brussell1/Shaders | `3869218ea004` | CC BY 4.0, by brussell (https://creativecommons.org/licenses/by/4.0/); unmodified | EyeAdaption |
+
+<!-- <Prestige> first-party photo filters -->
+## Prestige photo filters (first-party, not third-party)
+
+`Shaders/Prestige/` (`Prestige*.fx`, `PrestigeCommon.fxh`) is original Prestige Viewer
+code written for the viewer (LGPL-2.1-only, as the viewer); nothing in it is copied
+from a shader pack, and it uses no textures. Listed here only so the folder is not
+mistaken for an unaudited pack.
+<!-- </Prestige> -->

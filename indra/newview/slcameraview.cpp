@@ -38,6 +38,7 @@
 #include "slcamerareview.h"
 #include "slkeycommands.h"
 #include "prestigecameraisolate.h"   // <Prestige> isolate your subject
+#include "prestigecamerashot.h" // <Prestige> setting up the shot (chips, the light, where the camera stands)
 
 #include "llfile.h"
 #include "llfloaterpreference.h"
@@ -290,6 +291,18 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 #isopick { position: absolute; left: 0; right: 0; top: 104dp; text-align: center; }
 .top #isopick { top: auto; bottom: 104dp; }
 #help .foot.iso { margin-bottom: 6dp; }
+/* <Prestige> setting up the shot: HUDs, poser, freeze, quiet, sky (chips left of the chips; right: placed
+   from C++), the light above the shutter (placed from C++ above the bar, the strip and the hints), renaming setups */
+#shotchips { position: absolute; right: 340dp; top: 24dp; display: flex; flex-direction: row; gap: 8dp; }
+#lightbtn { position: absolute; left: 50%; margin-left: -40dp; width: 80dp; bottom: 94dp; height: 28dp; line-height: 28dp;
+            text-align: center; white-space: nowrap; background-color: $bar; border: 1dp $border; border-radius: $radiusPill;
+            pointer-events: auto; cursor: pointer; }
+#lightbtn:hover { border-color: $accent; }
+#lightbtn.on { color: $accent; border-color: $accent; }
+.setups .opt .rn { color: $muted; margin-right: 8dp; display: none; }
+.setups .opt:hover .rn { display: block; }
+.setups .opt .rn:hover { color: $text; }
+.setups .segmented { margin-top: 4dp; }
 /* </Prestige> */
 </style></head><body><div data-model="camera" data-class-top="barTop">
 <div id="m-t" class="mask"></div><div id="m-b" class="mask"></div><div id="m-l" class="mask"></div><div id="m-r" class="mask"></div>
@@ -363,6 +376,15 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
 <div class="isomark" id="iso-m0"></div><div class="isomark" id="iso-m1"></div><div class="isomark" id="iso-m2"></div><div class="isomark" id="iso-m3"></div>
 <div class="isomark" id="iso-m4"></div><div class="isomark" id="iso-m5"></div><div class="isomark" id="iso-m6"></div><div class="isomark" id="iso-m7"></div>
 <div id="isopick" data-if="isoPicking"><div class="capsule raised">{{isoPickText}}</div></div>
+<!-- <Prestige> setting up the shot: HUDs in the viewfinder, the poser, Freeze World, the quiet shutter, the sky -->
+<div id="shotchips" data-if="controlsOpen && !barAway">
+  <div id="hudchip" class="cbtn" data-class-on="shotHuds" data-event-click="shothuds()">{{shotHudsLabel}}</div>
+  <div id="poserchip" class="cbtn" data-class-on="shotPoser" data-event-click="shotposer()">{{shotPoserLabel}}</div>
+  <div id="freezechip" class="cbtn" data-class-on="shotFrozen" data-event-click="shotfreeze()">{{shotFreezeLabel}}</div>
+  <div id="quietchip" class="cbtn" data-class-on="shotQuiet" data-event-click="shotquiet()">{{shotQuietLabel}}</div>
+  <div id="skychip" class="cbtn" data-class-on="shotSkyPhoto" data-event-click="shotsky()">{{shotSkyLabel}}</div>
+</div>
+<div id="lightbtn" data-if="!barAway" data-class-on="shotLight" data-event-click="shotlight()">{{shotLightLabel}}</div>
 <!-- </Prestige> -->
 <div id="notice" data-if="noticeShown"><div id="noticepill" class="capsule"><span class="t">{{noticeTitle}}</span><span class="ht">{{noticeText}}</span><span class="hk">{{toggleKey}}</span><span class="ht">{{noticeEnd}}</span></div></div>
 <div id="readout" data-if="readoutShown"><div><span class="caption">{{readoutName}}</span><span class="v">{{readoutValue}}</span></div>
@@ -408,10 +430,17 @@ body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events:
           <div class="caption">{{setupsTitle}}</div>
           <div class="caption" data-if="presets.size == 0">{{presetNone}}</div>
           <div class="opt" data-for="p : presets" data-event-click="presetload(it_index)"><div class="col">{{p.label}}</div>
+            <!-- <Prestige> --><div class="rn" data-event-click="presetren(it_index)">{{presetRenameLabel}}</div><!-- </Prestige> -->
             <div class="x" data-event-click="presetdel(it_index)"><span data-if="p.on">{{deleteAsk}}</span>
               <ic name="x" data-if="!p.on"/></div></div>
           <div class="prow"><div class="field"><input id="presetname" class="bare" type="text" maxlength="40" data-value="presetName"/></div>
-            <div class="btn" data-event-click="presetsave()">{{presetSaveLabel}}</div></div>
+            <div class="btn" data-if="presetRenaming == ''" data-event-click="presetsave()">{{presetSaveLabel}}</div><!-- <Prestige> data-if: Rename instead while renaming -->
+            <div class="btn" data-if="presetRenaming != ''" data-event-click="presetrengo()">{{presetRenameLabel}}</div><!-- </Prestige> --></div>
+          <!-- <Prestige> where the camera stands, saved with the setup -->
+          <div class="caption">{{anchorTitle}}</div>
+          <div class="segmented"><div class="seg" data-for="a : anchors" data-class-on="a.on" data-event-click="shotanchor(it_index)">{{a.label}}</div></div>
+          <div class="caption" data-if="anchorNote != ''">{{anchorNote}}</div>
+          <!-- </Prestige> -->
         </div>
       </div>
     </div>
@@ -661,6 +690,18 @@ struct View
     // </Prestige>
 };
 View gView;
+
+// <Prestige> setting up the shot (prestigecamerashot.h): what the overlay shows of it
+struct ShotView
+{
+    bool                huds = false, poser = false, frozen = false, quiet = false, skyPhoto = true, light = false;
+    std::string         hudsLabel, poserLabel, freezeLabel, quietLabel, skyLabel, lightLabel;
+    std::vector<Choice> anchors;   // with me / here / an object
+    std::string         anchorTitle, anchorNote;
+    std::string         renaming, renameLabel; // the setup being renamed ("" none)
+};
+ShotView gShot;
+// </Prestige>
 
 F64 now() { return LLTimer::getTotalSeconds(); }
 
@@ -1248,6 +1289,104 @@ std::string presetMessage(const char* name, const std::string& preset)
     args["[NAME]"] = preset;
     return LLTrans::getString(std::string("CameraMode") + name, args);
 }
+
+// <Prestige> setting up the shot: the chips, the light and where the camera stands, from
+// PrestigeCameraShot; the light above the shutter, clear of the bar, the strip and the hints.
+void placeLight()
+{
+    View& v = gView;
+    if (!v.document || v.density <= 0.f || v.barAway)
+        return;
+    Rml::Element* light = v.document->GetElementById("lightbtn");
+    if (!light)
+        return;
+    const float px = v.density * v.k;
+    float edge = v.barTop ? 0.f : v.H;
+    bool  any  = false;
+    for (const char* id : { "bar", "strip", "hintpill" })
+    {
+        Rml::Element* e = v.document->GetElementById(id);
+        if (!e || e->GetOffsetHeight() <= 0.f)
+            continue;
+        const float top = e->GetAbsoluteTop() / px, bottom = top + e->GetOffsetHeight() / px;
+        edge = v.barTop ? llmax(edge, bottom) : llmin(edge, top);
+        any  = true;
+    }
+    if (!any)
+        return;
+    const std::string placed = v.barTop ? llformat("t%.1f", edge + 8.f) : llformat("b%.1f", v.H - edge + 8.f);
+    if (light->GetAttribute<Rml::String>("data-placed", "") == placed)
+        return;
+    light->SetAttribute("data-placed", placed);
+    light->SetProperty(v.barTop ? "top" : "bottom", llformat("%.1fdp", v.barTop ? edge + 8.f : v.H - edge + 8.f));
+    light->SetProperty(v.barTop ? "bottom" : "top", "auto");
+    markChanged();
+}
+
+// The setup chips in the chips' row, left of them (the rail docks under the row); with the bar at
+// the top edge (it would run into it) under the chips, above the rail.
+void placeShotChips()
+{
+    View& v = gView;
+    if (!v.document || v.density <= 0.f)
+        return;
+    Rml::Element* row   = v.document->GetElementById("shotchips");
+    Rml::Element* chips = v.document->GetElementById("chips");
+    if (!row || !chips || chips->GetOffsetWidth() <= 0.f)
+        return;
+    const float px    = v.density * v.k;
+    const float right = v.barTop ? 24.f : v.W - chips->GetAbsoluteLeft() / px + 8.f;
+    const float top   = v.barTop ? (chips->GetAbsoluteTop() + chips->GetOffsetHeight()) / px + 8.f : 24.f;
+    const std::string placed = llformat("%.1f|%.1f", right, top);
+    if (row->GetAttribute<Rml::String>("data-placed", "") == placed)
+        return;
+    row->SetAttribute("data-placed", placed);
+    row->SetProperty("right", llformat("%.1fdp", right));
+    row->SetProperty("top", llformat("%.1fdp", top));
+    markChanged();
+}
+
+void refreshShot()
+{
+    ShotView& s = gShot;
+    if (s.hudsLabel.empty())
+    {
+        s.hudsLabel   = str("ShotHUDs");
+        s.poserLabel  = str("ShotPoser");
+        s.freezeLabel = str("ShotFreeze");
+        s.quietLabel  = str("ShotQuiet");
+        s.lightLabel  = str("ShotLight");
+        s.anchorTitle = str("AnchorTitle");
+        s.renameLabel = str("PresetRename");
+        for (const char* name : { "shotHudsLabel", "shotPoserLabel", "shotFreezeLabel", "shotQuietLabel", "shotLightLabel",
+                                  "anchorTitle", "presetRenameLabel" })
+            dirty(name);
+    }
+    set(s.huds, PrestigeCameraShot::showHUDs(), "shotHuds");
+    set(s.poser, PrestigeCameraShot::toolOpen(PrestigeCameraShot::Tool::Poser), "shotPoser");
+    set(s.light, PrestigeCameraShot::toolOpen(PrestigeCameraShot::Tool::Light), "shotLight");
+    set(s.frozen, PrestigeCameraShot::worldFrozen(), "shotFrozen");
+    set(s.quiet, PrestigeCameraShot::quiet(), "shotQuiet");
+    const bool photo = PrestigeCameraShot::envForPhotoOnly();
+    set(s.skyPhoto, photo, "shotSkyPhoto");
+    set(s.skyLabel, str(photo ? "ShotSkyPhoto" : "ShotSkyKeep"), "shotSkyLabel");
+    static const char* const anchors[] = { "AnchorAvatar", "AnchorPlace", "AnchorObject" };
+    const S32 a = PrestigeCameraShot::anchor();
+    bool same = s.anchors.size() == (size_t)PrestigeCameraShot::ANCHOR_COUNT;
+    for (S32 i = 0; same && i < PrestigeCameraShot::ANCHOR_COUNT; ++i)
+        same = s.anchors[(size_t)i].on == (i == a);
+    if (!same)
+    {
+        s.anchors.clear();
+        for (S32 i = 0; i < PrestigeCameraShot::ANCHOR_COUNT; ++i)
+            s.anchors.push_back({ str(anchors[(size_t)i]), "", i == a });
+        dirty("anchors");
+    }
+    set(s.anchorNote, PrestigeCameraShot::anchorNote(), "anchorNote");
+    placeLight();
+    placeShotChips();
+}
+// </Prestige>
 
 // What the strip cell under the pointer does, in plain words: the strings' base name.
 const char* tipFor(SLCameraModel::Value value)
@@ -2047,6 +2186,95 @@ bool createDocument(Rml::Context* context)
                                     focus->Blur();
                                 refreshPresets(true);
                             });
+        // <Prestige> setting up the shot: the chips, the light, renaming a setup, where the camera stands
+        m.Bind("shotHuds", &gShot.huds);
+        m.Bind("shotPoser", &gShot.poser);
+        m.Bind("shotFrozen", &gShot.frozen);
+        m.Bind("shotQuiet", &gShot.quiet);
+        m.Bind("shotSkyPhoto", &gShot.skyPhoto);
+        m.Bind("shotLight", &gShot.light);
+        m.Bind("shotHudsLabel", &gShot.hudsLabel);
+        m.Bind("shotPoserLabel", &gShot.poserLabel);
+        m.Bind("shotFreezeLabel", &gShot.freezeLabel);
+        m.Bind("shotQuietLabel", &gShot.quietLabel);
+        m.Bind("shotSkyLabel", &gShot.skyLabel);
+        m.Bind("shotLightLabel", &gShot.lightLabel);
+        m.Bind("anchors", &gShot.anchors);
+        m.Bind("anchorTitle", &gShot.anchorTitle);
+        m.Bind("anchorNote", &gShot.anchorNote);
+        m.Bind("presetRenaming", &gShot.renaming);
+        m.Bind("presetRenameLabel", &gShot.renameLabel);
+        m.BindEventCallback("shothuds", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::setShowHUDs(!PrestigeCameraShot::showHUDs());
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotposer", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::toggleTool(PrestigeCameraShot::Tool::Poser);
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotlight", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::toggleTool(PrestigeCameraShot::Tool::Light);
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotfreeze", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::setWorldFrozen(!PrestigeCameraShot::worldFrozen());
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotquiet", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::setQuiet(!PrestigeCameraShot::quiet());
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotsky", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                PrestigeCameraShot::setEnvForPhotoOnly(!PrestigeCameraShot::envForPhotoOnly());
+                                refreshShot();
+                            });
+        m.BindEventCallback("shotanchor", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList& args)
+                            {
+                                if (!args.empty())
+                                    PrestigeCameraShot::setAnchor(args[0].Get<int>());
+                                refreshShot();
+                            });
+        m.BindEventCallback("presetren", [](Rml::DataModelHandle, Rml::Event& event, const Rml::VariantList& args)
+                            {
+                                event.StopPropagation(); // not a load of the row it sits on
+                                const int i = args.empty() ? -1 : args[0].Get<int>();
+                                if (i < 0 || i >= (int)gView.presets.size())
+                                    return;
+                                // The name goes into the field, Save becomes Rename; again on it: never mind.
+                                const std::string name = gView.presets[(size_t)i].label;
+                                if (gShot.renaming == name)
+                                {
+                                    set(gShot.renaming, std::string(), "presetRenaming");
+                                    refreshPresets(true);
+                                }
+                                else
+                                {
+                                    set(gShot.renaming, name, "presetRenaming");
+                                    set(gView.presetName, name, "presetName");
+                                }
+                            });
+        m.BindEventCallback("presetrengo", [](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&)
+                            {
+                                std::string name = gView.presetName;
+                                LLStringUtil::trim(name);
+                                if (name.empty())
+                                    SLCameraModel::toast(str("PresetTypeName"));
+                                else
+                                    SLCameraModel::toast(presetMessage(SLCameraPresets::rename(gShot.renaming, name) ? "PresetRenamed"
+                                                                                                                  : "PresetNotRenamed",
+                                                                       name));
+                                set(gShot.renaming, std::string(), "presetRenaming");
+                                if (Rml::Element* focus = gView.context->GetFocusElement())
+                                    focus->Blur();
+                                refreshPresets(true);
+                            });
+        // </Prestige>
         m.Bind("rail", &v.rail);
         m.Bind("railRight", &v.railRight);
         m.Bind("railShort", &v.railShort);
@@ -2442,6 +2670,10 @@ bool SLCameraView::start(Rml::Context* context)
     v.tipCell         = -1;
     v.presetArmed.clear();
     refreshPresets(true);
+    // <Prestige> setting up the shot
+    gShot.renaming.clear();
+    refreshShot();
+    // </Prestige>
     v.tip.clear();
     v.drive.clear();
     v.ims.clear();
@@ -2825,6 +3057,9 @@ bool SLCameraView::sync(float density)
         // <Prestige> isolate your subject: on (and PNG), easy to forget
         if (PrestigeCameraIsolate::enabled())
             st.push_back({ PrestigeCameraIsolate::statusLabel(), "", true, std::string() });
+        // <Prestige> the world held still (Freeze World): easy to forget, in the accent colour
+        if (PrestigeCameraShot::worldFrozen())
+            st.push_back({ str("StatusFrozen"), "", true });
         // </Prestige>
         if (!v.ims.empty())
             st.push_back({ v.ims, "", true });
@@ -2883,6 +3118,7 @@ bool SLCameraView::sync(float density)
     }
     set(v.hintShown, slcambar::hintVisible(t, v.hintSince), "hintShown");
     set(v.toast, SLCameraModel::toastText(), "toast");
+    refreshShot(); // <Prestige> the chips, the light and where the camera stands
     // Values that can change from elsewhere (settings, the old Photo Studio rail): 4 Hz.
     if (t >= v.nextRefresh)
     {

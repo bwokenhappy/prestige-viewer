@@ -209,6 +209,7 @@ set(viewer_SOURCE_FILES
     prestigechatlinehistory.cpp       # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.cpp         # <Prestige> camera mode: Isolate your subject
     prestigecamerafocus.cpp           # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
+    prestigecamerashot.cpp            # <Prestige> camera mode: setting up the shot (HUDs, poser, light, sky, presets' place)
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1254,6 +1255,7 @@ set(viewer_HEADER_FILES
     prestigechatlinehistory.h         # <Prestige> Ctrl+Up / Ctrl+Down sent lines, per conversation
     prestigecameraisolate.h           # <Prestige> camera mode: Isolate your subject
     prestigecamerafocus.h             # <Prestige> camera mode: faces, group focus, focus confirmation, AE-L
+    prestigecamerashot.h              # <Prestige> camera mode: setting up the shot
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

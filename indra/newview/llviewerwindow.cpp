@@ -107,6 +107,7 @@
 // newview includes
 #include "slposeik.h"
 #include "slcameramode.h"
+#include "prestigecamerashot.h" // <Prestige> camera mode's poser / Personal Lighting keep the keyboard
 #include "slvideostudio.h"
 #include "slmmbnav.h"
 #include "slchatbar.h"
@@ -5150,7 +5151,10 @@ void LLViewerWindow::updateMouseDelta()
 
 void LLViewerWindow::updateKeyboardFocus()
 {
-    if (!gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI))
+    // <Prestige> camera mode hides the interface, but a field of the poser or Personal Lighting it
+    // shows over the shot keeps the keyboard
+    if (!gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI) && !PrestigeCameraShot::keepsKeyboardFocus())
+    // </Prestige>
     {
         gFocusMgr.setKeyboardFocus(NULL);
     }

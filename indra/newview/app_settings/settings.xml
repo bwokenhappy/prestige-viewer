@@ -29014,6 +29014,28 @@
       <key>Value</key>
       <real>0.25</real>
     </map>
+    <key>PrestigeCameraShowHUDs</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: camera mode shows the HUD attachments in the viewfinder, and a click that lands on one goes to it (a normal touch); clicks elsewhere stay the camera's. HUDs are never in the photo. Off: camera mode hides them, as before.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeCameraEnvForPhotoOnly</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: sky, water and day cycle changes made in camera mode (Personal Lighting, the Photo Studio rail's sky, a camera preset's light) are for the photo only: the personal environment is put back when camera mode closes. Off: they are kept.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>SnapMargin</key>
     <map>
       <key>Comment</key>

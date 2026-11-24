@@ -18,9 +18,10 @@
    reserve_scroll_corner="false"
    top="0"
    width="517">
+  <!-- <Prestige> +20: the Quiet shutter row -->
   <panel
    follows="left|top"
-   height="1380"
+   height="1400"
    layout="topleft"
    left="0"
    name="move_scroll_panel"
@@ -437,6 +438,19 @@
    tool_tip="The snapshot button, View &gt; Snapshot and Ctrl+Shift+S open camera mode: the interface and HUDs are hidden and a camera viewfinder with exposure and lens dials takes their place. Its Classic button (or unticking this) opens the snapshot window instead. Esc leaves camera mode."
    top_pad="4"
    width="300" />
+  <!-- <Prestige> the quiet shutter, beside the snapshot option: Sound & Media > UI Sounds > Shutter
+       (PlayModeUISndSnapshot) inverted; wired in LLPanelPreference::postBuild -->
+  <check_box
+   follows="left|top"
+   height="16"
+   label="Quiet shutter (no sound for people nearby, no camera animation)"
+   layout="topleft"
+   left="30"
+   name="camera_quiet_shutter"
+   tool_tip="Taking a snapshot (camera mode or the snapshot window) plays no shutter sound for people around you, and your avatar does not raise a camera. The same switch as Sound &amp; Media &gt; UI Sounds &gt; Shutter (unticked there), and the Quiet chip in camera mode."
+   top_pad="4"
+   width="420" />
+  <!-- </Prestige> -->
   <slider
    can_edit_text="true"
    control_name="CameraMaxRoll"

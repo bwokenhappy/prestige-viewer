@@ -188,4 +188,11 @@ void noteSkyTouched()
 {
     sSession.skyTouched = true;
 }
+
+// <Prestige> camera mode's "keep" for sky and water (prestigecamerashot.h)
+void keepSky()
+{
+    sSession.skyTouched = false;
+}
+// </Prestige>
 } // namespace SLCameraRestore

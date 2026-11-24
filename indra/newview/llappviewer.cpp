@@ -3693,6 +3693,40 @@ bool tempSetControl(const std::string& name, const std::string& value)
     return false;
 }
 
+// <Prestige> Firestorm look
+namespace
+{
+// Firestorm (Grey) is the default look. A new install gets it from the SkinCurrent default; an
+// existing install that saved another skin is switched once, here, before any UI is built, so
+// it shows on this start. PrestigeFirestormSkinApplied then stays set: a skin chosen later in
+// Preferences > Skins (any Prestige skin, an imported one) is kept. A start with --skin is left
+// alone and does not use up the switch.
+void prestige_apply_firestorm_skin_once(bool skin_from_command_line)
+{
+    static const std::string FIRESTORM_SKIN = "firestorm";
+    LLControlVariable* applied = gSavedSettings.getControl("PrestigeFirestormSkinApplied");
+    LLControlVariable* skin = gSavedSettings.getControl("SkinCurrent");
+    if (!applied || !skin || applied->getValue().asBoolean() || skin_from_command_line)
+    {
+        return;
+    }
+    if (!LLFile::isdir(gDirUtilp->add(gDirUtilp->getSkinBaseDir(), FIRESTORM_SKIN)))
+    {
+        LL_WARNS("AppInit") << "Firestorm skin is not installed; keeping the current skin" << LL_ENDL;
+        return;
+    }
+    applied->setValue(true);
+    const std::string current = skin->getValue().asString();
+    if (current != FIRESTORM_SKIN)
+    {
+        skin->setValue(FIRESTORM_SKIN);
+        LL_INFOS("AppInit") << "Switched the skin from '" << current
+                            << "' to the default Firestorm (Grey) look (once)" << LL_ENDL;
+    }
+}
+} // namespace
+// </Prestige>
+
 bool LLAppViewer::initConfiguration()
 {
     // Load settings files list
@@ -4011,6 +4045,10 @@ bool LLAppViewer::initConfiguration()
     }
 
     LLControlVariable* skinfolder = gSavedSettings.getControl("SkinCurrent");
+    // <Prestige> Firestorm look: once per computer, switch to the Firestorm (Grey) skin
+    // (before any UI is built, so it applies this start).
+    prestige_apply_firestorm_skin_once(clp.hasOption("skin"));
+    // </Prestige>
     // A saved skin that this build no longer ships (the Alchemy, Heretic and Ionic skins
     // were removed: third-party artwork we may not redistribute) falls back to the
     // default skin instead of silently loading LL's bare base skin.

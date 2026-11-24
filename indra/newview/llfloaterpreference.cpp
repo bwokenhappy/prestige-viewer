@@ -184,7 +184,9 @@ struct LabelTable : public LLInitParam::Block<LabelTable>
     {}
 };
 
-const std::string DEFAULT_SKIN = "default";
+// <Prestige> Firestorm look: removing the current skin falls back to the default look (was "default")
+const std::string DEFAULT_SKIN = "firestorm";
+// </Prestige>
 
 typedef enum e_skin_type
 {

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- <Prestige> GIF picker: the user's own GIPHY / KLIPY keys (PrestigeFloaterGifPicker) -->
+<panel
+    border="false"
+    height="408"
+    layout="topleft"
+    name="chat_gif_settings"
+    top="0"
+    left="13"
+    width="517">
+    <text
+        follows="left|top"
+        height="14"
+        layout="topleft"
+        left="10"
+        name="chat_gif_label"
+        text_color="White"
+        top="10"
+        width="480">
+        GIF picker
+    </text>
+    <text
+        follows="left|top"
+        height="44"
+        layout="topleft"
+        left="15"
+        name="chat_gif_intro"
+        top_pad="6"
+        width="470"
+        wrap="true">
+        Add your own free key for GIPHY, KLIPY or both. A GIF button then appears next to the emoji button in nearby chat and IMs. Picking a GIF adds its link to your message; people see it as a picture if they have image previews on.
+    </text>
+    <text
+        follows="left|top"
+        height="16"
+        layout="topleft"
+        left="15"
+        name="PrestigeGiphyApiKey_label"
+        top_pad="10"
+        width="110">
+        GIPHY API key:
+    </text>
+    <line_editor
+        control_name="PrestigeGiphyApiKey"
+        border_style="line"
+        border_thickness="1"
+        follows="left|top"
+        font="SansSerif"
+        height="20"
+        is_password="true"
+        layout="topleft"
+        left_pad="4"
+        max_length_bytes="128"
+        name="PrestigeGiphyApiKey"
+        tool_tip="Your GIPHY API key. It is stored in your settings and only sent to GIPHY. Leave empty to turn GIPHY off."
+        top_delta="-3"
+        width="340" />
+    <text
+        follows="left|top"
+        height="16"
+        layout="topleft"
+        left="15"
+        name="PrestigeKlipyApiKey_label"
+        top_pad="10"
+        width="110">
+        KLIPY API key:
+    </text>
+    <line_editor
+        control_name="PrestigeKlipyApiKey"
+        border_style="line"
+        border_thickness="1"
+        follows="left|top"
+        font="SansSerif"
+        height="20"
+        is_password="true"
+        layout="topleft"
+        left_pad="4"
+        max_length_bytes="128"
+        name="PrestigeKlipyApiKey"
+        tool_tip="Your KLIPY API key. It is stored in your settings and only sent to KLIPY. Leave empty to turn KLIPY off."
+        top_delta="-3"
+        width="340" />
+    <text
+        follows="left|top"
+        height="16"
+        layout="topleft"
+        left="15"
+        name="chat_gif_get_key"
+        top_pad="12"
+        width="470">
+        Get a free key at developers.giphy.com / klipy.com
+    </text>
+    <text
+        follows="left|top"
+        height="44"
+        layout="topleft"
+        left="15"
+        name="chat_gif_privacy"
+        text_color="AlertCautionTextColor"
+        top_pad="6"
+        width="470"
+        wrap="true">
+        While the GIF picker is open, your searches go to the service you picked, and the previews load from its servers (which see your IP address). Nothing is sent while the picker is closed.
+    </text>
+</panel>

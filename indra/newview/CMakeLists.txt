@@ -205,6 +205,7 @@ set(viewer_SOURCE_FILES
     slcurvemodel.cpp
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
+    prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
     prestigemarkdown.cpp
@@ -1238,6 +1239,7 @@ set(viewer_HEADER_FILES
     slcurvemodel.h
     sldaycyclelandmarks.h
     sldiscordpresence.h
+    prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)
     prestigemarkdown.h

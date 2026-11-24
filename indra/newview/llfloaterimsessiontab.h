@@ -89,6 +89,10 @@ public:
 
     bool isNearbyChat() {return mIsNearbyChat;}
 
+    // <Prestige> GIF picker: adds a GIF link to the end of the message being typed
+    void insertIntoInput(const std::string& text);
+    // </Prestige>
+
     // LLFloater overrides
     void onOpen(const LLSD& key) override;
     bool postBuild() override;
@@ -275,6 +279,13 @@ private:
     void onEmojiRecentPanelFocusReceived();
     void onEmojiRecentPanelFocusLost();
     void onRecentEmojiPicked(const LLSD& value);
+
+    // <Prestige> GIF picker button (shown when a GIPHY or KLIPY key is set)
+    void updateGifPickerBtn();
+    LLButton* mGifPickerBtn = nullptr;
+    boost::signals2::scoped_connection mGiphyKeyConn;
+    boost::signals2::scoped_connection mKlipyKeyConn;
+    // </Prestige>
 
     bool checkIfTornOff();
     bool mIsHostAttached;

@@ -52,6 +52,7 @@
 #include "llgroupiconctrl.h"
 #include "lllayoutstack.h"
 #include "llpanelemojicomplete.h"
+#include "prestigefloatergifpicker.h" // <Prestige/> GIF picker
 #include "lltoolbarview.h"
 
 const F32 REFRESH_INTERVAL = 1.0f;
@@ -305,6 +306,22 @@ bool LLFloaterIMSessionTab::postBuild()
     mEmojiPickerShowBtn->setMouseDownCallback([this](LLUICtrl*, const LLSD&) { onEmojiPickerShowBtnDown(); });
     mEmojiCloseConn = LLEmojiHelper::instance().setCloseCallback([this](LLUICtrl*, const LLSD&) { onEmojiPickerClosed(); });
 
+    // <Prestige> GIF picker button, left of the emoji button; only there while a key is set
+    mGifPickerBtn = findChild<LLButton>("gif_picker_btn");
+    if (mGifPickerBtn)
+    {
+        mGifPickerBtn->setClickedCallback([this](LLUICtrl*, const LLSD&) { PrestigeFloaterGifPicker::toggleFor(mSessionID); });
+        if (LLControlVariable* giphy_key = gSavedSettings.getControl("PrestigeGiphyApiKey"))
+        {
+            mGiphyKeyConn = giphy_key->getSignal()->connect([this](LLControlVariable*, const LLSD&, const LLSD&) { updateGifPickerBtn(); });
+        }
+        if (LLControlVariable* klipy_key = gSavedSettings.getControl("PrestigeKlipyApiKey"))
+        {
+            mKlipyKeyConn = klipy_key->getSignal()->connect([this](LLControlVariable*, const LLSD&, const LLSD&) { updateGifPickerBtn(); });
+        }
+    }
+    // </Prestige>
+
     mGearBtn = getChild<LLButton>("gear_btn");
     mAddBtn = getChild<LLButton>("add_btn");
     mVoiceButton = getChild<LLButton>("voice_call_btn");
@@ -362,6 +379,7 @@ bool LLFloaterIMSessionTab::postBuild()
     mInputEditor->setCommitOnFocusLost( false );
     mInputEditor->setPassDelete(true);
     mInputEditor->setFont(LLViewerChat::getChatFont());
+    updateGifPickerBtn(); // <Prestige/> needs mInputEditor
 
     mChatLayoutPanelHeight = mChatLayoutPanel->getRect().getHeight();
     mInputEditorPad = mChatLayoutPanelHeight - mInputEditor->getRect().getHeight();
@@ -644,6 +662,36 @@ void LLFloaterIMSessionTab::onRecentEmojiPicked(const LLSD& value)
         }
     }
 }
+
+// <Prestige> GIF picker
+void LLFloaterIMSessionTab::updateGifPickerBtn()
+{
+    if (!mGifPickerBtn || !mInputEditor || !mEmojiRecentPanelToggleBtn)
+    {
+        return;
+    }
+    const bool show = PrestigeFloaterGifPicker::hasAnyKey();
+    mGifPickerBtn->setVisible(show);
+    // The message line ends 4 pixels left of the leftmost button
+    LLRect editor_rect = mInputEditor->getRect();
+    editor_rect.mRight = (show ? mGifPickerBtn : mEmojiRecentPanelToggleBtn)->getRect().mLeft - 4;
+    mInputEditor->setShape(editor_rect);
+}
+
+void LLFloaterIMSessionTab::insertIntoInput(const std::string& text)
+{
+    if (!mInputEditor || text.empty())
+    {
+        return;
+    }
+    // At the end of the message, after a space when it doesn't end in one
+    mInputEditor->endOfDoc();
+    const LLWString& current = mInputEditor->getWText();
+    const bool need_space = !current.empty() && !LLStringOps::isSpace(current.back());
+    mInputEditor->insertText(need_space ? " " + text : text);
+    mInputEditor->setFocus(true);
+}
+// </Prestige>
 
 void LLFloaterIMSessionTab::closeFloater(bool app_quitting)
 {

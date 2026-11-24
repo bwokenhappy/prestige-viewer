@@ -679,7 +679,7 @@ LLCore::HttpStatus LLAppCoreHttp::sslVerify(const std::string &url,
     }
     catch (...)
     {
-        LOG_UNHANDLED_EXCEPTION(STRINGIZE("('" << url << "')"));
+        LOG_UNHANDLED_EXCEPTION(STRINGIZE("('" << LLCoreHttpUtil::redactForLog(url) << "')")); // <Prestige/> no API keys in the log
         // any other odd error, we just handle as a connect error.
         result = LLCore::HttpStatus(LLCore::HttpStatus::EXT_CURL_EASY, CURLE_SSL_CONNECT_ERROR);
     }

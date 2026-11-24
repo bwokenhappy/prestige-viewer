@@ -42,6 +42,8 @@
 #include "workqueue.h"  // #377
 #include <atomic>
 #include <memory>
+#include <mutex>    // <Prestige/> log redaction
+#include <vector>
 
 
 using namespace LLCore;
@@ -65,7 +67,42 @@ namespace
         return mBoolSettingGet(HTTP_LOGBODY_KEY);
     }
 
+    // <Prestige> see addLogRedaction()
+    std::mutex               sRedactMutex;
+    std::vector<std::string> sRedactions;
+    // </Prestige>
 }
+
+// <Prestige>
+void addLogRedaction(const std::string& secret)
+{
+    if (secret.size() < 6)
+    {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(sRedactMutex);
+    if (std::find(sRedactions.begin(), sRedactions.end(), secret) == sRedactions.end())
+    {
+        sRedactions.push_back(secret);
+    }
+}
+
+std::string redactForLog(const std::string& text)
+{
+    std::string out = text;
+    std::lock_guard<std::mutex> lock(sRedactMutex);
+    for (const std::string& secret : sRedactions)
+    {
+        size_t pos = 0;
+        while ((pos = out.find(secret, pos)) != std::string::npos)
+        {
+            out.replace(pos, secret.size(), "[redacted]");
+            pos += 10; // strlen("[redacted]")
+        }
+    }
+    return out;
+}
+// </Prestige>
 
 void setPropertyMethods(BoolSettingQuery_t queryfn, BoolSettingUpdate_t updatefn)
 {
@@ -277,7 +314,7 @@ void HttpCoroHandler::onCompleted(LLCore::HttpHandle handle, LLCore::HttpRespons
 
         LL_INFOS()
             << "Possible failure [" << status.toTerseString() << "] cannot "<< response->getRequestMethod()
-            << " url '" << response->getRequestURL()
+            << " url '" << redactForLog(response->getRequestURL()) // <Prestige/> no API keys in the log
             << "' because " << status.toString()
             << LL_ENDL;
         if ((errType >= 400) && (errType < 500))
@@ -1302,7 +1339,7 @@ LLSD HttpCoroutineAdapter::buildImmediateErrorResult(const LLCore::HttpRequest::
     const std::string &url)
 {
     LLCore::HttpStatus status = request->getStatus();
-    LL_WARNS("CoreHTTP") << "Error posting to " << url << " Status=" << status.getStatus() <<
+    LL_WARNS("CoreHTTP") << "Error posting to " << redactForLog(url) << " Status=" << status.getStatus() << // <Prestige/> redacted
         " message = " << status.getMessage() << LL_ENDL;
 
     // Mimic the status results returned from an http error that we had

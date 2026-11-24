@@ -56,6 +56,14 @@
             filename="panel_preferences_chat_images.xml"
             layout="topleft"
             follows="top|left" />
+        <!-- <Prestige> GIF picker keys -->
+        <panel
+            label="GIF"
+            name="chat_prefs_gif"
+            filename="panel_preferences_chat_gif.xml"
+            layout="topleft"
+            follows="top|left" />
+        <!-- </Prestige> -->
         <panel
             label="Commands"
             name="chat_prefs_cmd"

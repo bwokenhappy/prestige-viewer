@@ -233,6 +233,7 @@
 #include "slupdatechecker.h"
 #include "slrevocationupdater.h"
 #include "slsettingsmigration.h"
+#include "prestigefirestormbars.h" // <Prestige/>
 #include "slgraphicsfeaturedefaults.h"
 #include "slsettingsbackup.h"     // #1423 staged settings restore
 #include "slenv.h"
@@ -3830,6 +3831,9 @@ bool LLAppViewer::initConfiguration()
     SLSettingsMigration::migrateMouselookHideUI(gSavedSettings, gSavedSettings.getString("ClientSettingsFile"));
     SLSettingsMigration::migrateQuietSnapshots(gSavedSettings, gSavedSettings.getString("ClientSettingsFile"));
     SLSettingsMigration::migrateSharedIMSound(gSavedSettings);
+    // <Prestige> Firestorm's default top and bottom bars, once for new and existing users
+    PrestigeFirestormBars::applyDefaultsOnce(gSavedSettings);
+    // </Prestige>
 
     if (gSavedSettings.getBOOL("FirstRunThisInstall"))
     {

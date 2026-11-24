@@ -131,4 +131,5 @@ protected:
     std::string mIMName;
     LLRect mDefaultRect;
     bool mDocked = false;   // (owned by the log)
+    bool mInToolbarRow = false; // <Prestige/> kept at the left of the bottom toolbar row (Firestorm-style)
 };

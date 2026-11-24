@@ -155,11 +155,63 @@
       </layout_panel>
     </layout_stack>
   </layout_panel>
+  <!-- <Prestige> Firestorm's bottom row: the nearby chat bar (a "Nearby Chat" button and the chat
+       bar, SLChatBar, kept over "chat_bar_dock") at the left, the toolbar buttons on its right.
+       Shown while the chat bar is kept visible and PrestigeChatBarInToolbar is on
+       (prestigefirestormbars.cpp); otherwise the toolbar has the row to itself. Drag the edge
+       between them to resize the chat bar part (saved in PrestigeChatBarDockWidth). -->
   <layout_panel name="bottom_toolbar_panel"
                 auto_resize="false"
                 height="30"
                 width="1024"
                 mouse_opaque="false">
+  <layout_stack name="chat_bar_stack"
+                orientation="horizontal"
+                left="0"
+                top="0"
+                width="1024"
+                height="30"
+                follows="all"
+                border_size="0"
+                resize_bar_overlap="4"
+                mouse_opaque="false">
+    <layout_panel name="chat_bar_layout_panel"
+                  auto_resize="false"
+                  user_resize="true"
+                  min_dim="150"
+                  height="30"
+                  width="400"
+                  visible="false"
+                  mouse_opaque="false">
+      <button name="local_chat_button"
+              label="Nearby Chat"
+              tool_tip="Shows / hides the nearby chat window"
+              follows="left|bottom"
+              layout="topleft"
+              height="24"
+              left="4"
+              top="4"
+              width="88">
+        <button.commit_callback
+                function="Floater.ToggleOrBringToFront"
+                parameter="nearby_chat" />
+      </button>
+      <view name="chat_bar_dock"
+            follows="left|right|bottom"
+            layout="topleft"
+            mouse_opaque="false"
+            height="27"
+            left_pad="3"
+            top="2"
+            right="-6"/>
+    </layout_panel>
+    <layout_panel name="toolbar_panel"
+                  auto_resize="true"
+                  user_resize="false"
+                  height="30"
+                  width="620"
+                  mouse_opaque="false">
+  <!-- </Prestige> -->
     <toolbar layout="topleft"
              button_panel.bg_opaque_image="transparent.j2c"
              name="toolbar_bottom"
@@ -183,6 +235,10 @@
 	            image_name="Caret_Bottom_Icon"
 	            name="caret" />
     </toolbar>
+  <!-- <Prestige> -->
+    </layout_panel>
+  </layout_stack>
+  <!-- </Prestige> -->
   </layout_panel>
   </layout_stack>
 </toolbar_view>

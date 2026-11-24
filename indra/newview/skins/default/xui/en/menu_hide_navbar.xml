@@ -30,6 +30,41 @@
              function="CheckControl"
              parameter="FavoritesBarOwnRow" />
     </menu_item_check>
+    <!-- <Prestige> Firestorm-style bars -->
+    <menu_item_check
+         label="Show Location in Menu Bar"
+         layout="topleft"
+         name="PrestigeShowMenuBarLocation">
+           <on_click
+             function="ToggleControl"
+             parameter="PrestigeShowMenuBarLocation" />
+             <on_check
+             function="CheckControl"
+             parameter="PrestigeShowMenuBarLocation" />
+    </menu_item_check>
+    <menu_item_check
+         label="Show Search in Navigation Bar"
+         layout="topleft"
+         name="PrestigeNavBarSearch">
+           <on_click
+             function="ToggleControl"
+             parameter="PrestigeNavBarSearch" />
+             <on_check
+             function="CheckControl"
+             parameter="PrestigeNavBarSearch" />
+    </menu_item_check>
+    <menu_item_check
+         label="Chat Bar in Bottom Toolbar"
+         layout="topleft"
+         name="PrestigeChatBarInToolbar">
+           <on_click
+             function="ToggleControl"
+             parameter="PrestigeChatBarInToolbar" />
+             <on_check
+             function="CheckControl"
+             parameter="PrestigeChatBarInToolbar" />
+    </menu_item_check>
+    <!-- </Prestige> -->
     <menu_item_check
          label="Show Mini-Location Bar"
          layout="topleft"

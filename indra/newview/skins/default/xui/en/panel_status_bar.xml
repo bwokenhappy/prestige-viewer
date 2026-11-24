@@ -52,6 +52,139 @@
      name="buycurrencylabel">
         L$ [AMT]
     </panel.string>
+  <!-- <Prestige> Firestorm-style location in the menu bar row (PrestigeShowMenuBarLocation): the
+       parcel's restriction icons, then "Region (x, y, z) - Maturity - Parcel". Placed right of the
+       menus and laid out at run time (prestigefirestormbars.cpp, PrestigeMenuBarLocation).
+       Layout and icons from Firestorm's panel_status_bar.xml. -->
+  <panel
+   background_visible="false"
+   follows="left|top"
+   height="18"
+   left="200"
+   mouse_opaque="false"
+   name="parcel_info_panel"
+   top="0"
+   visible="false"
+   width="300">
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_VoiceNo_Dark"
+     name="voice_icon"
+     scale_image="false"
+     tool_tip="Voice is off on this parcel"
+     top="0"
+     left="16"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_FlyNo_Dark"
+     name="fly_icon"
+     scale_image="false"
+     tool_tip="No flying here"
+     top="0"
+     left="38"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_PushNo_Dark"
+     name="push_icon"
+     scale_image="false"
+     tool_tip="No pushing here"
+     top="0"
+     left="60"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_BuildNo_Dark"
+     name="build_icon"
+     scale_image="false"
+     tool_tip="No building here"
+     top="0"
+     left="82"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_ScriptsNo_Dark"
+     name="scripts_icon"
+     scale_image="false"
+     tool_tip="No scripts here"
+     top="0"
+     left="104"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="18"
+     image_name="Parcel_SeeAVsOff_Dark"
+     name="see_avs_icon"
+     scale_image="false"
+     tool_tip="Avatars outside this parcel cannot see or hear avatars inside it"
+     top="0"
+     left="126"
+     visible="false"
+     width="22" />
+    <icon
+     follows="left|top"
+     height="13"
+     image_name="Parcel_Health_Dark"
+     name="damage_icon"
+     scale_image="false"
+     tool_tip="Damage is on: you can be hurt here"
+     top="4"
+     left="148"
+     visible="false"
+     width="14" />
+    <text
+     follows="left|top"
+     font="SansSerifSmall"
+     halign="left"
+     height="16"
+     name="damage_text"
+     top="4"
+     left="162"
+     visible="false"
+     width="35">
+        100%
+    </text>
+    <button
+     follows="left|top"
+     height="16"
+     hover_glow_amount="0.15"
+     image_disabled="Parcel_ForSale_Light"
+     image_disabled_selected="Parcel_ForSale_Light"
+     image_selected="Parcel_ForSale_Light"
+     image_unselected="Parcel_ForSale_Light"
+     left="198"
+     name="buy_land_btn"
+     tool_tip="This parcel is for sale. Click to buy it."
+     top="2"
+     visible="false"
+     width="16" />
+    <text
+     follows="left|top"
+     font="SansSerifSmall"
+     height="16"
+     left="218"
+     name="parcel_info_text"
+     text_color="TimeTextColor"
+     text_readonly_color="TimeTextColor"
+     tool_tip="Where you are. Click for About Land."
+     top="4"
+     use_ellipses="true"
+     width="100">
+        (loading...)
+    </text>
+  </panel>
+  <!-- </Prestige> -->
   <panel
 	 height="18"
 	 left="-398"
@@ -112,6 +245,7 @@
      wrap="false" 
      value="L$??" 
      width="40" />
+    <!-- <Prestige> Firestorm's "BUY L$" label </Prestige> -->
     <button
      halign="center"
      font="SansSerifSmall"
@@ -120,7 +254,7 @@
      image_unselected="PushButton_Off"
      image_pressed="PushButton_Press"
      height="18"
-     label="Buy L$"
+     label="BUY L$"
      label_color="White"
      left_pad="0"
      label_shadow="true"

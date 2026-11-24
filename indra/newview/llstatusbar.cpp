@@ -89,6 +89,7 @@
 #include "message.h"
 #include "llsearchableui.h"
 #include "llsearcheditor.h"
+#include "prestigefirestormbars.h" // <Prestige/> location in the menu bar row
 
 // system includes
 #include <iomanip>
@@ -295,6 +296,10 @@ bool LLStatusBar::postBuild()
         updateMenuSearchPosition();
     }
 
+    // <Prestige> Firestorm-style location (and parcel icons) right of the menus
+    mMenuBarLocation = std::make_unique<PrestigeMenuBarLocation>(this);
+    // </Prestige>
+
     return true;
 }
 
@@ -458,6 +463,13 @@ void LLStatusBar::refresh()
             mTextFPS->setToolTip(s_fps_tip);
         }
     }
+
+    // <Prestige> Firestorm-style location in the menu bar row (after the menus have been sized)
+    if (mMenuBarLocation)
+    {
+        mMenuBarLocation->refresh();
+    }
+    // </Prestige>
 }
 
 void LLStatusBar::setVisibleForMouselook(bool visible)
@@ -476,6 +488,12 @@ void LLStatusBar::setVisibleForMouselook(bool visible)
     mIconPresetsCamera->setVisible(visible);
     mIconPresetsGraphic->setVisible(visible);
     mIconGestureSets->setVisible(visible && gSavedSettings.getBOOL("GestureSetsShowStatusBarIcon"));
+    // <Prestige> the menu bar location hides with the rest
+    if (mMenuBarLocation)
+    {
+        mMenuBarLocation->setVisibleForMouselook(visible);
+    }
+    // </Prestige>
 }
 
 void LLStatusBar::debitBalance(S32 debit)

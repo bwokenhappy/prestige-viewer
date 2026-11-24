@@ -28907,6 +28907,63 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <!-- <Prestige> Firestorm-style top and bottom bars -->
+    <key>PrestigeChatBarInToolbar</key>
+    <map>
+      <key>Comment</key>
+      <string>Firestorm-style bottom bar: while the nearby chat bar is kept visible (PrestigeChatBarAlwaysVisible), it sits at the left of the bottom toolbar row, with a Nearby Chat button, and the toolbar buttons follow on its right. Off: the chat bar floats above the toolbars as before.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeChatBarDockWidth</key>
+    <map>
+      <key>Comment</key>
+      <string>Width in pixels of the nearby chat bar's part of the bottom toolbar row (PrestigeChatBarInToolbar); drag the edge between the chat bar and the toolbar buttons to change it.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>400</integer>
+    </map>
+    <key>PrestigeShowMenuBarLocation</key>
+    <map>
+      <key>Comment</key>
+      <string>Firestorm-style menu bar: show where you are (region, position, maturity, parcel) with the parcel's restriction icons in the menu bar row, right of the menus. Click the text for About Land.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeNavBarSearch</key>
+    <map>
+      <key>Comment</key>
+      <string>Firestorm-style navigation bar: show a search box at the right of the navigation bar (opens Search with what you typed).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeFirestormBarsApplied</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: the one-time switch to Firestorm's default top bars (location in the menu bar, navigation bar with Land / Lighting / search, favorites bar on its own row) and bottom bar (nearby chat bar at the left of the toolbar row) has run. After that these settings are the user's alone.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>PrestigeLocalLoginSplash</key>
     <map>
       <key>Comment</key>

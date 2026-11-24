@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<!-- Prestige: Firestorm-style toolbars with each button's name beside its icon ("Icons and
-     labels"). The everyday buttons are on the bottom bar; the rest are on the left bar.
+<!-- Prestige: Firestorm 7's default toolbars with each button's name beside its icon ("Icons and
+     labels"). Bottom bar (left of it: the nearby chat bar, PrestigeChatBarInToolbar): Firestorm's
+     buttons in Firestorm's order, then Prestige's ReShade and Weather; left bar: Destinations.
      Everything else is in the toybox (right-click a toolbar > Toolbar Buttons). Right-click a
      bar > Icons only to make it slim again.
-     Layout version 5 (PRESTIGE_TOOLBAR_LAYOUT in lltoolbarview.cpp). -->
+     Layout version 6 (PRESTIGE_TOOLBAR_LAYOUT in lltoolbarview.cpp). -->
 <toolbars>
   <right_toolbar
     button_display_mode="icons_with_text"/>
   <bottom_toolbar
     button_display_mode="icons_with_text"
     button_layout_mode="fill">
+    <command name="howto"/>
     <command name="chat"/>
     <command name="speak"/>
+    <command name="move"/>
+    <command name="view"/>
     <command name="people"/>
-    <command name="inventory"/>
     <command name="appearance"/>
     <command name="search"/>
     <command name="map"/>
+    <command name="minimap"/>
     <command name="snapshot"/>
+    <command name="inventory"/>
     <command name="ao"/>
+    <command name="quick_prefs"/>
     <command name="reshade"/>
     <command name="weather"/>
   </bottom_toolbar>
   <left_toolbar
     button_display_mode="icons_with_text">
     <command name="destinations"/>
-    <command name="contacts"/>
-    <command name="move"/>
-    <command name="view"/>
-    <command name="minimap"/>
-    <command name="photo_studio"/>
-    <command name="quick_prefs"/>
   </left_toolbar>
 </toolbars>

@@ -231,6 +231,10 @@ LLPanelLogin::LLPanelLogin(const LLRect &rect,
         updateLocationSelectorsVisibility(); // separate so that it can be called from preferences
         favorites_combo->setReturnCallback(boost::bind(&LLPanelLogin::onClickConnect, false));
         favorites_combo->setFocusLostCallback(boost::bind(&LLPanelLogin::onLocationSLURL, this));
+        // <Prestige> login favorites: a place picked from the list is the start location at once,
+        // so pressing Enter straight after picking it logs in there too.
+        favorites_combo->setCommitCallback(boost::bind(&LLPanelLogin::onLocationSLURL, this));
+        // </Prestige>
 
         LLComboBox* server_choice_combo = getChild<LLComboBox>("server_combo");
         server_choice_combo->setCommitCallback(boost::bind(&LLPanelLogin::onSelectServer, this));
@@ -395,7 +399,11 @@ void LLPanelLogin::addFavoritesToStartLocation()
             continue;
         }
 
-        combo->addSeparator();
+        // <Prestige> login favorites: PrestigeLoginFavorites hides them (the saved password
+        // choice below is still read), and the separator only goes in above the first one.
+        static LLCachedControl<bool> show_login_favorites(gSavedSettings, "PrestigeLoginFavorites", true);
+        bool separator_added = false;
+        // </Prestige>
         LL_DEBUGS() << "Loading favorites for " << iter->first << LL_ENDL;
         LLSD user_llsd = iter->second;
         bool update_password_setting = true;
@@ -415,8 +423,15 @@ void LLPanelLogin::addFavoritesToStartLocation()
 
             std::string label = (*iter1)["name"].asString();
             std::string value = (*iter1)["slurl"].asString();
-            if(label != "" && value != "")
+            // <Prestige> login favorites: honour PrestigeLoginFavorites
+            if (show_login_favorites && label != "" && value != "")
             {
+                if (!separator_added)
+                {
+                    combo->addSeparator();
+                    separator_added = true;
+                }
+                // </Prestige>
                 mShowFavorites = true;
                 combo->add(label, value);
                 if ( LLStartUp::getStartSLURL().getSLURLString() == value)
@@ -433,7 +448,12 @@ void LLPanelLogin::addFavoritesToStartLocation()
     }
     if (combo->getValue().asString().empty())
     {
-        combo->selectFirstItem();
+        // <Prestige> login favorites: My home is listed first now; the default stays My last location
+        if (!combo->selectByValue("last"))
+        {
+            combo->selectFirstItem();
+        }
+        // </Prestige>
         // Value 'home' or 'last' should have been taken from NextLoginLocation
         // but NextLoginLocation was not set, so init it from combo explicitly
         onLocationSLURL();
@@ -1391,32 +1411,33 @@ void LLPanelLogin::onSelectServer()
      * grid; in those cases we want to clear the location.
      */
     LLComboBox* location_combo = getChild<LLComboBox>("start_location_combo");
-    S32 index = location_combo->getCurrentIndex();
-    switch (index)
+    // <Prestige> login favorites: go by the entry's value, not its place in the list
+    // (My home is listed first now)
+    const std::string selected_location = location_combo->getCurrentIndex() >= 0
+        ? location_combo->getSelectedValue().asString() : std::string();
+    if (selected_location == "last")
     {
-    case 0: // last location
         LLStartUp::setStartSLURL(LLSLURL(LLSLURL::SIM_LOCATION_LAST));
-        break;
-    case 1: // home location
-        LLStartUp::setStartSLURL(LLSLURL(LLSLURL::SIM_LOCATION_HOME));
-        break;
-
-    default:
-        {
-            std::string location = location_combo->getValue().asString();
-            LLSLURL slurl(location); // generata a slurl from the location combo contents
-            if (location.empty()
-                || (slurl.getType() == LLSLURL::LOCATION
-                    && slurl.getGrid() != LLGridManager::getInstance()->getGrid())
-                   )
-            {
-                // the grid specified by the location is not this one, so clear the combo
-                location_combo->setCurrentByIndex(0); // last location on the new grid
-                onLocationSLURL();
-            }
-        }
-        break;
     }
+    else if (selected_location == "home")
+    {
+        LLStartUp::setStartSLURL(LLSLURL(LLSLURL::SIM_LOCATION_HOME));
+    }
+    else
+    {
+        std::string location = location_combo->getValue().asString();
+        LLSLURL slurl(location); // generata a slurl from the location combo contents
+        if (location.empty()
+            || (slurl.getType() == LLSLURL::LOCATION
+                && slurl.getGrid() != LLGridManager::getInstance()->getGrid())
+               )
+        {
+            // the grid specified by the location is not this one, so clear the combo
+            location_combo->selectByValue("last"); // last location on the new grid
+            onLocationSLURL();
+        }
+    }
+    // </Prestige>
 
     updateServer();
 }

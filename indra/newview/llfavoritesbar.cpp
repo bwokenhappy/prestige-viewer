@@ -2166,6 +2166,26 @@ bool LLFavoritesOrderStorage::saveFavoritesRecord(bool pref_changed)
                 LL_WARNS("FavoritesBar") << "unable to open favorites from '" << filename << "'" << LL_ENDL;
             }
 
+            // <Prestige> login favorites: a landmark whose SLURL has not come back from the map
+            // server yet keeps the one saved last session, so a short session does not drop it
+            // from the login screen's start location list. (av_name is looked up here now.)
+            LLAvatarName av_name;
+            LLAvatarNameCache::get( gAgentID, &av_name );
+            std::map<LLUUID, std::string> stored_slurls;
+            if (fav_llsd.isMap() && fav_llsd.has(av_name.getUserName()))
+            {
+                const LLSD& stored_user = fav_llsd[av_name.getUserName()];
+                for (LLSD::array_const_iterator st = stored_user.beginArray(); st != stored_user.endArray(); ++st)
+                {
+                    const std::string stored_slurl = st->has("slurl") ? (*st)["slurl"].asString() : std::string();
+                    if (st->has("asset_id") && !stored_slurl.empty())
+                    {
+                        stored_slurls[(*st)["asset_id"].asUUID()] = stored_slurl;
+                    }
+                }
+            }
+            // </Prestige>
+
             LLSD user_llsd;
             S32 fav_iter = 0;
             mMissingSLURLs.clear();
@@ -2192,7 +2212,10 @@ bool LLFavoritesOrderStorage::saveFavoritesRecord(bool pref_changed)
                     else
                     {
                         getSLURL((*it)->getAssetUUID());
-                        value["slurl"] = "";
+                        // <Prestige> login favorites: fall back on last session's SLURL
+                        std::map<LLUUID, std::string>::const_iterator stored_it = stored_slurls.find((*it)->getAssetUUID());
+                        value["slurl"] = (stored_it != stored_slurls.end()) ? stored_it->second : std::string();
+                        // </Prestige>
                         user_llsd[fav_iter] = value;
                         mUpdateRequired = true;
                         mMissingSLURLs.insert((*it)->getAssetUUID());
@@ -2207,8 +2230,8 @@ bool LLFavoritesOrderStorage::saveFavoritesRecord(bool pref_changed)
                 fav_iter ++;
             }
 
-            LLAvatarName av_name;
-            LLAvatarNameCache::get( gAgentID, &av_name );
+            // <Prestige> login favorites: av_name is looked up above now (was declared here)
+            // </Prestige>
             // Note : use the "John Doe" and not the "john.doe" version of the name
             // as we'll compare it with the stored credentials in the login panel.
             fav_llsd[av_name.getUserName()] = user_llsd;

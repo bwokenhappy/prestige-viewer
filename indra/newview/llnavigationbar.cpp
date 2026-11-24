@@ -134,6 +134,9 @@ LLTeleportHistoryMenuItem::LLTeleportHistoryMenuItem(const Params& p)
     else if (p.item_type == TYPE_CURRENT)
     {
         setFont( p.current_item_font );
+        // <Prestige> place history: tick the place you are at, not only bold it
+        mDrawBoolLabel = LLMenuGL::BOOLEAN_TRUE_PREFIX;
+        // </Prestige>
     }
     else
     {
@@ -306,6 +309,16 @@ bool LLNavigationBar::postBuild()
     mBtnForward->setHeldDownCallback(boost::bind(&LLNavigationBar::onBackOrForwardButtonHeldDown, this, _1, _2));
     mBtnForward->setClickDraggingCallback(boost::bind(&LLNavigationBar::showTeleportHistoryMenu, this,_1));
 
+    // <Prestige> place history: right-clicking the back or forward arrow lists this session's
+    // places too (holding the left button, above, already does).
+    auto show_history_popup = [this](LLUICtrl* ctrl, S32, S32, MASK)
+    {
+        showTeleportHistoryPopup(ctrl, false);
+    };
+    mBtnBack->setRightMouseDownCallback(show_history_popup);
+    mBtnForward->setRightMouseDownCallback(show_history_popup);
+    // </Prestige>
+
     mBtnHome->setClickedCallback(boost::bind(&LLNavigationBar::onHomeButtonClicked, this));
 
     LLButton* about_land = getChild<LLButton>("about_land");
@@ -469,6 +482,26 @@ void LLNavigationBar::draw()
 
 bool LLNavigationBar::handleRightMouseDown(S32 x, S32 y, MASK mask)
 {
+    // <Prestige> place history: a greyed-out arrow (oldest or newest place) gets no mouse
+    // events of its own, so list the places from here when it is right-clicked.
+    if (!gMenuHolder->hasVisibleMenu())
+    {
+        for (LLPullButton* btn : { mBtnBack, mBtnForward })
+        {
+            if (btn && btn->isInVisibleChain() && !btn->getEnabled()
+                && !LLTeleportHistory::getInstance()->isEmpty())
+            {
+                S32 local_x, local_y;
+                localPointToOtherView(x, y, &local_x, &local_y, btn);
+                if (btn->pointInView(local_x, local_y))
+                {
+                    showTeleportHistoryPopup(btn, false);
+                    return true;
+                }
+            }
+        }
+    }
+    // </Prestige>
     bool handled = childrenHandleRightMouseDown( x, y, mask) != NULL;
     if(!handled && !gMenuHolder->hasVisibleMenu())
     {
@@ -724,6 +757,12 @@ void LLNavigationBar::rebuildTeleportHistoryMenu()
 
         LLTeleportHistoryMenuItem::Params item_params;
         item_params.label = item_params.name = hist_items[i].mTitle;
+        // <Prestige> place history: hovering an entry shows its full location with coordinates
+        if (!hist_items[i].mFullTitle.empty())
+        {
+            item_params.tool_tip = hist_items[i].mFullTitle;
+        }
+        // </Prestige>
         item_params.item_type = type;
         item_params.on_click.function(boost::bind(&LLNavigationBar::onTeleportHistoryMenuItemClicked, this, i));
         LLTeleportHistoryMenuItem* new_itemp = LLUICtrlFactory::create<LLTeleportHistoryMenuItem>(item_params);
@@ -756,6 +795,13 @@ void LLNavigationBar::onRegionNameResponse(
 
 void    LLNavigationBar::showTeleportHistoryMenu(LLUICtrl* btn_ctrl)
 {
+    // <Prestige> place history: shared with the right-click pop-up
+    showTeleportHistoryPopup(btn_ctrl, true);
+}
+
+void LLNavigationBar::showTeleportHistoryPopup(LLUICtrl* btn_ctrl, bool capture_mouse)
+{
+    // </Prestige>
     // Don't show the popup if teleport history is empty.
     if (LLTeleportHistory::getInstance()->isEmpty())
     {
@@ -771,6 +817,13 @@ void    LLNavigationBar::showTeleportHistoryMenu(LLUICtrl* btn_ctrl)
     mTeleportHistoryMenu->updateParent(LLMenuGL::sMenuContainer);
     const S32 MENU_SPAWN_PAD = -1;
     LLMenuGL::showPopup(btn_ctrl, mTeleportHistoryMenu, 0, MENU_SPAWN_PAD);
+    // <Prestige> place history: a right-click pop-up is an ordinary menu; the hand-off below is
+    // only for the held-down left button, whose release picks the item under the cursor.
+    if (!capture_mouse)
+    {
+        return;
+    }
+    // </Prestige>
     LLButton* nav_button = dynamic_cast<LLButton*>(btn_ctrl);
     if(nav_button)
     {

@@ -92,18 +92,22 @@
     bottom_delta="0"
     name="start_location_combo"
     width="175"
+    list_position="above"
     combo_button.scale_image="true">
     <combo_box.combo_editor
       bg_image_always_focused="true"
       text_pad_left="8"/>
+    <!-- <Prestige> login favorites: My home, My last location, then the favorite landmarks
+         saved last session (added by the panel); the list opens upward out of the bottom bar. -->
+    <combo_box.item
+      label="My home"
+      name="MyHome"
+      value="home" />
     <combo_box.item
       label="My last location"
       name="MyLastLocation"
       value="last" />
-    <combo_box.item
-      label="My home"
-      name="MyHome"
-      value="home" />     
+    <!-- </Prestige> -->
   </combo_box>
   <button
     follows="left|top"

@@ -120,6 +120,10 @@ private:
 
     void rebuildTeleportHistoryMenu();
     void showTeleportHistoryMenu(LLUICtrl* btn_ctrl);
+    // <Prestige> place history on right-click too: capture_mouse is the held-down path's hand-off
+    // of the mouse to the menu; a right-click pop-up leaves the mouse alone.
+    void showTeleportHistoryPopup(LLUICtrl* btn_ctrl, bool capture_mouse);
+    // </Prestige>
     void invokeSearch(std::string search_text);
     void resizeLayoutPanel();
     // callbacks

@@ -28701,6 +28701,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeLoginFavorites</key>
+    <map>
+      <key>Comment</key>
+      <string>List the chosen account's favorite landmarks (as saved at the end of its last session) under My home and My last location in the login screen's start location list, to log in straight to one of them.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeQuickLibraryRecent</key>
     <map>
       <key>Comment</key>

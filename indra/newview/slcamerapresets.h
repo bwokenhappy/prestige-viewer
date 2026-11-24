@@ -50,6 +50,9 @@ std::vector<std::string> list();
 bool save(const std::string& name);
 bool load(const std::string& name);
 bool remove(const std::string& name);
+// <Prestige> The setup under another name (false: no such setup, the name is taken, or it could not be written).
+bool rename(const std::string& from, const std::string& to);
+// </Prestige>
 } // namespace SLCameraPresets
 
 #endif // SL_CAMERAPRESETS_H

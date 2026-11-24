@@ -54,6 +54,9 @@ void restoreAfterCrash();
 
 // The rail or a preset is about to change the sky: the sky gets restored too.
 void noteSkyTouched();
+// <Prestige> Sky and water changes are kept (PrestigeCameraEnvForPhotoOnly off): the sky is not restored.
+void keepSky();
+// </Prestige>
 } // namespace SLCameraRestore
 
 #endif // SL_CAMERARESTORE_H

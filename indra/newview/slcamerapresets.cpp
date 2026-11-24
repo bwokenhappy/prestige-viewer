@@ -27,6 +27,7 @@
 #include "slcamerapresets.h"
 
 #include "slcamerarestore.h"
+#include "prestigecamerashot.h" // <Prestige> where the camera stands, the light, the filters
 #include "slfloaterphotostudio.h"
 
 #include "llagent.h"
@@ -47,7 +48,11 @@
 namespace
 {
 constexpr const char* DIR_NAME = "camera_mode_presets";
-constexpr S32 FORMAT_VERSION = 1;
+// <Prestige> 2: "anchor" (avatar / place / object) with its offsets, and "light" (the personal
+// environment). Version 1 files load as before (fixed place, the frozen sky); older viewers read
+// version 2 files and ignore the new keys.
+constexpr S32 FORMAT_VERSION = 2;
+// </Prestige>
 
 // What a preset carries (besides the roll, the sky and the camera's placement).
 const char* const PRESET_SETTINGS[] = {
@@ -140,6 +145,9 @@ bool save(const std::string& name)
         sd["camera_position"] = gAgentCamera.getCameraPositionGlobal().getValue();
         sd["camera_focus"] = gAgentCamera.getFocusGlobal().getValue();
     }
+    // <Prestige> held by the avatar / at this place / following an object, and the light
+    PrestigeCameraShot::savePresetExtras(sd);
+    // </Prestige>
     llofstream out(pathFor(name).c_str());
     if (!out.is_open()) return false;
     LLSDSerialize::toPrettyXML(sd, out);
@@ -161,7 +169,9 @@ bool load(const std::string& name)
         if (control && !llsd_equals(control->getValue(), it->second)) control->setValue(it->second);
     }
     gAgentCamera.setRollAngle((F32)sd["roll"].asReal());
-    if (sd["sky_frozen"].asBoolean())
+    // <Prestige> a setup with its light puts the whole personal environment back below instead
+    if (sd["sky_frozen"].asBoolean() && !sd.has("light"))
+    // </Prestige>
     {
         SLCameraRestore::noteSkyTouched();
         if (SLFloaterPhotoStudio* studio = LLFloaterReg::getTypedInstance<SLFloaterPhotoStudio>("photo_studio"))
@@ -169,8 +179,11 @@ bool load(const std::string& name)
             studio->scrubDay((F32)sd["sky_position"].asReal());
         }
     }
+    // <Prestige> the light, the filters, and the camera around the avatar or its object
+    const bool placed = PrestigeCameraShot::applyPresetExtras(sd);
+    // </Prestige>
     LLViewerRegion* region = gAgent.getRegion();
-    if (region && sd.has("camera_position") && sd["region"].asString() == region->getName())
+    if (!placed && region && sd.has("camera_position") && sd["region"].asString() == region->getName()) // <Prestige> !placed
     {
         gAgentCamera.setCameraPosAndFocusGlobal(LLVector3d(sd["camera_position"]),
                                                 LLVector3d(sd["camera_focus"]), LLUUID::null);
@@ -183,4 +196,35 @@ bool remove(const std::string& name)
 {
     return LLFile::remove(pathFor(name)) == 0;
 }
+
+// <Prestige> rename: the file under the new name, the name inside it too
+bool rename(const std::string& from, const std::string& to)
+{
+    if (to.empty()) return false;
+    if (from == to) return true;
+    LLSD sd = readPreset(from);
+    if (!sd.isMap() || !sd.has("settings")) return false;
+    const std::string src = pathFor(from), dst = pathFor(to);
+    // Only the case changes ("setup 1" -> "Setup 1"): the same file on Windows and macOS.
+    const bool same_file = LLStringUtil::compareInsensitive(src, dst) == 0;
+    if (!same_file && LLFile::isfile(dst)) return false; // a setup by that name exists
+    sd["name"] = to;
+    // Written beside it first, then put in its place (a case-only rename is one file where the
+    // file system ignores case, two where it does not).
+    const std::string tmp = dst + ".tmp";
+    {
+        llofstream out(tmp.c_str());
+        if (!out.is_open()) return false;
+        LLSDSerialize::toPrettyXML(sd, out);
+    }
+    LLFile::remove(src);
+    if (LLFile::rename(tmp, dst) != 0)
+    {
+        LLFile::rename(tmp, src); // not lost: back under its old file name (with the new name inside)
+        return false;
+    }
+    LL_INFOS("CameraMode") << "camera preset renamed: " << from << " -> " << to << LL_ENDL;
+    return true;
+}
+// </Prestige>
 } // namespace SLCameraPresets

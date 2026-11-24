@@ -32,6 +32,7 @@
 #include "slcamerarestore.h"
 #include "slcamerareview.h"
 #include "slcameraview.h"
+#include "prestigecamerashot.h" // <Prestige> setting up the shot: HUDs, poser, light, sky, presets' place
 #include "slkeycommands.h"
 #include "slvideostudio.h"
 #include "llviewermenu.h" // gMenuBarView: the menu shortcuts camera mode swallows
@@ -195,6 +196,10 @@ void SLCameraMode::start()
     // Before anything changes: every setting camera mode can touch, to be put back on exit.
     SLCameraRestore::capture();
     sActive = true;
+    // <Prestige> the HUD switch (PrestigeCameraShowHUDs; hudWasOn above is still what exit puts
+    // back), the personal environment and Freeze World as found
+    PrestigeCameraShot::begin();
+    // </Prestige>
 }
 
 void SLCameraMode::stop()
@@ -215,9 +220,15 @@ void SLCameraMode::stop()
     SCM::end();
     SLCameraView::forgetShots(); // RmlUi lets go of their textures first
     SLCameraReview::clear();   // the session's shots are freed (the files stay)
+    // <Prestige> the poser / Personal Lighting camera mode opened close; "keep" keeps the sky
+    PrestigeCameraShot::end();
+    // </Prestige>
     // Every setting, the roll and the sky exactly as they were on entry (the dials, the rail,
     // presets, the drive and the DoF preview changed them only for the session).
     SLCameraRestore::restore();
+    // <Prestige> sky, water and day cycle back ("for this photo only"), Freeze World as it was
+    PrestigeCameraShot::afterRestore();
+    // </Prestige>
     if (sState.uiWasOn && !gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI))
     {
         LLPipeline::toggleRenderDebugFeature(LLPipeline::RENDER_DEBUG_FEATURE_UI);
@@ -283,6 +294,10 @@ void SLCameraMode::draw()
         }
     }
     sState.hadFocus = gFocusMgr.getAppHasFocus();
+    // <Prestige> the poser / Personal Lighting over the shot, above the overlay (after its layer
+    // mark; the UI layer is after the snapshot capture points: never in a shot)
+    PrestigeCameraShot::drawFloaters();
+    // </Prestige>
 }
 
 bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType click_type, bool down)
@@ -298,8 +313,20 @@ bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType cli
             return true;
         }
     }
+    // <Prestige> the poser / Personal Lighting drawn over the overlay get their clicks first
+    if (PrestigeCameraShot::handleFloaterClick(x, y, mask, click_type, down)) return true;
+    // </Prestige>
     // The kit overlay has first refusal over its own elements (#1572).
     if (SLCameraView::handleMouse(x, y, mask, click_type, down)) return true;
+    // <Prestige> a click on a shown HUD is a touch (the current tool's); an armed "follow an
+    // object" takes the click that picks it
+    switch (PrestigeCameraShot::worldClick(x, y, mask, click_type, down))
+    {
+    case PrestigeCameraShot::Click::Taken:   return true;
+    case PrestigeCameraShot::Click::ToTools: return false;
+    case PrestigeCameraShot::Click::NotMine: break;
+    }
+    // </Prestige>
     const bool modified = (mask & (MASK_ALT | MASK_CONTROL | MASK_SHIFT)) != 0;
     if (click_type == CLICK_RIGHT)
     {
@@ -395,6 +422,9 @@ bool SLCameraMode::handleMouseClick(S32 x, S32 y, MASK mask, EMouseClickType cli
 void SLCameraMode::handleScrollWheel(S32 x, S32 y, S32 clicks)
 {
     if (!sActive || clicks == 0) return;
+    // <Prestige> over the poser / Personal Lighting: their lists and sliders
+    if (PrestigeCameraShot::handleFloaterWheel(x, y, clicks)) return;
+    // </Prestige>
     const MASK mask = gKeyboard ? gKeyboard->currentMask(true) : MASK_NONE;
     SCM::Value cell = SCM::Value::Mode;
     const slcamin::Over over = SLCameraView::overAt(x, y, &cell);
@@ -452,6 +482,14 @@ void SLCameraMode::handleScrollWheelFraction(F32 notches, F32 camera_delta)
 bool SLCameraMode::handleKey(KEY key, MASK mask)
 {
     if (!sActive) return false;
+    // <Prestige> a field of the poser / Personal Lighting being typed in keeps its keys; Esc lets go of it
+    if (PrestigeCameraShot::floaterTyping())
+    {
+        if (key != KEY_ESCAPE) return false;
+        PrestigeCameraShot::releaseFloaterKeys();
+        return true;
+    }
+    // </Prestige>
     if (key != KEY_RETURN)
         return handleKeyOnce(key, mask);
     // Enter: its key and then its character are one press (a field let go of, or the send card
@@ -566,6 +604,9 @@ bool SLCameraMode::shortcutReachesHiddenUI(KEY key, MASK mask)
 
 bool SLCameraMode::handleHover(S32 x, S32 y, MASK mask)
 {
+    // <Prestige> over the poser / Personal Lighting (or one of them holds the mouse: a slider's drag)
+    if (sActive && PrestigeCameraShot::handleFloaterHover(x, y, mask)) return true;
+    // </Prestige>
     if (!sActive || !SLCameraView::overDocument(x, y))
         return false;
     gViewerWindow->setCursor(slRmlUiCursorType()); // the cursor the overlay's RCSS asks for

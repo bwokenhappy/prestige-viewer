@@ -29,6 +29,7 @@
 #include "slcameraexposure.h"
 #include "slcameramode.h"
 #include "slcamerareview.h"
+#include "prestigecamerashot.h" // <Prestige> the poser / Personal Lighting stand aside for the shot
 
 #include "llagent.h"
 #include "llagentcamera.h"
@@ -373,6 +374,11 @@ void capture(bool in_sequence)
         toast(LLTrans::getString("CameraModeShotWaiting"));
         return;
     }
+    // <Prestige> the floaters shown over the shot step aside while the shutter fires (they are in
+    // the UI layer, so never in the shot either way); HUDs shown in the viewfinder are not in it
+    // either: the shot is taken before the HUD pass (show_hud false below)
+    PrestigeCameraShot::onShot();
+    // </Prestige>
     S32 w = 0, h = 0;
     outputSize(w, h);
     LLPointer<LLImageRaw> raw = new LLImageRaw;

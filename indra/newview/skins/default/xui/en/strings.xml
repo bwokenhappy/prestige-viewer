@@ -5503,4 +5503,33 @@ Sections not recognised (skipped): [SECTIONS]</string>
   <string name="CameraModeTipRailResetWhat">Puts this setting back to its default value.</string>
   <string name="CameraModeSwitchedTv">Shutter priority (Tv): you set the shutter, the camera the aperture</string>
   <string name="CameraModeSwitchedAv">Aperture priority (Av): you set the aperture, the camera the shutter</string>
+  <!-- <Prestige> camera mode: setting up the shot (prestigecamerashot.h) -->
+  <string name="CameraModeShotHUDs">HUDs</string>
+  <string name="CameraModeShotPoser">Poser</string>
+  <string name="CameraModeShotFreeze">Freeze</string>
+  <string name="CameraModeShotQuiet">Quiet</string>
+  <string name="CameraModeShotLight">Light</string>
+  <string name="CameraModeShotSkyPhoto">Sky: this photo</string>
+  <string name="CameraModeShotSkyKeep">Sky: keep</string>
+  <string name="CameraModeShotHUDsOn">HUDs shown: click one to use it. They stay out of the photo.</string>
+  <string name="CameraModeShotHUDsOff">HUDs hidden</string>
+  <string name="CameraModeShotQuietOn">Quiet shutter: no sound for people nearby, no camera animation</string>
+  <string name="CameraModeShotQuietOff">Shutter heard nearby, and your avatar raises a camera</string>
+  <string name="CameraModeShotSkyPhotoOn">Sky, water and day changes are put back when you leave camera mode</string>
+  <string name="CameraModeShotSkyKeepOn">Sky, water and day changes stay after camera mode</string>
+  <string name="CameraModeShotLightBlocked">Your environment is locked by an attachment (RLV)</string>
+  <string name="CameraModeStatusFrozen">World frozen</string>
+  <string name="CameraModeAnchorTitle">The camera stands</string>
+  <string name="CameraModeAnchorAvatar">With me</string>
+  <string name="CameraModeAnchorPlace">Here</string>
+  <string name="CameraModeAnchorObject">On an object</string>
+  <string name="CameraModeAnchorPick">Click the object the camera should follow</string>
+  <string name="CameraModeAnchorFollowsObject">The camera follows the object</string>
+  <string name="CameraModeAnchorFollowsAvatar">The camera follows the avatar</string>
+  <string name="CameraModeAnchorNothing">No object there to follow</string>
+  <string name="CameraModeAnchorObjectGone">The setup's object is not around: the camera stays where it is</string>
+  <string name="CameraModePresetRename">Rename</string>
+  <string name="CameraModePresetRenamed">Renamed to "[NAME]"</string>
+  <string name="CameraModePresetNotRenamed">Could not rename to "[NAME]" (is the name taken?)</string>
+  <!-- </Prestige> -->
 </strings>

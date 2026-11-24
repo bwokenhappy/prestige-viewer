@@ -3007,6 +3007,22 @@ bool LLPanelPreference::postBuild()
         refreshAdHocControls();
     }
 
+    // <Prestige> Move & View > Quiet shutter: PlayModeUISndSnapshot (Sound & Media > UI Sounds >
+    // Shutter, and camera mode's Quiet chip), inverted
+    if (LLCheckBoxCtrl* quiet = findChild<LLCheckBoxCtrl>("camera_quiet_shutter"))
+    {
+        quiet->setValue(!gSavedSettings.getBOOL("PlayModeUISndSnapshot"));
+        quiet->setCommitCallback([](LLUICtrl* ctrl, const LLSD&)
+                                 { gSavedSettings.setBOOL("PlayModeUISndSnapshot", !ctrl->getValue().asBoolean()); });
+        LLHandle<LLUICtrl> handle = quiet->getHandle();
+        gSavedSettings.getControl("PlayModeUISndSnapshot")->getSignal()->connect(
+            [handle](LLControlVariable*, const LLSD& value, const LLSD&)
+            {
+                if (LLUICtrl* ctrl = handle.get()) ctrl->setValue(!value.asBoolean());
+            });
+    }
+    // </Prestige>
+
     ////////////////////// PanelGeneral ///////////////////
     if (hasChild("display_names_check", true))
     {

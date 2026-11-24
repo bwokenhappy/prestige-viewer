@@ -206,6 +206,7 @@ set(viewer_SOURCE_FILES
     sldaycyclelandmarks.cpp
     sldiscordpresence.cpp
     prestigebuildplacement.cpp        # <Prestige> Place on Surface (P), Snap to Objects
+    prestigecamerashot.cpp            # <Prestige> camera mode: setting up the shot (HUDs, poser, light, sky, presets' place)
     prestigefloatergifpicker.cpp
     prestigefloaterposestand.cpp
     prestigefloaterquicklibrary.cpp   # <Prestige> quick library (Ctrl+Space)
@@ -1244,6 +1245,7 @@ set(viewer_HEADER_FILES
     sldaycyclelandmarks.h
     sldiscordpresence.h
     prestigebuildplacement.h          # <Prestige> Place on Surface (P), Snap to Objects
+    prestigecamerashot.h              # <Prestige> camera mode: setting up the shot
     prestigefloatergifpicker.h
     prestigefloaterposestand.h
     prestigefloaterquicklibrary.h     # <Prestige> quick library (Ctrl+Space)

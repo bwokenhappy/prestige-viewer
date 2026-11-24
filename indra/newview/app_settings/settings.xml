@@ -28069,7 +28069,7 @@
     <key>FriendsListShowPermissions</key>
     <map>
       <key>Comment</key>
-      <string>Show/hide permission icons in the friend list</string>
+      <string>Permission icons in the friend list: 0 = never, 1 = on hover, 2 = per user (non-default rights), 3 = always (Firestorm style)</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -28077,6 +28077,19 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <!-- <Prestige> Firestorm-style friend permission icons -->
+    <key>PrestigeFriendsPermsApplied</key>
+    <map>
+      <key>Comment</key>
+      <string>One-time flag: the Firestorm-style friend permission icons (FriendsListShowPermissions = 3) were made the default</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>FriendsListHideUsernames</key>
     <map>
         <key>Comment</key>

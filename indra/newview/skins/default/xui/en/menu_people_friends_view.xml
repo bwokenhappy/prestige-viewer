@@ -35,6 +35,18 @@
   <context_menu
    label="Show permissions"
    name="People Show Permissions" >
+    <!-- <Prestige> Firestorm-style: every icon on every row, dimmed when not granted (eye button) -->
+    <menu_item_check
+     name="view_permissions"
+     label="Always">
+      <menu_item_check.on_click
+       function="People.Friends.ViewSort.Action"
+       parameter="view_permissions_always" />
+      <menu_item_check.on_check
+       function="People.Friends.ViewSort.CheckItem"
+       parameter="view_permissions_always" />
+    </menu_item_check>
+    <!-- </Prestige> -->
     <menu_item_check
      name="view_permissions"
      label="Never">

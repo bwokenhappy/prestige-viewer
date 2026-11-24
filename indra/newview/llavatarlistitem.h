@@ -45,6 +45,9 @@ typedef enum
     SP_NEVER = 0,           // Never show permission icons
     SP_HOVER = 1,           // Only show permission icons on hover
     SP_NONDEFAULT = 2,      // Show permissions different from default
+    // <Prestige> Firestorm-style: every icon on every row, dimmed when not granted
+    SP_ALWAYS = 3,          // Always show all permission icons
+    // </Prestige>
     SP_COUNT
 } EShowPermissionType;
 
@@ -221,6 +224,10 @@ private:
      * Need to call updateChildren() afterwards to sort out their layout.
      */
     bool refreshPermissions();
+
+    // <Prestige> SP_ALWAYS: bright when granted, dimmed when not (Firestorm look); plain colours otherwise
+    void refreshPermissionColors(const LLRelationship* relation);
+    // </Prestige>
 
     /**
      * Gets child view specified by index.

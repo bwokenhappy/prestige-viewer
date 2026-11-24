@@ -63,7 +63,7 @@ const RoleColor sRoleColors[] =
     // accent
     { "SlipstreamBlue", ROLE_ACCENT }, { "SlipstreamBlue_13", ROLE_ACCENT }, { "SlipstreamBlue_35", ROLE_ACCENT },
     { "ALMediaTickerOscillatorColor", ROLE_ACCENT }, { "AlBlue", ROLE_ACCENT }, { "AlInformationBlue", ROLE_ACCENT },
-    { "AlchemyHighlight", ROLE_ACCENT }, { "ChatHeaderTimestampColor", ROLE_ACCENT },
+    { "AlchemyHighlight", ROLE_ACCENT },
     { "ColumnHeaderFlatSortArrowColor", ROLE_ACCENT }, { "FPSTextColor", ROLE_ACCENT }, { "FilterTextColor", ROLE_ACCENT },
     { "FocusColor", ROLE_ACCENT }, { "InventoryFocusOutlineColor", ROLE_ACCENT },
     { "LoginProgressBarFgColor", ROLE_ACCENT }, { "MeshImportTableHighlightColor", ROLE_ACCENT },
@@ -116,7 +116,7 @@ const RoleColor sRoleColors[] =
     { "AlchemyFancyChatDividerColor", ROLE_TEXT }, { "AlchemyText", ROLE_TEXT }, { "AlchemyWhite", ROLE_TEXT },
     { "AvatarListItemOnlineColor", ROLE_TEXT }, { "BadgeLabelColor", ROLE_TEXT }, { "ButtonLabelColor", ROLE_TEXT },
     { "ButtonLabelSelectedColor", ROLE_TEXT }, { "ChatHeaderDisplayNameColor", ROLE_TEXT },
-    { "ChatHistoryTextColor", ROLE_TEXT }, { "ChatTimestampColor", ROLE_TEXT },
+    { "ChatHistoryTextColor", ROLE_TEXT },
     { "ColumnHeaderFlatSortedTextColor", ROLE_TEXT }, { "ColumnHeaderFlatTextColor", ROLE_TEXT },
     { "GroupNotifyTextColor", ROLE_TEXT }, { "InspectorTipTextColor", ROLE_TEXT }, { "LabelSelectedColor", ROLE_TEXT },
     { "LabelTextColor", ROLE_TEXT }, { "LoginProgressBoxTextColor", ROLE_TEXT }, { "MenuItemEnabledColor", ROLE_TEXT },
@@ -128,6 +128,9 @@ const RoleColor sRoleColors[] =
     { "TextFgTentativeColor", ROLE_TEXT_DIM },
     { "SlipstreamTextMuted", ROLE_TEXT_MUTED }, { "ButtonLabelDisabledColor", ROLE_TEXT_MUTED },
     { "ChatHeaderUserNameColor", ROLE_TEXT_MUTED }, { "FloaterButtonImageColor", ROLE_TEXT_MUTED },
+    // <Prestige> readable chat: chat timestamps are dimmed text (were text and accent)
+    { "ChatTimestampColor", ROLE_TEXT_MUTED }, { "ChatHeaderTimestampColor", ROLE_TEXT_MUTED },
+    // </Prestige>
     { "GroupNotifyDimmedTextColor", ROLE_TEXT_MUTED }, { "InventoryItemLibraryColor", ROLE_TEXT_MUTED },
     { "LtGray", ROLE_TEXT_MUTED }, { "MultiSliderTrackColor", ROLE_TEXT_MUTED }, { "ScrollUnselectedColor", ROLE_TEXT_MUTED },
 };

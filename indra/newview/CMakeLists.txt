@@ -217,6 +217,7 @@ set(viewer_SOURCE_FILES
     prestigefoldercolors.cpp          # <Prestige> folder colours
     prestigemarkdown.cpp
     prestigemarkdownrenderer.cpp
+    prestigenamefold.cpp              # <Prestige> readable chat: plain letters for fancy display names
     prestigeoutfitbackup.cpp          # <Prestige> outfit backup to / restore from a JSON file
     prestigeoutfitbackupformat.cpp
     prestigefloatershortcuts.cpp      # <Prestige> Help > Keyboard shortcuts
@@ -1264,6 +1265,7 @@ set(viewer_HEADER_FILES
     prestigefoldercolors.h            # <Prestige> folder colours
     prestigemarkdown.h
     prestigemarkdownrenderer.h
+    prestigenamefold.h                # <Prestige> readable chat: plain letters for fancy display names
     prestigeoutfitbackup.h            # <Prestige> outfit backup to / restore from a JSON file
     prestigeoutfitbackupformat.h
     prestigefloatershortcuts.h        # <Prestige> Help > Keyboard shortcuts

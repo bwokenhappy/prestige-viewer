@@ -203,6 +203,7 @@ class LLChatHistory : public LLUICtrl
             PooledViewRef    mPooledView;           // its header or separator
             bool             mIsSeparator = false;  // continues the previous message (no header)
             F64              mShownAt = 0.0;        // header or separator: as appendMessage decides it
+            bool             mAltRow = false;       // <Prestige/> readable chat: tinted (every other speaker)
         };
         typedef std::deque<WindowEntry> window_t;
 
@@ -255,6 +256,12 @@ class LLChatHistory : public LLUICtrl
         void selectInEntry(S32 index, const std::string& text, bool case_insensitive, bool search_up);
 
         // headers and separators are recycled, not built from XML per message
+        // <Prestige> readable chat: every other speaker's messages on a light tint (PrestigeChatAltRows)
+        static bool startsSpeakerBlock(const WindowEntry& before, const WindowEntry& entry);
+        void drawAltRows();
+        S32 mLineSpacing = 0;   // PrestigeChatLineSpacing as applied to mEditor
+        // </Prestige>
+
         LLView* acquireHeader(const LLChat& chat, const LLStyle::Params& style_params, const LLSD& args);
         LLView* acquireSeparator();
         void releaseView(LLView* view, bool separator);

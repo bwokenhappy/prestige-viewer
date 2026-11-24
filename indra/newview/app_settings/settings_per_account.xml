@@ -169,7 +169,8 @@
         <key>Type</key>
             <string>Boolean</string>
         <key>Value</key>
-            <integer>0</integer>
+            <!-- <Prestige> readable chat: the conversations list starts as a narrow column of icons, the chat text gets the width (was 0) -->
+            <integer>1</integer>
     </map>
     <key>ConversationsListPaneWidth</key>
     <map>

@@ -319,6 +319,10 @@
     <color
      name="ChatHistoryTextColor"
      reference="LtGray" />
+    <!-- <Prestige> readable chat: the tint behind every other speaker (PrestigeChatAltRows) -->
+    <color
+     name="ChatAltRowColor"
+     value="1 1 1 0.03" />
     <color
      name="ChicletFlashColor"
      value="0.114 0.65 0.1" />

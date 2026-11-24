@@ -17,10 +17,10 @@
         reserve_scroll_corner="false"
         top="0"
         width="517">
-        <!-- <Prestige> taller for the Calmer chat options (was 300) -->
+        <!-- <Prestige> taller for the Calmer chat options (was 300) and Readable chat (was 364) -->
         <panel
             follows="left|top"
-            height="364"
+            height="582"
             layout="topleft"
             left="0"
             name="chat_general_scroll_panel"
@@ -224,6 +224,352 @@
                     name="prestige_quiet_object_chat"
                     width="480"
                     top="38" />
+            </panel>
+            <!-- </Prestige> -->
+            <!-- <Prestige> Readable chat -->
+            <panel
+                border="false"
+                follows="left|top"
+                height="214"
+                layout="topleft"
+                name="prestige_readable_chat_settings"
+                top_pad="4"
+                left="13"
+                width="487">
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="0"
+                    name="readable_chat_label"
+                    text_color="White"
+                    width="480"
+                    top="0">
+                    Readable chat
+                </text>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="0"
+                    name="plain_names_label"
+                    width="120"
+                    top="23">
+                    Fancy display names:
+                </text>
+                <combo_box
+                    control_name="PrestigeChatPlainNames"
+                    follows="left|top"
+                    height="23"
+                    layout="topleft"
+                    left="125"
+                    name="prestige_chat_plain_names"
+                    tool_tip="How display names written in fancy letters (script, double-struck, circled, fullwidth, small caps, Greek or Cyrillic look-alikes) show in nearby chat and IM headers. Profiles and name tags are not changed."
+                    top="18"
+                    width="300">
+                    <item label="Show them as they are" name="as_is" value="0" />
+                    <item label="Plain letters, with the username in brackets" name="plain" value="1" />
+                    <item label="Show the username only" name="username" value="2" />
+                </combo_box>
+                <check_box
+                    control_name="PrestigeChatNameColors"
+                    follows="left|top"
+                    height="16"
+                    label="Names coloured by who is speaking, message text in one plain colour"
+                    tool_tip="Your name, friends, other residents and objects each have their own name colour (below), so names stand apart from what they say; system and region lines are in italics. Off: names in the link colour and each message in its speaker's colour, as before."
+                    layout="topleft"
+                    left="0"
+                    name="prestige_chat_name_colors"
+                    width="480"
+                    top="46" />
+                <check_box
+                    control_name="PrestigeChatHighlightMyName"
+                    follows="left|top"
+                    height="16"
+                    label="Highlight messages that mention my name"
+                    tool_tip="A message from someone else that contains your display name, username or first name as a whole word is shown on a highlight (ChatSelfMentionHighlight)."
+                    layout="topleft"
+                    left="0"
+                    name="prestige_chat_highlight_my_name"
+                    width="480"
+                    top="66" />
+                <check_box
+                    control_name="PrestigeChatAltRows"
+                    follows="left|top"
+                    height="16"
+                    label="Light tint behind every other speaker"
+                    tool_tip="A very light shade behind the lines of every other speaker in nearby chat and IMs, so you can tell where one person stops and the next begins (ChatAltRowColor)."
+                    layout="topleft"
+                    left="0"
+                    name="prestige_chat_alt_rows"
+                    width="480"
+                    top="86" />
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="0"
+                    name="line_spacing_label"
+                    width="120"
+                    top="113">
+                    Line spacing:
+                </text>
+                <combo_box
+                    control_name="PrestigeChatLineSpacing"
+                    follows="left|top"
+                    height="23"
+                    layout="topleft"
+                    left="125"
+                    name="prestige_chat_line_spacing"
+                    tool_tip="Extra space between lines in nearby chat and IM windows. The chat font size is set at the top of this page."
+                    top="108"
+                    width="150">
+                    <item label="Tight" name="tight" value="0" />
+                    <item label="Comfortable" name="comfortable" value="2" />
+                    <item label="Roomy" name="roomy" value="4" />
+                </combo_box>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="0"
+                    name="readable_colors_label"
+                    width="480"
+                    top="138">
+                    Chat colours (all of them: Preferences, Colors, Chat):
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="0"
+                    name="readable_swatch_me"
+                    tool_tip="UserChatColor"
+                    top="158"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="UserChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="UserChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="34"
+                    mouse_opaque="false"
+                    name="readable_swatch_me_label"
+                    top="162"
+                    width="86">
+                    Me
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="122"
+                    name="readable_swatch_others"
+                    tool_tip="AgentChatColor"
+                    top="158"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="AgentChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="AgentChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="156"
+                    mouse_opaque="false"
+                    name="readable_swatch_others_label"
+                    top="162"
+                    width="86">
+                    Others' names
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="244"
+                    name="readable_swatch_friends"
+                    tool_tip="FriendChatColor"
+                    top="158"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="FriendChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="FriendChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="278"
+                    mouse_opaque="false"
+                    name="readable_swatch_friends_label"
+                    top="162"
+                    width="86">
+                    Friends' names
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="366"
+                    name="readable_swatch_text"
+                    tool_tip="ChatHistoryTextColor"
+                    top="158"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="ChatHistoryTextColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="ChatHistoryTextColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="400"
+                    mouse_opaque="false"
+                    name="readable_swatch_text_label"
+                    top="162"
+                    width="86">
+                    Message text
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="0"
+                    name="readable_swatch_objects"
+                    tool_tip="ObjectChatColor"
+                    top="184"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="ObjectChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="ObjectChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="34"
+                    mouse_opaque="false"
+                    name="readable_swatch_objects_label"
+                    top="188"
+                    width="86">
+                    Objects
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="122"
+                    name="readable_swatch_owner"
+                    tool_tip="llOwnerSayChatColor"
+                    top="184"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="llOwnerSayChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="llOwnerSayChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="156"
+                    mouse_opaque="false"
+                    name="readable_swatch_owner_label"
+                    top="188"
+                    width="86">
+                    llOwnerSay
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="244"
+                    name="readable_swatch_system"
+                    tool_tip="SystemChatColor"
+                    top="184"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="SystemChatColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="SystemChatColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="278"
+                    mouse_opaque="false"
+                    name="readable_swatch_system_label"
+                    top="188"
+                    width="86">
+                    System
+                </text>
+                <color_swatch
+                    can_apply_immediately="true"
+                    follows="left|top"
+                    height="20"
+                    label_height="0"
+                    layout="topleft"
+                    left="366"
+                    name="readable_swatch_time"
+                    tool_tip="ChatTimestampColor"
+                    top="184"
+                    width="30">
+                    <color_swatch.init_callback
+                        function="Pref.getUIColor"
+                        parameter="ChatTimestampColor" />
+                    <color_swatch.commit_callback
+                        function="Pref.applyUIColor"
+                        parameter="ChatTimestampColor" />
+                </color_swatch>
+                <text
+                    follows="left|top"
+                    height="14"
+                    layout="topleft"
+                    left="400"
+                    mouse_opaque="false"
+                    name="readable_swatch_time_label"
+                    top="188"
+                    width="86">
+                    Timestamps
+                </text>
             </panel>
             <!-- </Prestige> -->
             <panel

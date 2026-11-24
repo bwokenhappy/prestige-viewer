@@ -43,6 +43,11 @@
 #include "fscommon.h"
 #include "llfloaterimcontainer.h"
 #include "llfloaterreg.h"
+// <Prestige> readable chat
+#include "llavatarname.h"
+#include "llavatarnamecache.h"
+#include "prestigenamefold.h"
+// </Prestige>
 
 // LLViewerChat
 LLViewerChat::font_change_signal_t LLViewerChat::sChatFontChangedSignal;
@@ -84,6 +89,221 @@ bool LLViewerChat::isQuietObjectChat(const LLChat& chat)
         return false;
     }
     return chat.mOwnerID != gAgentID;
+}
+// </Prestige>
+
+// <Prestige> readable chat
+namespace
+{
+    bool is_resident_chat(const LLChat& chat)
+    {
+        return chat.mSourceType == CHAT_SOURCE_AGENT && chat.mFromID.notNull() && SYSTEM_FROM != chat.mFromName;
+    }
+
+    bool keyword_colored(const LLChat& chat)
+    {
+        static LLCachedControl<bool> sFSKeywordChangeColor(gSavedPerAccountSettings, "FSKeywordChangeColor", false);
+        return sFSKeywordChangeColor && FSKeywords::getInstance()->chatContainsKeyword(chat, chat.mSessionID.isNull());
+    }
+
+    // "Display (username)": the two parts; false when the name has no username part
+    bool split_complete_name(const std::string& name, std::string& display, std::string& username)
+    {
+        const size_t open = name.rfind(" (");
+        if (open == std::string::npos || name.size() < open + 4 || name.back() != ')')
+        {
+            return false;
+        }
+        display = name.substr(0, open);
+        username = name.substr(open + 2, name.size() - open - 3);
+        return !display.empty() && !username.empty();
+    }
+
+    bool is_word_char(char ch)
+    {
+        // bytes of non-ASCII characters count as letters
+        return (unsigned char)ch >= 0x80 || LLStringOps::isAlnum(ch) || ch == '_';
+    }
+
+    bool contains_word(const std::string& text, const std::string& word)
+    {
+        size_t pos = text.find(word);
+        while (pos != std::string::npos)
+        {
+            const size_t end = pos + word.size();
+            if ((pos == 0 || !is_word_char(text[pos - 1])) && (end >= text.size() || !is_word_char(text[end])))
+            {
+                return true;
+            }
+            pos = text.find(word, pos + 1);
+        }
+        return false;
+    }
+
+    void add_name_word(std::vector<std::string>& words, std::string name)
+    {
+        name = PrestigeNameFold::fold(name);
+        LLStringUtil::trim(name);
+        LLStringUtil::toLower(name);
+        if (name.size() >= 3 && std::find(words.begin(), words.end(), name) == words.end())
+        {
+            words.push_back(name);
+        }
+    }
+
+    std::string first_word(const std::string& name, char separator)
+    {
+        const size_t end = name.find(separator);
+        return end == std::string::npos ? name : name.substr(0, end);
+    }
+}
+
+//static
+bool LLViewerChat::useNameColors()
+{
+    static LLCachedControl<bool> name_colors(gSavedSettings, "PrestigeChatNameColors", true);
+    return name_colors;
+}
+
+//static
+LLUIColor LLViewerChat::getChatNameColor(const LLChat& chat)
+{
+    LLUIColorTable& colors = LLUIColorTable::instance();
+    if (!chat.mMuted && is_resident_chat(chat))
+    {
+        if (chat.mFromID == gAgentID)
+        {
+            return colors.getColor("UserChatColor");
+        }
+        // friends, Lindens, muted and contact sets as for the chat text before
+        const LLColor4 agent_color = colors.getColor("AgentChatColor").get();
+        return LLUIColor(LGGContactSets::getInstance()->getAvatarColor(chat.mFromID, agent_color, ContactSetType::CHAT));
+    }
+    if (!chat.mMuted && chat.mSourceType == CHAT_SOURCE_REGION)
+    {
+        return colors.getColor("SystemChatColor");
+    }
+    LLUIColor color = colors.getColor("White");
+    F32 alpha = 1.f;
+    getChatColor(chat, color, alpha);
+    return color;
+}
+
+//static
+LLUIColor LLViewerChat::getChatTextColor(const LLChat& chat, const LLUIColor& kind_color)
+{
+    if (!useNameColors() || chat.mMuted)
+    {
+        return kind_color;
+    }
+    if (chat.mSourceType == CHAT_SOURCE_REGION)
+    {
+        return LLUIColorTable::instance().getColor("SystemChatColor");
+    }
+    if (is_resident_chat(chat) && chat.mFromID != gAgentID && !keyword_colored(chat))
+    {
+        return LLUIColorTable::instance().getColor("ChatHistoryTextColor");
+    }
+    return kind_color;
+}
+
+//static
+bool LLViewerChat::isSystemLine(const LLChat& chat)
+{
+    switch (chat.mSourceType)
+    {
+        case CHAT_SOURCE_SYSTEM:
+        case CHAT_SOURCE_REGION:
+            return true;
+        case CHAT_SOURCE_AGENT:
+            return chat.mFromID.isNull() || SYSTEM_FROM == chat.mFromName;
+        default:
+            return false;
+    }
+}
+
+//static
+bool LLViewerChat::mentionsAgent(const LLChat& chat)
+{
+    static LLCachedControl<bool> highlight_my_name(gSavedSettings, "PrestigeChatHighlightMyName", true);
+    if (!highlight_my_name || chat.mMuted || !is_resident_chat(chat) || chat.mFromID == gAgentID
+        || chat.mChatStyle == CHAT_STYLE_HISTORY || chat.mText.empty())
+    {
+        return false;
+    }
+    LLAvatarName av_name;
+    if (!LLAvatarNameCache::get(gAgentID, &av_name))
+    {
+        return false;
+    }
+    std::vector<std::string> words;
+    if (!av_name.isDisplayNameDefault())
+    {
+        const std::string display = av_name.getDisplayName(true);
+        add_name_word(words, display);
+        add_name_word(words, first_word(PrestigeNameFold::fold(display), ' '));
+    }
+    add_name_word(words, av_name.getAccountName());
+    add_name_word(words, first_word(av_name.getAccountName(), '.'));
+    add_name_word(words, first_word(av_name.getUserName(), ' '));
+
+    std::string text = PrestigeNameFold::fold(chat.mText);
+    LLStringUtil::toLower(text);
+    for (const std::string& word : words)
+    {
+        if (contains_word(text, word))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+//static
+bool LLViewerChat::forceUsernameSuffix(const LLAvatarName& av_name)
+{
+    static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+    return plain_names == 1 && LLAvatarName::useDisplayNames() && !av_name.isDisplayNameDefault()
+        && !av_name.getAccountName().empty() && PrestigeNameFold::isFancy(av_name.getDisplayName());
+}
+
+//static
+std::string LLViewerChat::getReadableName(const LLAvatarName& av_name, bool with_username)
+{
+    static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+    if (plain_names == 2)
+    {
+        return av_name.getUserName();
+    }
+    if (plain_names == 1 && forceUsernameSuffix(av_name))
+    {
+        std::string name = PrestigeNameFold::fold(av_name.getDisplayName());
+        if (with_username)
+        {
+            name += " (" + av_name.getAccountName() + ")";
+        }
+        return name;
+    }
+    return with_username ? av_name.getCompleteName() : av_name.getDisplayName();
+}
+
+//static
+std::string LLViewerChat::getReadableName(const std::string& from_name)
+{
+    static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+    if (plain_names == 1)
+    {
+        return PrestigeNameFold::fold(from_name);
+    }
+    if (plain_names == 2)
+    {
+        std::string display, username;
+        if (split_complete_name(from_name, display, username))
+        {
+            return username;
+        }
+    }
+    return from_name;
 }
 // </Prestige>
 

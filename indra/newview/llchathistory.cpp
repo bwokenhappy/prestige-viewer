@@ -28,6 +28,7 @@
 
 #include "llchathistory.h"
 #include "llchatimagepreview.h"
+#include "prestigenamefold.h" // <Prestige/> readable chat
 
 #include <boost/signals2.hpp>
 
@@ -861,9 +862,21 @@ public:
                 username_end == (chat.mFromName.length() - 1))
             {
                 mFrom = chat.mFromName.substr(0, username_start);
+                // <Prestige> readable chat: PrestigeChatPlainNames (folded with its username, or the username)
+                static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+                const bool fancy = plain_names == 1 && PrestigeNameFold::isFancy(mFrom);
+                if (plain_names == 1)
+                {
+                    mFrom = PrestigeNameFold::fold(mFrom);
+                }
+                else if (plain_names == 2)
+                {
+                    mFrom = chat.mFromName.substr(username_start + 2, username_end - username_start - 2);
+                }
+                // </Prestige>
                 user_name->setValue(mFrom);
 
-                if (gSavedSettings.getBOOL("NameTagShowUsernames"))
+                if ((gSavedSettings.getBOOL("NameTagShowUsernames") || fancy) && plain_names != 2) // <Prestige/>
                 {
                     std::string username = chat.mFromName.substr(username_start + 2);
                     username = username.substr(0, username.length() - 1);
@@ -878,7 +891,7 @@ public:
             }
             else
             {
-                mFrom = chat.mFromName;
+                mFrom = LLViewerChat::getReadableName(chat.mFromName); // <Prestige/> readable chat
                 user_name->setValue(mFrom);
                 updateMinUserNameWidth();
             }
@@ -1176,15 +1189,19 @@ private:
     {
         mAvatarNameCacheConnection.disconnect();
 
-        mFrom = av_name.getDisplayName();
+        // <Prestige> readable chat: the name as PrestigeChatPlainNames shows it
+        mFrom = LLViewerChat::getReadableName(av_name, false);
 
         LLTextBox* user_name = getChild<LLTextBox>("user_name");
-        user_name->setValue( LLSD(av_name.getDisplayName() ) );
+        user_name->setValue( LLSD(mFrom) );
         user_name->setToolTip( av_name.getUserName() );
 
-        if (gSavedSettings.getBOOL("NameTagShowUsernames") &&
+        static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+        if ((gSavedSettings.getBOOL("NameTagShowUsernames") || LLViewerChat::forceUsernameSuffix(av_name)) &&
+            plain_names != 2 &&
             av_name.useDisplayNames() &&
             !av_name.isDisplayNameDefault())
+        // </Prestige>
         {
             LLStyle::Params style_params_name;
             LLUIColor userNameColor = LLUIColorTable::instance().getColor("EmphasisColor");
@@ -1259,6 +1276,10 @@ LLChatHistory::LLChatHistory(const LLChatHistory::Params& p)
     editor_params.trusted_content = false;
     editor_params.text_valign = LLFontGL::VAlign::VCENTER;
     editor_params.use_color = true;
+    // <Prestige> readable chat: a little air between lines (PrestigeChatLineSpacing)
+    mLineSpacing = llclamp(gSavedSettings.getS32("PrestigeChatLineSpacing"), 0, 12);
+    editor_params.line_spacing.pixels = mLineSpacing;
+    // </Prestige>
     mEditor = LLUICtrlFactory::create<LLTextEditor>(editor_params, this);
     mEditor->setIsFriendCallback(LLAvatarActions::isFriend);
     mEditor->setCanOfferTeleportCallback([](const LLUUID& id) { return id != gAgentID && LLAvatarActions::canOfferTeleport(id); });
@@ -1472,6 +1493,14 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     LLUIColor txt_color = LLUIColorTable::instance().getColor("White");
     LLUIColor name_color(txt_color);
     LLViewerChat::getChatColor(chat, txt_color, alpha);
+    // <Prestige> readable chat: names in the colour of who is speaking, other residents' text plain
+    const bool readable_colors = LLViewerChat::useNameColors();
+    if (readable_colors)
+    {
+        name_color = LLViewerChat::getChatNameColor(chat);
+        txt_color = LLViewerChat::getChatTextColor(chat, txt_color);
+    }
+    // </Prestige>
 
     LLFontGL* fontp = LLViewerChat::getChatFont();
     // <Prestige> quiet object chat (PrestigeQuietObjectChat): a smaller line (and dimmer, getChatColor)
@@ -1527,6 +1556,12 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     {
         body_message_params.font.style = "BOLD";
     }
+    // <Prestige> readable chat: system, region and estate lines in italics
+    else if (readable_colors && LLViewerChat::isSystemLine(chat))
+    {
+        body_message_params.font.style = "ITALIC";
+    }
+    // </Prestige>
 
     // <FS:HG> FS-1734 separate name and text styles for moderator (FSHighlightGroupMods)
     const bool moderator_style_active = chat.mChatStyle == CHAT_STYLE_MODERATOR;
@@ -1618,6 +1653,12 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                 // (don't let object names with hyperlinks override our objectim Url)
                 LLStyle::Params link_params(body_message_params);
                 LLUIColor link_color = LLUIColorTable::instance().getColor("HTMLLinkColor");
+                // <Prestige> readable chat: the object's name in the object chat colour
+                if (readable_colors)
+                {
+                    link_color = name_color;
+                }
+                // </Prestige>
                 link_params.color = link_color;
                 link_params.readonly_color = link_color;
                 link_params.is_link = true;
@@ -1648,9 +1689,42 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                 }
                 // </FS:Ansariel>
 
+                // <Prestige> readable chat: the name as a link in the colour of who is speaking and
+                // as PrestigeChatPlainNames shows it (the Url label would be in the link colour)
+                LLAvatarName av_name;
+                static LLCachedControl<S32> plain_names(gSavedSettings, "PrestigeChatPlainNames", 0);
+                if ((readable_colors || plain_names != 0) && LLAvatarNameCache::get(chat.mFromID, &av_name))
+                {
+                    LLStyle::Params name_link_params(link_params);
+                    name_link_params.is_link = true;
+                    if (readable_colors)
+                    {
+                        name_link_params.color = name_color;
+                        name_link_params.readonly_color = name_color;
+                    }
+                    else
+                    {
+                        name_link_params.color = LLUIColorTable::instance().getColor("HTMLLinkColor");
+                        name_link_params.readonly_color = LLUIColorTable::instance().getColor("HTMLLinkColor");
+                    }
+                    const std::string label = (from_me && show_you) ? LLTrans::getString("AgentNameSubst")
+                                                                    : LLViewerChat::getReadableName(av_name, true);
+                    mEditor->appendText(label, prependNewLineState, name_link_params);
+                    if (!delimiter.empty())
+                    {
+                        LLStyle::Params delimiter_params(body_message_params);
+                        delimiter_params.color = name_link_params.color;
+                        delimiter_params.readonly_color = name_link_params.readonly_color;
+                        mEditor->appendText(delimiter, false, delimiter_params);
+                    }
+                }
+                else
+                {
+                // </Prestige>
                 // Add link to avatar's inspector and delimiter to message.
                 mEditor->appendText(std::string(link_params.link_href) + delimiter,
                     prependNewLineState, link_params);
+                } // <Prestige/>
                 prependNewLineState = false;
             }
             else if (teleport_separator)
@@ -1662,8 +1736,12 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
             }
             else
             {
-                mEditor->appendText("<nolink>" + chat.mFromName + "</nolink>" + delimiter,
+                // <Prestige> readable chat: residents' names as PrestigeChatPlainNames shows them
+                const std::string from_name = chat.mSourceType == CHAT_SOURCE_AGENT
+                    ? LLViewerChat::getReadableName(chat.mFromName) : chat.mFromName;
+                mEditor->appendText("<nolink>" + from_name + "</nolink>" + delimiter,
                         prependNewLineState, body_message_params);
+                // </Prestige>
                 prependNewLineState = false;
             }
         }
@@ -1829,7 +1907,7 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                         LLAvatarNameCache::get(chat.mFromID, &av_name) &&
                         !av_name.isDisplayNameDefault())
             {
-                from_name = av_name.getCompleteName();
+                from_name = LLViewerChat::getReadableName(av_name, true); // <Prestige/> readable chat
             }
             message = from_name + message;
         }
@@ -1845,6 +1923,13 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
             message += "]";
         }
 
+        // <Prestige> readable chat: a message that names the user stands out (PrestigeChatHighlightMyName)
+        if (!message_from_log && LLViewerChat::mentionsAgent(chat))
+        {
+            body_message_params.highlight_bg_color = LLUIColorTable::instance().getColor("ChatSelfMentionHighlight");
+            body_message_params.draw_highlight_bg = true;
+        }
+        // </Prestige>
         mEditor->appendText(message, prependNewLineState, body_message_params);
         prependNewLineState = false;
 
@@ -1879,8 +1964,99 @@ void LLChatHistory::draw()
         mMoreChatPanel->setVisible(false);
     }
 
+    // <Prestige> readable chat
+    static LLCachedControl<S32> line_spacing(gSavedSettings, "PrestigeChatLineSpacing", 2);
+    const S32 spacing = llclamp((S32)line_spacing, 0, 12);
+    if (spacing != mLineSpacing)
+    {
+        mLineSpacing = spacing;
+        mEditor->setLineSpacingPixels(spacing);
+    }
+    drawAltRows();
+    // </Prestige>
+
     LLUICtrl::draw();
 }
+
+// <Prestige> readable chat
+// static
+bool LLChatHistory::startsSpeakerBlock(const WindowEntry& before, const WindowEntry& entry)
+{
+    return before.mChat.mFromID != entry.mChat.mFromID
+        || before.mChat.mFromName != entry.mChat.mFromName
+        || before.mChat.mSourceType != entry.mChat.mSourceType;
+}
+
+void LLChatHistory::drawAltRows()
+{
+    static LLCachedControl<bool> alt_rows(gSavedSettings, "PrestigeChatAltRows", true);
+    if (!alt_rows || !mSource || mWindow.size() < 2 || !mEditor->getVisible())
+    {
+        return;
+    }
+    static LLUIColor tint = LLUIColorTable::instance().getColor("ChatAltRowColor", LLColor4(1.f, 1.f, 1.f, 0.035f));
+    LLColor4 color = tint.get();
+    color.mV[VALPHA] *= getDrawContext().mAlpha;
+    const S32 length = mEditor->getLength();
+    if (color.mV[VALPHA] <= 0.f || length <= 0)
+    {
+        return;
+    }
+
+    // Where each message's first line starts, in the editor's coordinates (a plain text
+    // message's line break ends the line before it).
+    auto entry_top = [this, length](size_t index) -> S32
+    {
+        S32 pos = entryStart(index);
+        const WindowEntry& entry = mWindow[index];
+        if (entry.mMarker.notNull() && !entry.mPooledView)
+        {
+            pos = entry.mMarker->getEnd();
+        }
+        return mEditor->getLocalRectFromDocIndex(llclamp(pos, 0, length - 1)).mTop;
+    };
+
+    const LLRect text_rect = mEditor->getVisibleTextRect();
+    const size_t count = mWindow.size();
+
+    // the last message that starts at or above the top of the view (tops go down the document)
+    size_t first = 0;
+    size_t low = 0, high = count;
+    while (low < high)
+    {
+        const size_t mid = (low + high) / 2;
+        if (entry_top(mid) >= text_rect.mTop)
+        {
+            first = mid;
+            low = mid + 1;
+        }
+        else
+        {
+            high = mid;
+        }
+    }
+
+    const LLRect editor_rect = mEditor->getRect();
+    const S32 left = llmax(text_rect.mLeft - mEditor->getHPad(), 0);
+    gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+    S32 top = entry_top(first);
+    for (size_t i = first; i < count && top > text_rect.mBottom; ++i)
+    {
+        const S32 bottom = i + 1 < count ? entry_top(i + 1)
+                                         : mEditor->getLocalRectFromDocIndex(length - 1).mBottom;
+        if (mWindow[i].mAltRow)
+        {
+            LLRect band(left, llmin(top, text_rect.mTop), text_rect.mRight, llmax(bottom, text_rect.mBottom));
+            if (band.getHeight() > 0)
+            {
+                band.translate(editor_rect.mLeft, editor_rect.mBottom);
+                gl_rect_2d(band, color, true);
+            }
+        }
+        top = bottom;
+    }
+}
+// </Prestige>
 
 //
 // #369: windowed history
@@ -2190,6 +2366,13 @@ void LLChatHistory::appendEntries(std::vector<WindowEntry>& entries, bool live)
         {
             mWindow.push_back(std::move(entry));
             ++appended;
+            // <Prestige> readable chat: the tint changes with the speaker
+            if (mWindow.size() > 1)
+            {
+                const WindowEntry& before = mWindow[mWindow.size() - 2];
+                mWindow.back().mAltRow = before.mAltRow != startsSpeakerBlock(before, mWindow.back());
+            }
+            // </Prestige>
         }
     }
 
@@ -2253,6 +2436,12 @@ void LLChatHistory::prependEntries(std::vector<WindowEntry>& entries)
     for (auto it = rendered.rbegin(); it != rendered.rend(); ++it)
     {
         mWindow.push_front(std::move(*it));
+        // <Prestige> readable chat: the tint changes with the speaker
+        if (mWindow.size() > 1)
+        {
+            mWindow.front().mAltRow = mWindow[1].mAltRow != startsSpeakerBlock(mWindow.front(), mWindow[1]);
+        }
+        // </Prestige>
     }
     restoreAnchor(anchor, added);
 

@@ -1958,6 +1958,17 @@ function="World.EnvPreset"
           <menu_item_call.on_enable
              function="Tools.SomethingSelectedNoHUD" />
         </menu_item_call>
+        <!-- <Prestige> Place on Surface: hold P to preview, release to place; clicked here, the next click in the world places -->
+        <menu_item_call
+           label="Place on Surface"
+           name="Place on Surface"
+           shortcut="P">
+          <menu_item_call.on_click
+             function="Build.PlaceOnSurface" />
+          <menu_item_call.on_enable
+             function="Build.EnablePlaceOnSurface" />
+        </menu_item_call>
+        <!-- </Prestige> -->
 		 
         <menu_item_separator/>
 
@@ -2393,6 +2404,17 @@ function="World.EnvPreset"
                     <menu_item_check.on_enable
                      function="Tools.EnableToolNotPie" />
                 </menu_item_check>
+                <!-- <Prestige> Snap to Objects (move arrows) -->
+                <menu_item_check
+                 label="Snap to Objects"
+                 name="Snap to Objects">
+                    <menu_item_check.on_check
+                     control="PrestigeSnapToObjects" />
+                    <menu_item_check.on_click
+                     function="ToggleControl"
+                     parameter="PrestigeSnapToObjects" />
+                </menu_item_check>
+                <!-- </Prestige> -->
                 <menu_item_call
                  label="Snap Object XY to Grid"
                  name="Snap Object XY to Grid"

@@ -94,6 +94,9 @@
 #include "fssoundemitterblacklist.h"
 #include "llgltfexporter.h"
 #include "slscriptinfo.h"
+// <Prestige> Build > Place on Surface (P)
+#include "prestigebuildplacement.h"
+// </Prestige>
 #include "llfloaterland.h"
 #include "llfloaterimnearbychat.h"
 #include "llfloaterlandholdings.h"
@@ -10979,6 +10982,10 @@ void initialize_menus()
     view_listener_t::addMenu(new LLToolsReleaseKeys(), "Tools.ReleaseKeys");
     view_listener_t::addMenu(new LLToolsEnableReleaseKeys(), "Tools.EnableReleaseKeys");
     commit.add("Tools.LookAtSelection", boost::bind(&handle_look_at_selection, _2));
+    // <Prestige> Build > Place on Surface (P)
+    commit.add("Build.PlaceOnSurface", [](LLUICtrl* ctrl, const LLSD&) { PrestigePlaceOnSurface::onPlaceCommand(ctrl); });
+    enable.add("Build.EnablePlaceOnSurface", [](LLUICtrl*, const LLSD&) { return PrestigePlaceOnSurface::canPlace(); });
+    // </Prestige>
     commit.add("Tools.BuyOrTake", boost::bind(&handle_buy_or_take));
     commit.add("Tools.TakeCopy", boost::bind(&handle_take_copy));
     view_listener_t::addMenu(new LLToolsSaveToObjectInventory(), "Tools.SaveToObjectInventory");

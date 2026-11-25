@@ -177,8 +177,12 @@ LLUIColor LLViewerChat::getChatNameColor(const LLChat& chat)
     {
         if (is_resident_chat(chat))
         {
-            const LLColor4 name_color = colors.getColor("ChatNameColor").get();
-            return LLUIColor(LGGContactSets::getInstance()->getAvatarColor(chat.mFromID, name_color, ContactSetType::CHAT));
+            // Only a contact-set colour (where the user turned that on) replaces it: getAvatarColor()
+            // would also recolour by category (you, friends, ...) with the chat text colours, which
+            // are white in the Firestorm skins, so every name came out white.
+            LLColor4 name_color = colors.getColor("ChatNameColor").get();
+            LGGContactSets::getInstance()->hasFriendColorThatShouldShow(chat.mFromID, ContactSetType::CHAT, name_color);
+            return LLUIColor(name_color);
         }
         if (chat.mSourceType == CHAT_SOURCE_OBJECT && colors.colorExists("ChatNameObjectColor"))
         {

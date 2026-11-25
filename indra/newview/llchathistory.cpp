@@ -1713,8 +1713,9 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                     if (!delimiter.empty())
                     {
                         LLStyle::Params delimiter_params(body_message_params);
-                        delimiter_params.color = name_link_params.color;
-                        delimiter_params.readonly_color = name_link_params.readonly_color;
+                        // Firestorm: the ": " after the name in the message colour, not the name's
+                        delimiter_params.color = readable_colors ? txt_color : name_link_params.color();
+                        delimiter_params.readonly_color = readable_colors ? txt_color : name_link_params.readonly_color();
                         mEditor->appendText(delimiter, false, delimiter_params);
                     }
                 }

@@ -565,8 +565,12 @@ void LLRenderVKBackend::setSceneBlendType(U32 type)
     switch (type)
     {
         case LLRender::BT_ALPHA:   gVK.setSceneBlendType(BT_ALPHA);   break;
-        case LLRender::BT_ADD:
-        case LLRender::BT_ADD_WITH_ALPHA: gVK.setSceneBlendType(BT_ADD); break;
+        case LLRender::BT_ADD:     gVK.setSceneBlendType(BT_ADD);     break;
+        // <Prestige> LL's (src_alpha, one): the button/combo hover glow is white at the glow
+        // strength in alpha. As (one, one) it added full white on every hover -- a flat, bright,
+        // colourless flash instead of Firestorm's soft brightening.
+        case LLRender::BT_ADD_WITH_ALPHA: gVK.blendFunc(BF_SOURCE_ALPHA, BF_ONE); break;
+        // </Prestige>
         case LLRender::BT_MULT:
         case LLRender::BT_MULT_ALPHA:
         case LLRender::BT_MULT_X2: gVK.setSceneBlendType(BT_MULT);     break;

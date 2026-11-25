@@ -28965,6 +28965,19 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>PrestigeFirestormDebugMenusApplied</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige: the Advanced and Developer menus were switched on once (UseDebugMenus, QAMode), as in Firestorm.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>HideFromEditor</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>PrestigeFirestormPeopleApplied</key>
     <map>
       <key>Comment</key>

@@ -78,6 +78,16 @@ void applyDefaultsOnce(LLControlGroup& group)
         LL_INFOS("Prestige") << "People button opens the People window, as in Firestorm (once)" << LL_ENDL;
     }
 
+    // The Advanced and Developer menus shown, as in the user's Firestorm (Ctrl+Alt+D / Ctrl+Alt+Q
+    // still hide them). Once.
+    if (group.controlExists("PrestigeFirestormDebugMenusApplied") && !group.getBOOL("PrestigeFirestormDebugMenusApplied"))
+    {
+        setBool(group, "UseDebugMenus", true);
+        setBool(group, "QAMode", true);
+        group.setBOOL("PrestigeFirestormDebugMenusApplied", true);
+        LL_INFOS("Prestige") << "Advanced and Developer menus shown, as in Firestorm (once)" << LL_ENDL;
+    }
+
     if (!group.controlExists("PrestigeFirestormBarsApplied") || group.getBOOL("PrestigeFirestormBarsApplied"))
     {
         return;

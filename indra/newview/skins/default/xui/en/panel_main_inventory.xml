@@ -10,35 +10,42 @@
   <panel.string
    name="Itemcount">
   </panel.string>
-  <!-- <Prestige> Firestorm-style counter: items and folders together ("Elements"), details in the tooltip -->
   <panel.string
    name="ItemcountFetching">
-    Fetching [ELEMENT_COUNT] Elements... [FILTER]
+    Fetching [ITEM_COUNT] Items and [CATEGORY_COUNT] Folders... [FILTER]
   </panel.string>
   <panel.string
    name="ItemcountCompleted">
-    [ELEMENT_COUNT] Elements [FILTER]
+    [ITEM_COUNT] Items and [CATEGORY_COUNT] Folders [FILTER]
   </panel.string>
   <panel.string
    name="ItemcountUnknown">
-    Fetched [ELEMENT_COUNT] Elements [FILTER]
+    Fetched [ITEM_COUNT] Items and [CATEGORY_COUNT] Folders [FILTER]
   </panel.string>
-  <panel.string
-   name="ItemcountTooltip">
-    [ITEM_COUNT] Items and [CATEGORY_COUNT] Folders [FILTER]
-  </panel.string>
-  <!-- </Prestige> -->
-  <panel.string name="inventory_title">Inventory</panel.string> <!-- <Prestige> Firestorm casing -->
+  <panel.string name="inventory_title">INVENTORY</panel.string>
   <panel.string name="default_mode_btn">Multi_Folder_Mode</panel.string>
   <panel.string name="single_folder_mode_btn">Single_Folder_Mode</panel.string>
-  <!-- <Prestige> Firestorm layout: search field on top, then Collapse / Expand / Filter row,
-       then the tabs, and the button bar with the counter and trash at the bottom -->
+  <text
+     type="string"
+     length="1"
+     follows="left|top|right"
+     height="13"
+     layout="topleft"
+  	 left="12"
+  	 right="-12"
+     name="ItemcountText"
+     font="SansSerifMedium"
+     text_color="InventoryItemLinkColor"
+     use_ellipses="true"
+     top_pad="0">
+    Items:
+  </text>
   <layout_stack
    follows="left|top|right"
    height="25"
    animate="false"
-   top="4"
-   left="4"
+   top_pad="10"
+   left="2"
    right="-4"
    orientation="horizontal"
    name="top_stack">
@@ -94,31 +101,18 @@
       bevel_style="in"
       user_resize="false"
       height="25"
-      width="410"
+      width="381"
       visible="true"
       name="filter_layout_panel">
-      <filter_editor
-       text_pad_left="10"
-       follows="left|top|right"
-       height="23"
-       label="Filter Inventory"
-       layout="topleft"
-       left="0"
-       top="0"
-       max_length_chars="300"
-       highlight_text_field="true"
-       name="inventory search editor"
-       tool_tip="Type in one or more words to search for"
-       width="299" />
       <combo_box
        height="23"
        layout="topleft"
-       left_pad="2"
+       left="2"
        top="0"
        name="search_type"
        tool_tip="Search by"
-       follows="top|right"
-       width="82">
+       follows="top|left"
+       width="67">
        <item
         label="Name"
         name="Name"
@@ -137,6 +131,62 @@
         value="search_by_UUID"/>
       </combo_box>
       <menu_button
+       follows="top|left"
+       tool_tip="Search visibility options"
+       height="23"
+       image_overlay="Inv_Toolbar_SearchVisibility"
+       layout="topleft"
+       left_pad="1"
+       name="options_visibility_btn"
+       width="31" />
+      <filter_editor
+       text_pad_left="10"
+       follows="left|top|right"
+       height="23"
+       label="Enter search text"
+       layout="topleft"
+       left_pad="1"
+       max_length_chars="300"
+       highlight_text_field="true"
+       name="inventory search editor"
+       width="102" />
+      <button
+       follows="top|right"
+       height="23"
+       image_hover_unselected="Toolbar_Middle_Over"
+       image_overlay="Conv_toolbar_collapse"
+       image_selected="Toolbar_Middle_Selected"
+       image_unselected="Toolbar_Middle_Off"
+       layout="topleft"
+       left_pad="1"
+       name="collapse_all_btn"
+       tool_tip="Collapse all folders"
+       width="23" />
+      <button
+       follows="top|right"
+       height="23"
+       image_hover_unselected="Toolbar_Middle_Over"
+       image_overlay="Conv_toolbar_expand"
+       image_selected="Toolbar_Middle_Selected"
+       image_unselected="Toolbar_Middle_Off"
+       layout="topleft"
+       left_pad="1"
+       name="expand_all_btn"
+       tool_tip="Expand all folders (opens the folders already loaded in this view)"
+       width="23" />
+      <menu_button
+       follows="top|right"
+       tool_tip="Actions"
+       height="23"
+       image_hover_unselected="Toolbar_Middle_Over"
+       image_overlay="OptionsMenu_Off"
+       image_selected="Toolbar_Middle_Selected"
+       image_unselected="Toolbar_Middle_Off"
+       layout="topleft"
+       left_pad="1"
+       name="options_gear_btn"
+       width="31" />
+      <menu_button
        follows="top|right"
        tool_tip="View &amp; sort options"
        height="23"
@@ -145,120 +195,48 @@
        image_selected="Toolbar_Middle_Selected"
        image_unselected="Toolbar_Middle_Off"
        layout="topleft"
-       left_pad="2"
-       top="0"
+       left_pad="1"
        name="view_btn"
-       width="25" />
-    </layout_panel>
-  </layout_stack>
-  <layout_stack
-   follows="left|top|right"
-   height="18"
-   animate="false"
-   top_pad="4"
-   left="4"
-   right="-4"
-   name="ctrl_stack"
-   orientation="horizontal">
-    <layout_panel
-     border="false"
-     bevel_style="in"
-     user_resize="false"
-     auto_resize="false"
-     height="18"
-     width="168"
-     name="collapse_expand_buttons">
+       width="31" />
       <button
-       follows="top|left"
-       height="18"
-       label="Collapse"
-       layout="topleft"
-       left="0"
-       top="0"
-       name="collapse_all_btn"
-       tool_tip="Collapse all folders"
-       width="80" />
-      <button
-       follows="top|left"
-       height="18"
-       label="Expand"
-       layout="topleft"
-       left_pad="4"
-       name="expand_all_btn"
-       tool_tip="Expand all folders (opens the folders already loaded in this view)"
-       width="80" />
-    </layout_panel>
-    <layout_panel
-     border="false"
-     bevel_style="in"
-     user_resize="false"
-     height="18"
-     width="242"
-     name="filter_ctrls">
-      <text
-       follows="top|left"
-       height="18"
-       layout="topleft"
-       left="4"
-       top="2"
-       name="filter_label"
-       width="36">
-        Filter:
-      </text>
-      <combo_box
-       follows="top|left|right"
-       height="18"
-       layout="topleft"
-       left_pad="2"
-       top="0"
-       right="-34"
-       name="filter_combo_box"
-       tool_tip="Show only this type of item">
-        <combo_box.item value="filter_type_all" label="All Types" />
-        <combo_box.item value="filter_separator" label="------------" enabled="false" />
-        <combo_box.item value="filter_type_animations" label="Animations" />
-        <combo_box.item value="filter_type_calling_cards" label="Calling Cards" />
-        <combo_box.item value="filter_type_clothing" label="Clothing / Body Parts" />
-        <combo_box.item value="filter_type_gestures" label="Gestures" />
-        <combo_box.item value="filter_type_landmarks" label="Landmarks" />
-        <combo_box.item value="filter_type_notecards" label="Notecards" />
-        <combo_box.item value="filter_type_objects" label="Objects" />
-        <combo_box.item value="filter_type_scripts" label="Scripts" />
-        <combo_box.item value="filter_type_sounds" label="Sounds" />
-        <combo_box.item value="filter_type_textures" label="Textures" />
-        <combo_box.item value="filter_type_snapshots" label="Snapshots" />
-        <combo_box.item value="filter_type_materials" label="Materials" />
-        <combo_box.item value="filter_type_settings" label="Settings" />
-        <combo_box.item value="filter_separator" label="------------" enabled="false" />
-        <combo_box.item value="filter_type_custom" label="Custom..." />
-      </combo_box>
-      <menu_button
        follows="top|right"
-       tool_tip="Search visibility options"
-       height="18"
-       image_overlay="Inv_Toolbar_SearchVisibility"
+       height="23"
+       image_hover_unselected="Toolbar_Middle_Over"
+       image_overlay="AddItem_Off"
+       image_selected="Toolbar_Middle_Selected"
+       image_unselected="Toolbar_Middle_Off"
        layout="topleft"
-       right="-1"
-       top="0"
-       name="options_visibility_btn"
+       left_pad="1"
+       name="add_btn"
+       tool_tip="Create new item"
+       width="31" />
+      <button
+       follows="top|right"
+       tool_tip="Switch between views"
+       height="23"
+       image_hover_unselected="Toolbar_Middle_Over"
+       image_overlay="Single_Folder_Mode"
+       image_selected="Toolbar_Middle_Selected"
+       image_unselected="Toolbar_Middle_Off"
+       layout="topleft"
+       left_pad="1"
+       name="view_mode_btn"
        width="31" />
     </layout_panel>
-  </layout_stack>
-  <!-- </Prestige> -->
-    <!-- <Prestige> heights fit the Firestorm layout (two rows on top, button bar below) -->
+    </layout_stack>
     <panel
      follows="all"
      halign="center"
-     height="335"
+     height="372"
      layout="topleft"
      left="3"
      right="-3"
      name="default_inventory_panel"
-     top_pad="4">
+     top_pad="5">
       <tab_container
        follows="all"
        halign="center"
-       height="335"
+       height="372"
        layout="topleft"
        left="0"
        name="inventory filter tabs"
@@ -336,7 +314,7 @@
     <panel
      follows="all"
      halign="center"
-     height="335"
+     height="375"
      layout="topleft"
      left="7"
      name="combination_view_inventory"
@@ -345,7 +323,7 @@
      <layout_stack
       follows="all"
       layout="topleft"
-      height="335"
+      height="375"
       name="combination_view_stack"
       animate="false"
       drag_handle_thickness="6"
@@ -361,7 +339,7 @@
         bevel_style="in"
         user_resize="true"
         auto_resize="true"
-        height="222"
+        height="248"
         min_width="150"
         name="comb_gallery_layout">
         <panel
@@ -369,7 +347,7 @@
          filename="panel_inventory_gallery.xml"
          left="0"
          top="1"
-         height="222"
+         height="248"
          name="comb_gallery_view_inv"
          background_visible="true"
          follows="all"
@@ -381,7 +359,7 @@
         bevel_style="in"
         user_resize="true"
         auto_resize="true"
-        height="113"
+        height="127"
         min_height="100"
         name="comb_inventory_layout">
         <single_folder_inventory_panel
@@ -389,7 +367,7 @@
          follows="all"
          left="0"
          top="1"
-         height="113"
+         height="127"
          layout="topleft"
          show_item_link_overlays="true"
          bg_opaque_color="DkGray2"
@@ -408,116 +386,4 @@
        </layout_panel>
      </layout_stack>
     </panel>
-    <!-- </Prestige> -->
-    <!-- <Prestige> Firestorm button bar: gear, add, new window, filters, view mode,
-         the element counter and the trash (drop items on it to delete them) -->
-    <panel
-     follows="left|right|bottom"
-     height="25"
-     layout="topleft"
-     bottom="-4"
-     left="4"
-     right="-4"
-     name="bottom_panel">
-      <menu_button
-       follows="bottom|left"
-       tool_tip="Show additional options"
-       height="25"
-       image_hover_unselected="Toolbar_Left_Over"
-       image_overlay="OptionsMenu_Off"
-       image_selected="Toolbar_Left_Selected"
-       image_unselected="Toolbar_Left_Off"
-       layout="topleft"
-       left="0"
-       top="0"
-       name="options_gear_btn"
-       width="31" />
-      <button
-       follows="bottom|left"
-       height="25"
-       image_hover_unselected="Toolbar_Middle_Over"
-       image_overlay="AddItem_Off"
-       image_selected="Toolbar_Middle_Selected"
-       image_unselected="Toolbar_Middle_Off"
-       layout="topleft"
-       left_pad="1"
-       name="add_btn"
-       tool_tip="Create new item"
-       width="31" />
-      <button
-       follows="bottom|left"
-       height="25"
-       image_hover_unselected="Toolbar_Middle_Over"
-       image_overlay="Inv_NewWindow"
-       image_selected="Toolbar_Middle_Selected"
-       image_unselected="Toolbar_Middle_Off"
-       layout="topleft"
-       left_pad="1"
-       name="new_inv_btn"
-       tool_tip="Additional inventory window"
-       width="31" />
-      <button
-       follows="bottom|left"
-       height="25"
-       image_hover_unselected="Toolbar_Middle_Over"
-       image_overlay="Inv_ShowFilters"
-       image_selected="Toolbar_Middle_Selected"
-       image_unselected="Toolbar_Middle_Off"
-       is_toggle="true"
-       layout="topleft"
-       left_pad="1"
-       name="show_filters_inv_btn"
-       tool_tip="Show filters (lit while the filter window is open)"
-       width="31" />
-      <button
-       follows="bottom|left"
-       tool_tip="Switch between views"
-       height="25"
-       image_hover_unselected="Toolbar_Middle_Over"
-       image_overlay="Single_Folder_Mode"
-       image_selected="Toolbar_Middle_Selected"
-       image_unselected="Toolbar_Middle_Off"
-       layout="topleft"
-       left_pad="1"
-       name="view_mode_btn"
-       width="31" />
-      <icon
-       follows="bottom|left|right"
-       height="25"
-       image_name="Toolbar_Middle_Off"
-       layout="topleft"
-       left_pad="1"
-       top="0"
-       right="-33"
-       name="dummy_icon" />
-      <text
-       type="string"
-       length="1"
-       follows="bottom|left|right"
-       height="17"
-       layout="topleft"
-       left_delta="8"
-       top="4"
-       right="-41"
-       name="ItemcountText"
-       font="SansSerifMedium"
-       valign="center"
-       use_ellipses="true">
-        Elements
-      </text>
-      <dnd_button
-       follows="bottom|right"
-       height="25"
-       image_hover_unselected="Toolbar_Right_Over"
-       image_overlay="TrashItem_Off"
-       image_selected="Toolbar_Right_Selected"
-       image_unselected="Toolbar_Right_Off"
-       layout="topleft"
-       right="-1"
-       top="0"
-       name="trash_btn"
-       tool_tip="Delete the selected items (or drop items here)"
-       width="31" />
-    </panel>
-    <!-- </Prestige> -->
 </panel>

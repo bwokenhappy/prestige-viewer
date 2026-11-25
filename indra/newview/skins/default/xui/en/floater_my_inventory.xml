@@ -6,15 +6,14 @@
  can_resize="true"
  height="570"
  help_topic="sidebar_inventory"
- min_width="300"
+ min_width="363"
  min_height="270"
  name="floater_my_inventory"
  save_rect="true"
  save_visibility="true"
  reuse_instance="true"
- title="Inventory"
- width="333" >
-   <!-- <Prestige> Firestorm default size (333 wide), min width 300 for the Firestorm control rows -->
+ title="INVENTORY"
+ width="418" >
    <panel
     class="sidepanel_inventory"
     name="main_panel"

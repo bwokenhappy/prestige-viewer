@@ -17,19 +17,34 @@
 		 height="570"
 		 visible="true"
 		 default_tab_group="1">
-      <!-- <Prestige> the inventory straight in the window, stretching on every side. It used to sit
-           in a one-panel layout_stack (the Received Items panel below it is gone, #489) whose panel was
-           300 tall and bottom-anchored: when the stack had not laid out yet, the inventory stayed 300
-           tall at the bottom of a taller window, under a blank band. No code looks the stack up. -->
-      <panel
-           class="panel_main_inventory"
-           filename="panel_main_inventory.xml"
-           follows="all"
-           layout="topleft"
-           left="0"
-           name="panel_main_inventory"
-           top="0"
-           label=""
-           height="570" />
+      <layout_stack
+              follows="left|right|top|bottom"
+              layout="topleft"
+              left="0"
+              top="0"
+              tab_group="1"
+              orientation="vertical"
+              name="inventory_layout_stack"
+              height="560">
+             <layout_panel
+                 name="main_inventory_layout_panel"
+                 layout="topleft"
+                 auto_resize="true"
+                 user_resize="false"
+                 min_dim="150"
+                 follows="bottom|left|right"
+                 height="300">
+                 <panel
+                      class="panel_main_inventory"
+                      filename="panel_main_inventory.xml"
+                      follows="all"
+                      layout="topleft"
+                      left="0"
+                      name="panel_main_inventory"
+                      top="0"
+                      label=""
+                      height="300" />
+             </layout_panel>
+         </layout_stack>
 	</panel>
 </panel>

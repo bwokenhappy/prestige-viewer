@@ -43,6 +43,7 @@ NEWVIEW = os.path.join(ROOT, "indra", "newview")
 SKINS = os.path.join(NEWVIEW, "skins")
 
 # Firestorm images we do not take: branding (Prestige keeps its own) and world graphics.
+KEEP_BITMAP_PREFIXES = ("Inv_", "Object_", "Parcel_")   # <Prestige> colourful icons
 SKIP_TEXTURES = {"SL_Logo", "System_Notification", "login_sl_logo", "login_sl_logo_small",
                  "first_login_image", "direction_arrow.tga", "Edit_Flip_X"}
 # Images XUI names by file (no textures.xml entry) that Firestorm draws differently.
@@ -272,6 +273,13 @@ def build_textures(fs_skins, theme, title, out_dir):
             print("warning: Firestorm has no image for %s" % name)
             continue
         if "vector_file" in attrs:
+            # <Prestige> only colourful icons and stretchable frames take Firestorm's bitmap; every
+            # other small icon (checkmarks, arrows, toolbar and window icons) keeps Prestige's sharp
+            # vector glyph, coloured by the skin's IconWidget*/IconColor colours, because small
+            # bitmaps go blocky when the interface is scaled.
+            is_frame = any(k.startswith("scale") for k in attrs)
+            if not (name.startswith(KEEP_BITMAP_PREFIXES) or is_frame):
+                continue
             entries.append((name, rel))
             want(rel, src)
         elif attrs.get("file_name", name).lower() == rel.lower():

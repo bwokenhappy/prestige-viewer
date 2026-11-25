@@ -10,7 +10,7 @@
     button_display_mode="icons_with_text"/>
   <bottom_toolbar
     button_display_mode="icons_with_text"
-    button_layout_mode="fill">
+    button_layout_mode="left">
     <command name="howto"/>
     <command name="chat"/>
     <command name="speak"/>

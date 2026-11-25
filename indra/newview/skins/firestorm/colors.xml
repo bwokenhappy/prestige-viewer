@@ -9,6 +9,7 @@
     <!-- Firestorm palette (names the colours below reference) -->
     <color name="AreaSearchBeaconColor" reference="Blue_80" />
     <color name="ChatNameColor" reference="AccentColor" />
+    <color name="ChatNameObjectColor" reference="AccentColor" /> <!-- <Prestige/> Firestorm: object names in chat -->
     <color name="FSChatHistoryBackground" reference="Transparent" />
     <color name="FpsDisplayUncappedColor" reference="LabelTextColor" />
     <color name="FriendsChatColor" reference="White" />

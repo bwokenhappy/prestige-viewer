@@ -169,6 +169,23 @@ bool LLViewerChat::useNameColors()
 LLUIColor LLViewerChat::getChatNameColor(const LLChat& chat)
 {
     LLUIColorTable& colors = LLUIColorTable::instance();
+    // <Prestige> Firestorm skins: every resident's name in ChatNameColor (Firestorm's lime accent),
+    // contact sets still win; object names in ChatNameObjectColor. Skins without ChatNameColor
+    // (the Prestige skins) keep colouring names by who is speaking.
+    static const bool skin_name_color = colors.colorExists("ChatNameColor");
+    if (skin_name_color && !chat.mMuted)
+    {
+        if (is_resident_chat(chat))
+        {
+            const LLColor4 name_color = colors.getColor("ChatNameColor").get();
+            return LLUIColor(LGGContactSets::getInstance()->getAvatarColor(chat.mFromID, name_color, ContactSetType::CHAT));
+        }
+        if (chat.mSourceType == CHAT_SOURCE_OBJECT && colors.colorExists("ChatNameObjectColor"))
+        {
+            return colors.getColor("ChatNameObjectColor");
+        }
+    }
+    // </Prestige>
     if (!chat.mMuted && is_resident_chat(chat))
     {
         if (chat.mFromID == gAgentID)

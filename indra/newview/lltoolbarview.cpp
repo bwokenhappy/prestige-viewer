@@ -241,7 +241,9 @@ bool LLToolBarView::loadToolbars(bool force_default)
         // 5: names beside the icons (Icons and labels) on every bar
         // 6: <Prestige> Firestorm 7's default buttons and order (bottom: How to ... Quick
         //    Preferences, then ReShade, Weather; left: Destinations), names beside the icons
-        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 6;
+        // 7: <Prestige> labelled bars lay out "left" (each button as wide as its name, a second
+        //    row when they don't fit) instead of "fill" (equal widths that cut the names off)
+        constexpr U32 PRESTIGE_TOOLBAR_LAYOUT = 7;
         constexpr U32 PRESTIGE_TOOLBAR_LAYOUT_FIRESTORM = 6;
         if (gSavedPerAccountSettings.controlExists("PrestigeToolbarLayout"))
         {
@@ -254,6 +256,7 @@ bool LLToolBarView::loadToolbars(bool force_default)
             else if (had < PRESTIGE_TOOLBAR_LAYOUT)
             {
                 // <Prestige> keep this account's own buttons, show their names beside the icons
+                // and let labelled bars size each button to its name
                 prestige_show_labels = true;
                 // </Prestige>
             }
@@ -431,6 +434,11 @@ bool LLToolBarView::loadToolbars(bool force_default)
             if (mToolbars[i])
             {
                 mToolbars[i]->setButtonType(LLToolBarEnums::BTNTYPE_ICONS_WITH_TEXT);
+                // equal widths ("fill") cut the names off: one button per name width instead
+                if (mToolbars[i]->getLayoutType() == LLToolBarEnums::LAYOUT_FILL)
+                {
+                    mToolbars[i]->setLayoutType(LLToolBarEnums::LAYOUT_LEFT);
+                }
             }
         }
     }

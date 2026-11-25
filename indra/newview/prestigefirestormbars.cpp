@@ -68,6 +68,16 @@ namespace
 
 void applyDefaultsOnce(LLControlGroup& group)
 {
+    // Firestorm: the People toolbar button opens the People window (Nearby / Friends / Groups /
+    // Recent / Blocked), not the Contacts pane in Conversations (Contacts stays in that list). Once,
+    // also for accounts that already had the bars switch.
+    if (group.controlExists("PrestigeFirestormPeopleApplied") && !group.getBOOL("PrestigeFirestormPeopleApplied"))
+    {
+        setBool(group, "ContactsInConversations", false);
+        group.setBOOL("PrestigeFirestormPeopleApplied", true);
+        LL_INFOS("Prestige") << "People button opens the People window, as in Firestorm (once)" << LL_ENDL;
+    }
+
     if (!group.controlExists("PrestigeFirestormBarsApplied") || group.getBOOL("PrestigeFirestormBarsApplied"))
     {
         return;

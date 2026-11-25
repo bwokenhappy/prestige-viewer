@@ -28,6 +28,7 @@
 #define LL_SCRIPTFLOATER_H
 
 #include "lltransientdockablefloater.h"
+#include <vector>
 #include "llnotificationptr.h"
 
 class LLToastPanel;
@@ -132,6 +133,10 @@ protected:
 private:
 
     script_notification_map_t mNotifications;
+    // <Prestige> the notifications in the order they arrived, so a waiting offer/dialog surfaces
+    // oldest first when the visible one closes (mNotifications is sorted by id, not by arrival).
+    std::vector<LLUUID> mArrivalOrder;
+    // </Prestige>
 
     object_signal_t mNewObjectSignal;
     object_signal_t mToggleFloaterSignal;

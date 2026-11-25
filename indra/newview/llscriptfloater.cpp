@@ -26,6 +26,7 @@
 
 #include "llviewerprecompiledheaders.h"
 #include "llscriptfloater.h"
+#include <algorithm>
 #include "llagentcamera.h"
 
 #include "llchannelmanager.h"
@@ -493,6 +494,7 @@ void LLScriptFloaterManager::onAddNotification(const LLUUID& notification_id)
     }
 
     mNotifications.insert(std::make_pair(notification_id, object_id));
+    mArrivalOrder.push_back(notification_id); // <Prestige/>
 
     LLChicletPanel * chiclet_panelp = LLChicletBar::getInstance()->getChicletPanel();
     if (NULL != chiclet_panelp)
@@ -597,6 +599,7 @@ void LLScriptFloaterManager::onRemoveNotification(const LLUUID& notification_id)
     }
 
     mNotifications.erase(notification_id);
+    mArrivalOrder.erase(std::remove(mArrivalOrder.begin(), mArrivalOrder.end(), notification_id), mArrivalOrder.end()); // <Prestige/>
 
     // close floater
     LLScriptFloater* floater = LLFloaterReg::findTypedInstance<LLScriptFloater>("script_floater", notification_id);
@@ -613,16 +616,47 @@ void LLScriptFloaterManager::onRemoveNotification(const LLUUID& notification_id)
     // closes, nothing surfaces the next; the user has to click its chiclet.
     // Surface the most recently-added remaining notification automatically so
     // stacked dialogs behave like a queue: answer one, the next pops up.
+    //
+    // <Prestige> The same holds for item offers ("ObjectGiveItem") and web-page offers: each docks to
+    // its chiclet and the newest hides the others, so after accepting one delivery the rest of a
+    // multi-item delivery never came back until another offer arrived. Surface the oldest waiting
+    // offer (or, in SCRIPT_UNCONSTRAINED mode, dialog) whenever none of them is showing.
     static LLCachedControl<U32> script_dialog_limitations(gSavedSettings, "ScriptDialogLimitations", 0);
-    if (script_dialog_limitations == SCRIPT_UNCONSTRAINED && !mNotifications.empty())
+    const bool dialogs_queue = (script_dialog_limitations == SCRIPT_UNCONSTRAINED);
+    bool one_showing = false;
+    LLScriptFloater* next = nullptr;
+    for (const LLUUID& id : mArrivalOrder)
     {
-        const LLUUID& next_id = mNotifications.rbegin()->first;
-        LLScriptFloater* next = LLFloaterReg::findTypedInstance<LLScriptFloater>("script_floater", next_id);
-        if (next && !next->getVisible())
+        if (!LLNotifications::instance().find(id))
         {
-            next->setVisible(true);
+            continue; // already gone (getObjectType() needs a live notification)
+        }
+        const EObjectType type = getObjectType(id);
+        if (type != OBJ_GIVE_INVENTORY && type != OBJ_LOAD_URL && !(dialogs_queue && type == OBJ_SCRIPT))
+        {
+            continue;
+        }
+        LLScriptFloater* floater = LLFloaterReg::findTypedInstance<LLScriptFloater>("script_floater", id);
+        if (!floater)
+        {
+            continue;
+        }
+        if (floater->getVisible())
+        {
+            one_showing = true;
+            break;
+        }
+        if (!next)
+        {
+            next = floater; // the oldest waiting one
         }
     }
+    if (!one_showing && next)
+    {
+        next->setVisible(true);
+        next->setFocus(false);
+    }
+    // </Prestige>
 }
 
 void LLScriptFloaterManager::toggleScriptFloater(const LLUUID& notification_id, bool set_new_message)

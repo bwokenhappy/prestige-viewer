@@ -504,9 +504,9 @@
     <color name="ChatImagePlaceholderTextColor" reference="LabelTextColor" />
     <!-- Prestige colour (no Firestorm equivalent) -->
     <color name="ChatImagePlaceholderSubTextColor" reference="TextFgReadOnlyColor" />
-    <color name="MenuBarBetaBgColor" reference="DkBlue" />
-    <color name="MenuBarProjectBgColor" reference="MdBlue" />
-    <color name="MenuBarTestBgColor" reference="DkRed" />
+    <color name="MenuBarBetaBgColor" reference="MenuBarBgColor" /> <!-- <Prestige/> Prestige test builds: Firestorm release grey, not the channel colour -->
+    <color name="MenuBarProjectBgColor" reference="MenuBarBgColor" /> <!-- <Prestige/> Prestige test builds: Firestorm release grey, not the channel colour -->
+    <color name="MenuBarTestBgColor" reference="MenuBarBgColor" /> <!-- <Prestige/> Prestige test builds: Firestorm release grey, not the channel colour -->
     <color name="MeshImportTableNormalColor" value="1 1 1 1" />
     <color name="MeshImportTableHighlightColor" value="0.2 0.8 1 1" />
     <color name="DirectChatColor" reference="LtOrange" />

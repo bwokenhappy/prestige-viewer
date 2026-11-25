@@ -26,6 +26,17 @@ jobs:
       XWIN_ROOT: /home/runner/.xwin
       # 4 vCPU / 16 GB runner: big translation units need several GB each.
       NINJA_JOBS: "3"
+      # Compile cache: a build only recompiles what changed since the last cached build.
+      # CMake picks the launcher up from these variables; 00-Common.cmake then switches
+      # debug info from /Zi to the cacheable /Z7.
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_BASEDIR: ${{ github.workspace }}
+      CCACHE_MAXSIZE: 4G
+      CCACHE_COMPRESS: "true"
+      CCACHE_COMPILERCHECK: content
+      CCACHE_SLOPPINESS: time_macros,include_file_mtime,include_file_ctime,pch_defines,locale
     steps:
       - name: Free disk space (the build needs ~30 GB)
         run: |
@@ -41,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -q
-          sudo apt-get install -y -q ninja-build glslc glslang-tools libvulkan-dev libvulkan1 \
+          sudo apt-get install -y -q ninja-build glslc glslang-tools libvulkan-dev libvulkan1 ccache \
                7zip nsis python3-venv binutils wget lsb-release software-properties-common gnupg
           # modern 7-Zip (opens the vc_redist installer bundle) under the name the scripts call
           if command -v 7zz >/dev/null; then sudo ln -sf "$(command -v 7zz)" /usr/local/bin/7z; fi
@@ -53,7 +64,7 @@ jobs:
       - name: Check tools
         run: |
           set -euo pipefail
-          for t in clang-cl lld-link llvm-lib llvm-rc llvm-mt llvm-dlltool glslc glslangValidator ninja cmake 7z makensis; do
+          for t in ccache clang-cl lld-link llvm-lib llvm-rc llvm-mt llvm-dlltool glslc glslangValidator ninja cmake 7z makensis; do
             printf '%-16s %s\n' "$t" "$(command -v $t || echo MISSING)"
             command -v "$t" >/dev/null
           done
@@ -92,13 +103,31 @@ jobs:
           key: 3p-win-${{ hashFiles('indra/cmake/3p_manifest.json') }}
           restore-keys: 3p-win-
 
+      - name: Restore compile cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-win-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ccache-win-${{ github.ref_name }}-
+            ccache-win-
+
       - name: Cross-build and package Prestige (Windows x64)
         run: |
           set -euo pipefail
+          ccache -z
           bash scripts/ci/version.sh
           make windows RUN_CHECKS=0 SL_3P_CACHE="$SL_3P_CACHE"
           ls -la build-windows-x86_64/package/
+          ccache -s
           df -h /
+
+      - name: Save compile cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-win-${{ github.ref_name }}-${{ github.sha }}
 
       - name: Upload Prestige for Windows
         uses: actions/upload-artifact@v4

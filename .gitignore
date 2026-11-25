@@ -101,8 +101,8 @@ web/secondlife.com.*
 /.autobuild-installables-win/
 /.build-variables/
 
-# Claude Code agent notes / worktrees (local only)
-CLAUDE.md
+# Claude Code agent notes / worktrees (local only). <Prestige> CLAUDE.md is shared: it carries the
+# project notes to Claude Code on the owner's PC.
 CLAUDE.local.md
 CLEAN29.md
 .claude/

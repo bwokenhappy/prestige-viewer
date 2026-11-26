@@ -48,6 +48,13 @@ SKIP_TEXTURES = {"SL_Logo", "System_Notification", "login_sl_logo", "login_sl_lo
                  "first_login_image", "direction_arrow.tga", "Edit_Flip_X"}
 # Images XUI names by file (no textures.xml entry) that Firestorm draws differently.
 EXTRA_FILES = ("tabarea.tga", "widgets/SegmentedBtn_Right_On_Selected.png")
+# <Prestige> Firestorm-look icons drawn as Prestige's layered vectors (textures/prestige_icons),
+# sharp at any interface scale, instead of Firestorm's 16 px bitmap.
+VECTOR_OVERRIDES = {
+    "Inv_Object": 'vector_file="prestige_icons/cube_base.svg" vector_color="#A06C16" vector_box="0.07,0.05,0.93,0.96" '
+                  'vector_file2="prestige_icons/cube_top.svg" vector_color2="#F7D57E" vector_box2="0.14,0.09,0.86,0.47" '
+                  'vector_file3="prestige_icons/cube_left.svg" vector_color3="#DDA43A" vector_box3="0.11,0.33,0.47,0.90"',
+}
 
 # Colour names only Prestige has (or that Firestorm spells differently): (kind, value, why).
 MANUAL = {
@@ -307,6 +314,12 @@ def build_textures(fs_skins, theme, title, out_dir):
                 % (title, "/themes/" + theme if theme else ""))
         f.write('<textures version="101">\n')
         for name, rel in entries:
+            # <Prestige> icons drawn as Prestige's own layered vectors in Firestorm's look
+            if name in VECTOR_OVERRIDES:
+                f.write("  <!-- <Prestige> sharp vector gold box (the 16 px bitmap went blocky when drawn larger) -->\n")
+                f.write("  <texture name=%s file_name=%s %s />\n" % (quoteattr(name), quoteattr(rel), VECTOR_OVERRIDES[name]))
+                continue
+            # </Prestige>
             f.write("  <texture name=%s file_name=%s vector_file=\"\" />\n" % (quoteattr(name), quoteattr(rel)))
         f.write("</textures>\n")
     return len(entries), len(copies)

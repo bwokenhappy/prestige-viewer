@@ -38,7 +38,8 @@
   <texture name="Inv_Material" file_name="icons/Inv_Material.png" vector_file="" />
   <texture name="Inv_Mesh" file_name="legacy/inv_item_mesh.tga" vector_file="" />
   <texture name="Inv_Notecard" file_name="legacy/inv_item_notecard.tga" vector_file="" />
-  <texture name="Inv_Object" file_name="legacy/inv_item_object.tga" vector_file="" />
+  <!-- <Prestige> sharp vector gold box (the 16 px bitmap went blocky when drawn larger) -->
+  <texture name="Inv_Object" file_name="legacy/inv_item_object.tga" vector_file="prestige_icons/cube_base.svg" vector_color="#A06C16" vector_box="0.07,0.05,0.93,0.96" vector_file2="prestige_icons/cube_top.svg" vector_color2="#F7D57E" vector_box2="0.14,0.09,0.86,0.47" vector_file3="prestige_icons/cube_left.svg" vector_color3="#DDA43A" vector_box3="0.11,0.33,0.47,0.90" />
   <texture name="Inv_Object_Multi" file_name="legacy/inv_item_object_multi.tga" vector_file="" />
   <texture name="Inv_Pants" file_name="legacy/inv_item_pants.tga" vector_file="" />
   <texture name="Inv_Script" file_name="legacy/inv_item_script.tga" vector_file="" />

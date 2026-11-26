@@ -201,6 +201,7 @@ class ViewerManifest(LLManifest):
                     self.path("phosphor/*.svg")
                     self.path("phosphor/LICENSE")
                     self.path("phosphor_authored/*.svg")   # in the same style: ours, plus the letter-* / number-* pin icons from GunMetal-DX (squeedledorf, LGPL 2.1, v0.3.0 cf5f1f4)
+                    self.path("prestige_icons/*.svg")   # <Prestige/> layered vector icons (Inv_Object)
                     self.path("salt_and_pepper.jpg")
                     self.path("*.tga")
                     # <Prestige> Firestorm (Grey) skin: Firestorm's legacy/*.tga inventory and parcel icons

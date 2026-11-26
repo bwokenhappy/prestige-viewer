@@ -67,6 +67,21 @@ Same audit rule as above: permissive licences only, unmodified files, nothing wh
 | fubax-shaders | https://github.com/Fubaxiusz/fubax-shaders | `d902cc2e8216` | by Jakub Maksymilian Fober: CC BY-SA 4.0 (BeforeAfter, Chromakey, FilmicAnamorphSharpen, SimpleGrain, SunsetFilter; https://creativecommons.org/licenses/by-sa/4.0/), CC0 (Letterbox, LinearWorkflow.fxh, ColorConversion.fxh); unmodified | BeforeAfter, Chromakey, FilmicAnamorphSharpen, Letterbox, SimpleGrain, SunsetFilter |
 | brussell1 Shaders | https://github.com/brussell1/Shaders | `3869218ea004` | CC BY 4.0, by brussell (https://creativecommons.org/licenses/by/4.0/); unmodified | EyeAdaption |
 
+### More packs (Prestige 1.8.6)
+
+Same audit rule; files unmodified (line endings normalised by git). Every bundled effect is
+compiled and SPIR-V-validated by `.github/workflows/prestige-fx-check.yml` on each push.
+
+| Pack | Source | Commit | Licence | Effects |
+|---|---|---|---|---|
+| AcerolaFX | https://github.com/GarrettGunnell/AcerolaFX | `c33f779b093f` | MIT, Copyright (c) 2023 Garrett Gunnell (`Shaders/AcerolaFX/LICENSE.md`); textures from the same repository | every effect except XeGTAO (Intel-derived; left out) |
+| Insane-Shaders | https://github.com/LordOfLunacy/Insane-Shaders | `19397d503e2f` | CC0-1.0 (`Shaders/InsaneShaders/LICENSE`); Bessel_Bloom.fx keeps Keijiro Takahashi's MIT notice | Bessel_Bloom, BilateralComic, BilateralCS, ContrastStretch, DeepFry, Dehaze, GaussianBlurCS, Halftone, LocalContrastCS, Oilify, ReVeil, SharpContrast (not CMAA_2: Apache-2.0 + textures; not VRS_Map, Mouse, UIMaskCreator: utilities) |
+| CobraFX | https://github.com/LordKobra/CobraFX | `bf9295a7bb8a` | MIT, Copyright (c) SirCobra (`Shaders/CobraFX/LICENSE`); HSV conversion in CobraUtility.fxh by Sam Hocevar (lolengine, WTFPL) | CobraMask, Droste, Frequency_CS, Greyscale, RealLongExposure (not ColorSort_CS, Gravity, Gravity_CS: adapted code without stated terms) |
+| CorgiFX | https://github.com/originalnicodr/CorgiFX | `c4cfbf9dd37f` | CC0-1.0 (`Shaders/CorgiFX/LICENSE`) | AspectRatioMultiGrid (+ customGrid.png), CanvasMask, Flip, FreezeShot (not MagnifyingGlass: shadertoy; not StageDepthPlus, CanvasFog, ColorMask: other authors' code) |
+| NiceGuy-Shaders | https://github.com/mj-ehsan/NiceGuy-Shaders | `2fa6bfc15a8b` | CC0-1.0 (`Shaders/NiceGuy/LICENSE`; "License: CC0" in the files) | DynamicRaindrops (+ NGbokeh.jpg), FastSharp, SlowSharp, HoleFiller, Rim, VolumetricFog, Volumetric Fog V2.0 (not NGLighting, Scatter, Lamps: shadertoy / third-party code) |
+
+Not bundled: dh-reshade-shaders (GPL-2.0), AstrayFX and RSRetroArch (no licence).
+
 <!-- <Prestige> first-party photo filters -->
 ## Prestige photo filters (first-party, not third-party)
 

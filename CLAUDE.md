@@ -75,4 +75,9 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Vertical tab lists (Preferences) put their down arrow at the bottom (`lltabcontainer.cpp`).
   Pose stand: Standing 1-4 (idle stands, no visible change) replaced by local still poses (Arms
   down / forward, Legs apart; `LOCAL_POSES`) and two sits; the arm/leg angle signs are unchecked.
+- 1.8.6: bundled effects (`app_settings/fx/pack`) are never quarantined (`SLFxStack::isBundledEffect`;
+  old quarantines on them are lifted at startup). 61 more pack files from 5 licence-audited repos
+  (THIRD_PARTY.md). **Every bundled .fx must pass `prestige-fx-check.yml`** (slfxc + spirv-val,
+  includes resolved as on Windows); run it after adding effects. Weather: your own changes show at
+  once (`PrestigeWeatherInstant`), region weather keeps `WeatherTransitionSeconds`.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

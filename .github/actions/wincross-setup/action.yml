@@ -1,0 +1,74 @@
+# Prestige: the Windows cross-build machine's setup, shared by the helper jobs and the final job of
+# .github/workflows/prestige-windows.yml (run after actions/checkout). Uses the job's env:
+# LLVM_VERSION, XWIN_ROOT, SL_3P_CACHE.
+name: Windows cross-build setup
+description: Free disk space, install the toolchain, restore the Windows SDK and third-party packages.
+runs:
+  using: composite
+  steps:
+    - name: Free disk space (the build needs ~30 GB)
+      shell: bash
+      run: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+                    /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift \
+                    /usr/local/share/powershell /usr/local/share/chromium /usr/local/lib/node_modules
+        sudo docker image prune -af >/dev/null 2>&1 || true
+        df -h /
+
+    - name: Install build tools (CMake/Ninja, shader compilers, Vulkan, NSIS, 7z, LLVM)
+      shell: bash
+      run: |
+        set -euo pipefail
+        sudo apt-get update -q
+        sudo apt-get install -y -q ninja-build glslc glslang-tools libvulkan-dev libvulkan1 ccache \
+             7zip nsis python3-venv binutils wget lsb-release software-properties-common gnupg
+        # modern 7-Zip (opens the vc_redist installer bundle) under the name the scripts call
+        if command -v 7zz >/dev/null; then sudo ln -sf "$(command -v 7zz)" /usr/local/bin/7z; fi
+        wget -q https://apt.llvm.org/llvm.sh
+        sudo bash llvm.sh "$LLVM_VERSION"
+        sudo apt-get install -y -q "llvm-$LLVM_VERSION" "lld-$LLVM_VERSION" "clang-$LLVM_VERSION"
+        echo "/usr/lib/llvm-$LLVM_VERSION/bin" >> "$GITHUB_PATH"
+
+    - name: Check tools
+      shell: bash
+      run: |
+        set -euo pipefail
+        for t in ccache clang-cl lld-link llvm-lib llvm-rc llvm-mt llvm-dlltool glslc glslangValidator ninja cmake 7z makensis; do
+          printf '%-16s %s\n' "$t" "$(command -v $t || echo MISSING)"
+          command -v "$t" >/dev/null
+        done
+        clang-cl --version | head -1
+        cmake --version | head -1
+
+    - name: Restore Windows SDK (xwin) cache
+      id: xwin-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.XWIN_ROOT }}
+        key: xwin-sdk-v1
+
+    - name: Install xwin and unpack the MSVC CRT / Windows SDK
+      if: steps.xwin-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        mkdir -p /tmp/xwin
+        if gh release download --repo Jake-Shadle/xwin --pattern '*x86_64-unknown-linux-musl.tar.gz' -D /tmp/xwin; then
+          tar -xzf /tmp/xwin/*.tar.gz -C /tmp/xwin
+          XWIN=$(find /tmp/xwin -type f -name xwin -perm -u+x | head -1)
+        else
+          cargo install xwin --locked
+          XWIN=$(command -v xwin)
+        fi
+        "$XWIN" --version
+        "$XWIN" --accept-license splat --output "$XWIN_ROOT"
+        du -sh "$XWIN_ROOT"
+
+    - name: Restore third-party package cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.SL_3P_CACHE }}
+        key: 3p-win-${{ hashFiles('indra/cmake/3p_manifest.json') }}
+        restore-keys: 3p-win-

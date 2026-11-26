@@ -18,6 +18,25 @@ bash scripts/wincross/xwin_case_links.sh
 [ -f "$B/vk/vulkan-1.lib" ] || bash scripts/wincross/make_vulkan_lib.sh "$B/vk"
 bash scripts/wincross/configure.sh
 source scripts/wincross/env.sh
+
+# <Prestige> CI helpers (.github/workflows/prestige-windows.yml): WINCROSS_SHARD=i/n compiles only
+# every n-th object file, starting at the i-th (0-based), into the compile cache (ccache) and stops.
+# The final job then builds everything with those results cached, links and packages. A file that
+# fails here does not fail the helper: the final job compiles it again and reports the error.
+if [ -n "${WINCROSS_SHARD:-}" ]; then
+    shard=${WINCROSS_SHARD%/*}
+    shards=${WINCROSS_SHARD#*/}
+    mapfile -t objs < <(ninja -C "$B" -t targets all | awk -F': ' '$2 ~ /_COMPILER__/ {print $1}' \
+                        | sort | awk -v n="$shards" -v i="$shard" '(NR - 1) % n == i')
+    echo "helper $WINCROSS_SHARD: ${#objs[@]} object files"
+    if [ "${#objs[@]}" -gt 0 ]; then
+        ninja -C "$B" ${NINJA_JOBS:+-j"$NINJA_JOBS"} -k 0 "${objs[@]}" \
+            || echo "helper $WINCROSS_SHARD: some files did not compile (the final job reports them)"
+    fi
+    exit 0
+fi
+# </Prestige>
+
 ninja -C "$B" ${NINJA_JOBS:+-j"$NINJA_JOBS"}
 
 # Stage exactly what viewer_manifest.py ships, then zip it.

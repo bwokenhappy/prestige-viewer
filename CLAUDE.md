@@ -88,4 +88,12 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   off); texture upload Size (`PrestigeUploadTextureMaxSize`); friends log-in/out pop-ups row fixed in
   Preferences > Notifications and hidden while `PrestigeLocalChatNotifications` is off; the
   Firestorm LSL Bridge's `<bridgeURL>` chat is dropped (`llfloaterimnearbychathandler.cpp`).
+- 1.8.7: Effects > Save As... saved over the active preset (it set the combo's text, but
+  `getSimple()` returns the selected item's label); it now saves under the typed name
+  (`savePresetNamed`). Jewelry detail (spelled "Jewelry" in the UI) changed nothing visible in
+  1.8.6; it now also turns on ray-traced reflections (`RenderVKRTReflections`, roughness up to
+  0.6), per-pixel glossy reflections (`RenderVKDeferReflectSharpRough` 0.6) and the Realtime probe
+  (`RenderReflectionProbeDetail` 2). The owner has an RTX 4070 laptop GPU (8 GB) and 16 GB RAM.
+  Note: in 1.8.6 `SLFxEnabled` was still on from earlier sessions, so the restored effects drew at
+  once; that was not a bug.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

@@ -147,6 +147,7 @@ private:
     void onPresetPicked();
     void onPresetSave();
     void onPresetSaveAs();   // <Prestige/>
+    void savePresetNamed(std::string name);   // <Prestige/>
     void onPresetDelete();
     void onPresetImport();
     void onPresetExport();

@@ -250,7 +250,7 @@ static bool handleGlowControlsChanged(const LLSD& newvalue)
 }
 
 // <Prestige> the chat-bar tick box on the toolbar: show / hide the chat bar right away
-// <Prestige> Jewellery detail (Preferences > Graphics): the settings that make small shiny
+// <Prestige> Jewelry detail (Preferences > Graphics): the settings that make small shiny
 // attachments look real, raised together; turning it off puts back what was there before.
 //   RenderVolumeLODFactor >= 4      small mesh (rings, chains) keeps its detail at a distance
 //   RenderReflectionProbeResolution >= 256   sharper reflections in metal and stones
@@ -258,8 +258,15 @@ static bool handleGlowControlsChanged(const LLSD& newvalue)
 //   RenderBloomThreshold <= 1.6     bright highlights on stones and polished metal sparkle a little
 static bool handlePrestigeJewelryDetail(const LLSD& newvalue)
 {
+    // 1.8.7: the 1.8.6 list alone changed nothing visible on most machines (SSR / anisotropic were
+    // already on, the LOD factor only matters at a distance). What shows on small shiny
+    // attachments: ray-traced reflections on glossy pixels, per-pixel (not half-resolution)
+    // glossy reflections, and the realtime probe, which catches the wearer and nearby avatars.
     static const char* kKeys[] = { "RenderVolumeLODFactor", "RenderReflectionProbeResolution",
-                                   "RenderScreenSpaceReflections", "RenderAnisotropic", "RenderBloomThreshold" };
+                                   "RenderScreenSpaceReflections", "RenderAnisotropic", "RenderBloomThreshold",
+                                   "RenderReflectionProbeDetail", "RenderVKRTReflections",
+                                   "RenderVKRTReflectionsRough", "RenderVKRTReflectionsSharpRough",
+                                   "RenderVKDeferReflectSharpRough" };
     if (newvalue.asBoolean())
     {
         LLSD saved = LLSD::emptyMap();
@@ -273,6 +280,14 @@ static bool handlePrestigeJewelryDetail(const LLSD& newvalue)
         gSavedSettings.setBOOL("RenderScreenSpaceReflections", true);
         gSavedSettings.setBOOL("RenderAnisotropic", true);
         gSavedSettings.setF32("RenderBloomThreshold", llmin(gSavedSettings.getF32("RenderBloomThreshold"), 1.6f));
+        gSavedSettings.setS32("RenderReflectionProbeDetail", llmax(gSavedSettings.getS32("RenderReflectionProbeDetail"), 2));
+        if (gSavedSettings.getU32("RenderVKRayTracing") != 0)
+        {
+            gSavedSettings.setU32("RenderVKRTReflections", 1);
+        }
+        gSavedSettings.setF32("RenderVKRTReflectionsRough", llmax(gSavedSettings.getF32("RenderVKRTReflectionsRough"), 0.6f));
+        gSavedSettings.setF32("RenderVKRTReflectionsSharpRough", llmax(gSavedSettings.getF32("RenderVKRTReflectionsSharpRough"), 0.25f));
+        gSavedSettings.setF32("RenderVKDeferReflectSharpRough", llmax(gSavedSettings.getF32("RenderVKDeferReflectSharpRough"), 0.6f));
     }
     else
     {

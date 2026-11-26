@@ -1368,7 +1368,13 @@ void SLPanelPhotoStudioEffects::onPresetPicked()
 
 void SLPanelPhotoStudioEffects::onPresetSave()
 {
-    std::string name = mPresetCombo->getSimple();
+    savePresetNamed(mPresetCombo->getSimple());   // <Prestige> </Prestige>
+}
+
+// <Prestige> the save itself, by name (Save As passes the typed name: the combo's getSimple()
+// returns the selected preset's label, so Save As used to overwrite the active preset)
+void SLPanelPhotoStudioEffects::savePresetNamed(std::string name)
+{
     LLStringUtil::trim(name);
     SLFxPresets& presets = SLFxPresets::instance();
     if (!SLFxPresets::isValidName(name))
@@ -1394,7 +1400,9 @@ void SLPanelPhotoStudioEffects::onPresetSave()
         return;
     }
     presets.save(name);
+    mPresetsChanged = true;
 }
+// </Prestige>
 
 // <Prestige> Save As: name a new preset of your own (the box keeps working as before).
 void SLPanelPhotoStudioEffects::onPresetSaveAs()
@@ -1411,8 +1419,7 @@ void SLPanelPhotoStudioEffects::onPresetSaveAs()
         if (!self || !self->mPresetCombo) return false;
         std::string name = response["message"].asString();
         LLStringUtil::trim(name);
-        self->mPresetCombo->setTextEntry(name);
-        self->onPresetSave();   // validates the name, asks before replacing an existing preset
+        self->savePresetNamed(name);   // validates the name, asks before replacing an existing preset
         self->mPresetsChanged = true;
         return false;
     });

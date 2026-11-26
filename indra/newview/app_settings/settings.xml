@@ -28993,7 +28993,7 @@
     <key>PrestigeJewelryDetail</key>
     <map>
       <key>Comment</key>
-      <string>Jewellery detail (Preferences > Graphics): raises object detail (LOD factor 4), reflection probe resolution (256), turns on screen-space reflections and anisotropic filtering, and lowers the bloom threshold (1.6) so small shiny attachments look real. Off puts back the values from before.</string>
+      <string>Jewelry detail (Preferences > Graphics): raises object detail (LOD factor 4), reflection probe resolution (256) and detail (Realtime), turns on screen-space and ray-traced reflections (RenderVKRTReflections, glossy up to roughness 0.6), per-pixel glossy reflections (RenderVKDeferReflectSharpRough 0.6), anisotropic filtering, and lowers the bloom threshold (1.6) so small shiny attachments look real. Off puts back the values from before.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>

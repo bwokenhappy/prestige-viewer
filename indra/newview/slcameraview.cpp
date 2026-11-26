@@ -2899,6 +2899,25 @@ bool prestigePress(Rml::Element* hover, S32 x)
     return false;
 }
 
+// 1.8.4: a press inside the pad's circle on screen (window coordinates), whatever element RmlUi
+// reports under the pointer. Presses on the knob did nothing in 1.8.3 (reported, not reproduced
+// here): the hover-element test is the one step that can miss, so the pad no longer depends on it.
+// Same geometry as followPad.
+bool padHit(S32 x, S32 y)
+{
+    View&         v = gView;
+    PrestigeView& p = gPrestige;
+    if (p.display != 0 || !v.document || v.density <= 0.f)
+        return false;
+    Rml::Element* ring = v.document->GetElementById("ppadring");
+    if (!ring || !ring->IsVisible(true) || ring->GetOffsetWidth() <= 0.f)
+        return false;
+    const float r  = ring->GetOffsetWidth() * 0.5f;
+    const float cx = ring->GetAbsoluteLeft() + r, cy = ring->GetAbsoluteTop() + ring->GetOffsetHeight() * 0.5f;
+    const float dx = (float)x * v.density - cx, dy = (float)(v.rootH - y) * v.density - cy;
+    return dx * dx + dy * dy <= r * r;
+}
+
 // The press's release. True: it was a ring's or the pad's.
 bool prestigeRelease()
 {
@@ -4339,6 +4358,19 @@ bool SLCameraView::handleMouse(S32 x, S32 y, MASK mask, EMouseClickType click, b
     View& v = gView;
     if (!v.shown)
         return false;
+    // <Prestige> the camera pad's circle takes its press first (padHit), unless a popover or the
+    // send card is up (a click then closes it, as anywhere)
+    if (down && (click == CLICK_LEFT || click == CLICK_DOUBLELEFT) && !v.pressedInDoc && !v.sendOpen
+        && !popupOpen() && padHit(x, y))
+    {
+        LL_DEBUGS("CameraPad") << "pad press at " << x << "," << y << LL_ENDL;
+        v.pressedInDoc = true;
+        gPrestige.padDrag = true;
+        followPad();
+        markChanged();
+        return true;
+    }
+    // </Prestige>
     // <Prestige> camera filters: their panel, picker and split line have first refusal
     if (!v.pressedInDoc && PrestigeCameraFiltersView::handleMouse(x, y, mask, click, down))
     {

@@ -20,7 +20,7 @@
         <!-- <Prestige> taller for the Calmer chat options (was 300) and Readable chat (was 364) -->
         <panel
             follows="left|top"
-            height="582"
+            height="602"
             layout="topleft"
             left="0"
             name="chat_general_scroll_panel"
@@ -230,7 +230,7 @@
             <panel
                 border="false"
                 follows="left|top"
-                height="214"
+                height="234"
                 layout="topleft"
                 name="prestige_readable_chat_settings"
                 top_pad="4"
@@ -304,6 +304,19 @@
                     name="prestige_chat_alt_rows"
                     width="480"
                     top="86" />
+                <!-- <Prestige> -->
+                <check_box
+                    control_name="PrestigeChatTags"
+                    follows="left|top"
+                    height="16"
+                    label="Label notices in nearby chat (System, Item, Friends, Region, Object)"
+                    tool_tip="A small coloured label in front of every nearby chat line that isn't a resident talking: system notices, items you received, friends going on- and offline, region messages, object chatter and your script errors. Conversation keeps its plain look, so you can tell at a glance what's what."
+                    layout="topleft"
+                    left="0"
+                    name="prestige_chat_tags"
+                    width="480"
+                    top="106" />
+                <!-- </Prestige> -->
                 <text
                     follows="left|top"
                     height="14"
@@ -311,7 +324,7 @@
                     left="0"
                     name="line_spacing_label"
                     width="120"
-                    top="113">
+                    top="133">
                     Line spacing:
                 </text>
                 <combo_box
@@ -322,7 +335,7 @@
                     left="125"
                     name="prestige_chat_line_spacing"
                     tool_tip="Extra space between lines in nearby chat and IM windows. The chat font size is set at the top of this page."
-                    top="108"
+                    top="128"
                     width="150">
                     <item label="Tight" name="tight" value="0" />
                     <item label="Comfortable" name="comfortable" value="2" />
@@ -335,7 +348,7 @@
                     left="0"
                     name="readable_colors_label"
                     width="480"
-                    top="138">
+                    top="158">
                     Chat colours (all of them: Preferences, Colors, Chat):
                 </text>
                 <color_swatch
@@ -347,7 +360,7 @@
                     left="0"
                     name="readable_swatch_me"
                     tool_tip="UserChatColor"
-                    top="158"
+                    top="178"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -363,7 +376,7 @@
                     left="34"
                     mouse_opaque="false"
                     name="readable_swatch_me_label"
-                    top="162"
+                    top="182"
                     width="86">
                     Me
                 </text>
@@ -376,7 +389,7 @@
                     left="122"
                     name="readable_swatch_others"
                     tool_tip="AgentChatColor"
-                    top="158"
+                    top="178"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -392,7 +405,7 @@
                     left="156"
                     mouse_opaque="false"
                     name="readable_swatch_others_label"
-                    top="162"
+                    top="182"
                     width="86">
                     Others' names
                 </text>
@@ -405,7 +418,7 @@
                     left="244"
                     name="readable_swatch_friends"
                     tool_tip="FriendChatColor"
-                    top="158"
+                    top="178"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -421,7 +434,7 @@
                     left="278"
                     mouse_opaque="false"
                     name="readable_swatch_friends_label"
-                    top="162"
+                    top="182"
                     width="86">
                     Friends' names
                 </text>
@@ -434,7 +447,7 @@
                     left="366"
                     name="readable_swatch_text"
                     tool_tip="ChatHistoryTextColor"
-                    top="158"
+                    top="178"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -450,7 +463,7 @@
                     left="400"
                     mouse_opaque="false"
                     name="readable_swatch_text_label"
-                    top="162"
+                    top="182"
                     width="86">
                     Message text
                 </text>
@@ -463,7 +476,7 @@
                     left="0"
                     name="readable_swatch_objects"
                     tool_tip="ObjectChatColor"
-                    top="184"
+                    top="204"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -479,7 +492,7 @@
                     left="34"
                     mouse_opaque="false"
                     name="readable_swatch_objects_label"
-                    top="188"
+                    top="208"
                     width="86">
                     Objects
                 </text>
@@ -492,7 +505,7 @@
                     left="122"
                     name="readable_swatch_owner"
                     tool_tip="llOwnerSayChatColor"
-                    top="184"
+                    top="204"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -508,7 +521,7 @@
                     left="156"
                     mouse_opaque="false"
                     name="readable_swatch_owner_label"
-                    top="188"
+                    top="208"
                     width="86">
                     llOwnerSay
                 </text>
@@ -521,7 +534,7 @@
                     left="244"
                     name="readable_swatch_system"
                     tool_tip="SystemChatColor"
-                    top="184"
+                    top="204"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -537,7 +550,7 @@
                     left="278"
                     mouse_opaque="false"
                     name="readable_swatch_system_label"
-                    top="188"
+                    top="208"
                     width="86">
                     System
                 </text>
@@ -550,7 +563,7 @@
                     left="366"
                     name="readable_swatch_time"
                     tool_tip="ChatTimestampColor"
-                    top="184"
+                    top="204"
                     width="30">
                     <color_swatch.init_callback
                         function="Pref.getUIColor"
@@ -566,7 +579,7 @@
                     left="400"
                     mouse_opaque="false"
                     name="readable_swatch_time_label"
-                    top="188"
+                    top="208"
                     width="86">
                     Timestamps
                 </text>

@@ -18,7 +18,7 @@
         width="517">
         <panel
             follows="left|top"
-            height="1065"
+            height="1087"
             layout="topleft"
             left="0"
             name="chat_alerts_scroll_panel"
@@ -790,6 +790,19 @@
                 name="AutoAcceptAllInventory"
                 top_pad="4"
                 width="450" />
+            <!-- <Prestige> -->
+            <check_box
+                control_name="PrestigeInstantDeliveries"
+                follows="left|top"
+                height="16"
+                label="Instant deliveries: accept items from vendors and unpackers without asking"
+                tool_tip="Anything an object gives you (store vendors, redelivery terminals, your own unpacker boxes and HUDs) goes straight into your inventory, with no Keep / Discard prompt. Off: they ask, as normal. Muted residents and objects are still refused. Items from residents still ask."
+                layout="topleft"
+                left="15"
+                name="PrestigeInstantDeliveries"
+                top_pad="6"
+                width="470" />
+            <!-- </Prestige> -->
             <check_box
                 control_name="LogReceivedItems"
                 follows="left|top"

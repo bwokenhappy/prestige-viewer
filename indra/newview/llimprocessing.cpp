@@ -331,6 +331,17 @@ void inventory_offer_handler(LLOfferInfo* info)
         // and possibly open them on receipt depending upon "ShowNewInventory".
         bAutoAccept = true;
     }
+    // <Prestige> Instant deliveries: whatever an object gives (a vendor, a redelivery terminal, your
+    // own unpacker) goes straight into inventory. Muted senders were refused above. A "#RLV/~" folder
+    // give still asks, since only the prompt's Keep puts it under #RLV.
+    static LLCachedControl<bool> instant_deliveries(gSavedSettings, "PrestigeInstantDeliveries", false);
+    if (!bAutoAccept && instant_deliveries && info->mFromObject
+        && !(rlv_handler_t::isEnabled() && IM_TASK_INVENTORY_OFFERED == info->mIM
+             && LLAssetType::AT_CATEGORY == info->mType && info->mDesc.find(RLV_PUTINV_PREFIX) == 1))
+    {
+        bAutoAccept = true;
+    }
+    // </Prestige>
 
     // Strip any SLURL from the message display. (DEV-2754)
     std::string msg = info->mDesc;
@@ -421,7 +432,19 @@ void inventory_offer_handler(LLOfferInfo* info)
         p.name = info->mFromID == gAgentID ? "OwnObjectGiveItem" : "ObjectGiveItem";
 
         // Pop up inv offer chiclet and let the user accept (keep), or reject (and silently delete) the inventory.
-        LLPostponedNotification::add<LLPostponedOfferNotification>(p, info->mFromID, info->mFromGroup);
+        // <Prestige> Show it now. The postponed path held the popup until the owner's name came back
+        // from the name service (seconds for a vendor owner not seen yet), but the text only uses
+        // [OBJECTFROMNAME] and [NAME_SLURL], and the SLURL fills in the name itself once it's known.
+        // [NAME] still gets the owner's name when it is already cached.
+        LLAvatarName owner_name;
+        if (!info->mFromGroup && LLAvatarNameCache::get(info->mFromID, &owner_name))
+        {
+            LLSD subs = p.substitutions;
+            subs["NAME"] = owner_name.getCompleteName();
+            p.substitutions = subs;
+        }
+        LLNotifications::instance().add(p);
+        // </Prestige>
     }
     else // Agent -> Agent Inventory Offer
     {

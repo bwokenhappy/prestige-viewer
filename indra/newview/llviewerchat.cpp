@@ -244,6 +244,47 @@ bool LLViewerChat::isSystemLine(const LLChat& chat)
 }
 
 //static
+std::string LLViewerChat::getChatTag(const LLChat& chat)
+{
+    static LLCachedControl<bool> chat_tags(gSavedSettings, "PrestigeChatTags", true);
+    if (!chat_tags || chat.mSourceType == CHAT_SOURCE_TELEPORT)
+    {
+        return std::string();
+    }
+    if (!chat.mNoticeTag.empty())
+    {
+        return chat.mNoticeTag;
+    }
+    if (chat.mSourceType == CHAT_SOURCE_REGION)
+    {
+        return "Region";
+    }
+    if (chat.mSourceType == CHAT_SOURCE_OBJECT)
+    {
+        return chat.mChatType == CHAT_TYPE_DEBUG_MSG ? "Script" : "Object";
+    }
+    return isSystemLine(chat) ? "System" : std::string();
+}
+
+//static
+LLColor4 LLViewerChat::getChatTagColor(const std::string& tag)
+{
+    LLUIColorTable& colors = LLUIColorTable::instance();
+    const std::string name = "PrestigeChatTag" + tag + "Color";
+    if (colors.colorExists(name))
+    {
+        return colors.getColor(name).get();
+    }
+    // built-in: readable on the dark chat backgrounds of every skin
+    if (tag == "Item")    return LLColor4(0.45f, 0.80f, 1.00f, 1.f); // sky blue
+    if (tag == "Friends") return LLColor4(0.55f, 0.90f, 0.55f, 1.f); // green
+    if (tag == "Region")  return LLColor4(1.00f, 0.75f, 0.35f, 1.f); // amber
+    if (tag == "Object")  return LLColor4(0.75f, 0.65f, 1.00f, 1.f); // lavender
+    if (tag == "Script")  return LLColor4(1.00f, 0.45f, 0.45f, 1.f); // red
+    return LLColor4(0.70f, 0.70f, 0.70f, 1.f);                      // System and others: grey
+}
+
+//static
 bool LLViewerChat::mentionsAgent(const LLChat& chat)
 {
     static LLCachedControl<bool> highlight_my_name(gSavedSettings, "PrestigeChatHighlightMyName", true);

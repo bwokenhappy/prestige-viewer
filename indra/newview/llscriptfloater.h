@@ -136,6 +136,10 @@ private:
     // <Prestige> the notifications in the order they arrived, so a waiting offer/dialog surfaces
     // oldest first when the visible one closes (mNotifications is sorted by id, not by arrival).
     std::vector<LLUUID> mArrivalOrder;
+    // Shows the oldest waiting offer (or queued dialog) when none of them is on screen. Runs on
+    // the next idle after a removal, once the answered floater has finished closing.
+    void surfaceNextQueued();
+    bool mSurfacePending = false;
     // </Prestige>
 
     object_signal_t mNewObjectSignal;

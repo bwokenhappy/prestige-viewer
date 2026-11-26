@@ -78,6 +78,11 @@ public:
     static LLUIColor getChatTextColor(const LLChat& chat, const LLUIColor& kind_color);
     // System, region and estate lines: shown in italics.
     static bool isSystemLine(const LLChat& chat);
+    // PrestigeChatTags: the short label nearby chat puts in front of a line that isn't a resident
+    // talking ("System", "Item", "Friends", "Region", "Object", "Script"); empty for none.
+    static std::string getChatTag(const LLChat& chat);
+    // The label's colour (PrestigeChatTag<Kind>Color in the skin, a built-in one otherwise).
+    static LLColor4 getChatTagColor(const std::string& tag);
     // A message from someone else that names the user as a whole word (PrestigeChatHighlightMyName).
     static bool mentionsAgent(const LLChat& chat);
     // A resident's name as chat headers show it, after PrestigeChatPlainNames (0 as is, 1 fancy

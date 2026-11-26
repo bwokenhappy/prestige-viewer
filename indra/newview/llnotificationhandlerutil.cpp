@@ -235,6 +235,22 @@ void LLHandlerUtil::logToNearbyChat(const LLNotificationPtr& notification, EChat
         chat_msg.mSourceType = type;
         chat_msg.mFromName = SYSTEM_FROM;
         chat_msg.mFromID = LLUUID::null;
+        // <Prestige> which kind of notice it is, for its label in nearby chat (PrestigeChatTags)
+        const std::string& name = notification->getName();
+        const LLSD& payload = notification->getPayload();
+        if (payload.has("chat_tag"))
+        {
+            chat_msg.mNoticeTag = payload["chat_tag"].asString();
+        }
+        else if (name.compare(0, 6, "Friend") == 0)
+        {
+            chat_msg.mNoticeTag = "Friends"; // online / offline, friendship accepted / declined, ...
+        }
+        else if (name.find("Inventory") != std::string::npos || name.find("GiveItem") != std::string::npos)
+        {
+            chat_msg.mNoticeTag = "Item";
+        }
+        // </Prestige>
         nearby_chat->addMessage(chat_msg);
     }
 }

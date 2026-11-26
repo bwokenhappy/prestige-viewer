@@ -1600,8 +1600,48 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     // The window puts its own line break between plain text messages.)
     bool prependNewLineState = !window_ctx && mEditor->getLength() != 0;
 
+    // <Prestige> PrestigeChatTags: a small coloured label ("System", "Item", "Friends", "Region",
+    // "Object", "Script") in front of every line that isn't a resident talking, so notices and
+    // object chatter read apart from conversation.
+    // Nearby chat only (no session): IM windows are one conversation already.
+    const std::string chat_tag = (chat.mSessionID.isNull() && chat.mNotifId.isNull() && !teleport_separator)
+        ? LLViewerChat::getChatTag(chat) : std::string();
+    auto append_chat_tag = [&]()
+    {
+        if (chat_tag.empty())
+        {
+            return;
+        }
+        LLColor4 tag_color = LLViewerChat::getChatTagColor(chat_tag);
+        if (message_from_log)
+        {
+            tag_color.mV[VALPHA] *= 0.6f; // the transcript's lines are greyed out: so is their label
+        }
+        LLColor4 tag_bg = tag_color;
+        tag_bg.mV[VALPHA] *= 0.18f;
+        LLStyle::Params tag_params(body_message_params);
+        tag_params.color = LLUIColor(tag_color);
+        tag_params.readonly_color = LLUIColor(tag_color);
+        tag_params.font.name = LLFontGL::nameFromFont(LLFontGL::getFontSansSerifSmall());
+        tag_params.font.size = LLFontGL::sizeFromFont(LLFontGL::getFontSansSerifSmall());
+        tag_params.font.style = "BOLD";
+        tag_params.highlight_bg_color = LLUIColor(tag_bg);
+        tag_params.draw_highlight_bg = true;
+        mEditor->appendText(" " + chat_tag + " ", prependNewLineState, tag_params);
+        LLStyle::Params gap_params(body_message_params);
+        gap_params.font.style = "NORMAL";
+        gap_params.draw_highlight_bg = false;
+        mEditor->appendText(" ", false, gap_params);
+        prependNewLineState = false;
+    };
+    // </Prestige>
+
     // #463: unnamed objects print the message alone (no name, no delimiter)
-    const bool hide_sender_name = LLViewerChat::hideSenderName(chat);
+    // <Prestige> a labelled system line drops the "Second Life:" name too: the label says it.
+    // Region and estate lines keep theirs (it says who sent them).
+    const bool hide_sender_name = LLViewerChat::hideSenderName(chat)
+        || (!chat_tag.empty() && chat.mSourceType != CHAT_SOURCE_REGION && LLViewerChat::isSystemLine(chat));
+    // </Prestige>
 
     // compact mode: show a timestamp and name
     if (use_plain_text_chat_history)
@@ -1622,6 +1662,8 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
             mEditor->appendText("[" + chat.mTimeStr + "] ", prependNewLineState, timestamp_style);
             prependNewLineState = false;
         }
+
+        append_chat_tag(); // <Prestige/> after the time, before the name
 
         // out the opening square bracket (if need)
         if (square_brackets)
@@ -1931,6 +1973,10 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
             body_message_params.draw_highlight_bg = true;
         }
         // </Prestige>
+        if (!use_plain_text_chat_history)
+        {
+            append_chat_tag(); // <Prestige/> in the expanded layout the label starts the message
+        }
         mEditor->appendText(message, prependNewLineState, body_message_params);
         prependNewLineState = false;
 

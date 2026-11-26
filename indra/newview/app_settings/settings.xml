@@ -1340,6 +1340,19 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <!-- <Prestige> -->
+    <key>PrestigeInstantDeliveries</key>
+    <map>
+      <key>Comment</key>
+      <string>Accept items given by objects (store vendors, redelivery terminals, your own unpacker boxes and HUDs) straight into inventory, without the Keep / Discard prompt. Off by default: offers ask. Offers from muted residents or objects are still refused; "#RLV" folder gives still ask.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>LogReceivedItems</key>
     <map>
       <key>Comment</key>
@@ -8311,6 +8324,19 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <!-- <Prestige> -->
+    <key>PrestigeChatTags</key>
+    <map>
+      <key>Comment</key>
+      <string>Prestige readable chat: a small coloured label (System, Item, Friends, Region, Object, Script) in front of every nearby chat line that isn't a resident talking, so notices and object messages read apart from conversation. Colours: PrestigeChatTag&lt;Kind&gt;Color in the skin, built-in ones otherwise.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <!-- </Prestige> -->
     <key>PrestigeChatHighlightMyName</key>
     <map>
       <key>Comment</key>

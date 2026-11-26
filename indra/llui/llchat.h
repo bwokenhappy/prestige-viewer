@@ -120,6 +120,9 @@ public:
     // <Prestige> an IM from an object (llInstantMessage), shown in nearby chat: meant for us,
     // so never quiet object chat (LLViewerChat::isQuietObjectChat)
     bool            mFromTaskIM;
+    // Which kind of notice a system line in nearby chat is ("Item", "Friends", ...), for its
+    // label (LLViewerChat::getChatTag). Empty: worked out from the source type.
+    std::string     mNoticeTag;
     // </Prestige>
 };
 

@@ -48,4 +48,11 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   (optional lookups) — commit `e5e20a8` has the old attempt.
 - Firestorm's **Content** menu is not in Prestige (owner not asked yet whether to add it).
 - 1.8.3 fixes multi-item deliveries (next offer pops up after answering one, `llscriptfloater.cpp`).
+  1.8.4 (not built or tested in-world yet): `OwnObjectGiveItem` (unpackers) joins that queue, the next
+  offer surfaces on the next idle, object offers show without waiting for the owner's name lookup,
+  `PrestigeInstantDeliveries` (off: offers still ask), and `PrestigeChatTags` labels nearby chat
+  notices (System / Item / Friends / Region / Object / Script).
+  Camera mode's pad did nothing when held (owner, 1.8.3; cause not found by reading): 1.8.4 takes a
+  press inside the pad's circle by screen geometry (`padHit`, `slcameraview.cpp`) before the overlay's
+  hover test; `LL_DEBUGS("CameraPad")` logs the press. Check it in-world.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

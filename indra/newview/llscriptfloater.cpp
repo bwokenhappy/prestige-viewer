@@ -28,6 +28,7 @@
 #include "llscriptfloater.h"
 #include <algorithm>
 #include "llagentcamera.h"
+#include "llcallbacklist.h" // <Prestige/> doOnIdleOneTime
 
 #include "llchannelmanager.h"
 #include "llchiclet.h"
@@ -621,15 +622,35 @@ void LLScriptFloaterManager::onRemoveNotification(const LLUUID& notification_id)
     // its chiclet and the newest hides the others, so after accepting one delivery the rest of a
     // multi-item delivery never came back until another offer arrived. Surface the oldest waiting
     // offer (or, in SCRIPT_UNCONSTRAINED mode, dialog) whenever none of them is showing.
+    // 1.8.4: done on the next idle instead of inside the Keep click, while the answered floater is
+    // still closing and the chiclet bar is still rearranging; several removals share one check.
+    if (!mSurfacePending)
+    {
+        mSurfacePending = true;
+        doOnIdleOneTime([]()
+        {
+            if (LLScriptFloaterManager::instanceExists())
+            {
+                LLScriptFloaterManager::instance().surfaceNextQueued();
+            }
+        });
+    }
+    // </Prestige>
+}
+
+// <Prestige>
+void LLScriptFloaterManager::surfaceNextQueued()
+{
+    mSurfacePending = false;
     static LLCachedControl<U32> script_dialog_limitations(gSavedSettings, "ScriptDialogLimitations", 0);
     const bool dialogs_queue = (script_dialog_limitations == SCRIPT_UNCONSTRAINED);
-    bool one_showing = false;
-    LLScriptFloater* next = nullptr;
+    LLUUID next_id;
     for (const LLUUID& id : mArrivalOrder)
     {
-        if (!LLNotifications::instance().find(id))
+        LLNotificationPtr notification = LLNotifications::instance().find(id);
+        if (!notification || notification->isCancelled() || notification->isRespondedTo())
         {
-            continue; // already gone (getObjectType() needs a live notification)
+            continue; // already answered or gone (getObjectType() needs a live notification)
         }
         const EObjectType type = getObjectType(id);
         if (type != OBJ_GIVE_INVENTORY && type != OBJ_LOAD_URL && !(dialogs_queue && type == OBJ_SCRIPT))
@@ -637,27 +658,44 @@ void LLScriptFloaterManager::onRemoveNotification(const LLUUID& notification_id)
             continue;
         }
         LLScriptFloater* floater = LLFloaterReg::findTypedInstance<LLScriptFloater>("script_floater", id);
-        if (!floater)
+        if (floater && floater->getVisible() && !floater->isMinimized())
         {
-            continue;
+            return; // one is already on screen; the rest wait their turn
         }
-        if (floater->getVisible())
+        if (next_id.isNull())
         {
-            one_showing = true;
-            break;
-        }
-        if (!next)
-        {
-            next = floater; // the oldest waiting one
+            next_id = id; // the oldest waiting one
         }
     }
-    if (!one_showing && next)
+    if (next_id.isNull())
     {
-        next->setVisible(true);
-        next->setFocus(false);
+        return;
     }
-    // </Prestige>
+
+    // Bring its chiclet into view first: a docked floater follows its chiclet, and with many
+    // deliveries the older chiclets are scrolled out of the bar.
+    if (LLChicletBar::instanceExists())
+    {
+        if (LLChicletPanel* chiclet_panelp = LLChicletBar::getInstance()->getChicletPanel())
+        {
+            if (LLChiclet* chicletp = chiclet_panelp->findChiclet<LLChiclet>(next_id))
+            {
+                chiclet_panelp->scrollToChiclet(chicletp);
+            }
+        }
+    }
+
+    if (LLScriptFloater* floater = LLFloaterReg::findTypedInstance<LLScriptFloater>("script_floater", next_id))
+    {
+        floater->setVisible(true);
+        floater->setFocus(false);
+    }
+    else
+    {
+        LLScriptFloater::show(next_id); // its floater went away without answering: build it again
+    }
 }
+// </Prestige>
 
 void LLScriptFloaterManager::toggleScriptFloater(const LLUUID& notification_id, bool set_new_message)
 {
@@ -755,6 +793,11 @@ LLScriptFloaterManager::object_type_map LLScriptFloaterManager::initObjectTypeMa
     type_map["ScriptDialogGroup"] = OBJ_SCRIPT;
     type_map["LoadWebPage"] = OBJ_LOAD_URL;
     type_map["ObjectGiveItem"] = OBJ_GIVE_INVENTORY;
+    // <Prestige> Items from your own objects (an unpacker box or HUD handing out a purchase) use
+    // this template. It was missing, so those offers were "unknown": a script chiclet and no place
+    // in the delivery queue, and the rest of the unpack never popped up after the first Keep.
+    type_map["OwnObjectGiveItem"] = OBJ_GIVE_INVENTORY;
+    // </Prestige>
     return type_map;
 }
 

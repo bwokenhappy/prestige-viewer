@@ -1868,7 +1868,7 @@ bool LLOfferInfo::inventory_offer_callback(const LLSD& notification, const LLSD&
             log_message = "<nolink>" + chatHistory_string + "</nolink> " + LLTrans::getString("InvOfferGaveYou") + " " + getSanitizedDescription() + LLTrans::getString(".");
             LLSD args;
             args["MESSAGE"] = log_message;
-            LLNotificationsUtil::add("SystemMessageTip", args);
+            LLNotificationsUtil::add("SystemMessageTip", args, LLSD().with("chat_tag", "Item")); // <Prestige/> label in nearby chat
         }
 
         break;
@@ -2110,7 +2110,7 @@ bool LLOfferInfo::inventory_task_offer_callback(const LLSD& notification, const 
                 log_message = "<nolink>" + chatHistory_string + "</nolink>" + chatHistory_owner + " " + LLTrans::getString("InvOfferGaveYou") + " " + getSanitizedDescription() + LLTrans::getString(".");
                 LLSD args;
                 args["MESSAGE"] = log_message;
-                LLNotificationsUtil::add("SystemMessageTip", args);
+                LLNotificationsUtil::add("SystemMessageTip", args, LLSD().with("chat_tag", "Item")); // <Prestige/> label in nearby chat
             }
             break;
         case IOR_MUTE:

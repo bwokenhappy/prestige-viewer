@@ -102,6 +102,7 @@ void add_nearby_chat_line(const std::string& text)
         chat.mSourceType = CHAT_SOURCE_SYSTEM;
         chat.mFromName = SYSTEM_FROM;
         chat.mFromID = LLUUID::null;
+        chat.mNoticeTag = "Item"; // <Prestige/> label in nearby chat
         nearby_chat->addMessage(chat);
     }
 }

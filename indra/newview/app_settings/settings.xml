@@ -28960,7 +28960,7 @@
     <key>PrestigeWeatherInstant</key>
     <map>
       <key>Comment</key>
-      <string>Weather: changes you make (sliders, presets, on / off) show at once (settled in about 0.3 s) instead of easing over WeatherTransitionSeconds, which still paces region / parcel weather.</string>
+      <string>Weather: switching your own weather between rain and snow shows at once (settled in about 0.3 s). Turning it on, intensity and wind still build up over WeatherTransitionSeconds, which also paces region / parcel weather.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>

@@ -103,6 +103,8 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Effects responsiveness (`llfxruntimevk.cpp`): switching effects off keeps the compiled effects
   for 30 s (`kFreeAfterOffSec`, freed in `tick()`), so off/on is instant; a failed permutation is
   retried twice (2 s, 8 s; `retryFailed`) instead of staying failed until Refresh.
+  Weather (1.8.8, owner): only a rain <-> snow switch is instant; turning weather on, intensity and
+  wind build up over WeatherTransitionSeconds again (the 1.8.6 "everything instant" lost the build-up).
   Jewelry detail is removed (1.8.8, owner): no checkbox; a leftover "on" restores the saved
   settings once at startup (`restorePrestigeJewelryDetail`, llviewercontrol.cpp).
   Sandstorm removed in 1.8.7 (owner: did not look like sand): no combo item, a saved WeatherType 2

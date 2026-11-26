@@ -448,18 +448,21 @@ void SLWeather::update()
     if (mMoveWhy && (mMoveSettled || !regionSourceOn() || source == SOURCE_LOCAL || now >= mMoveDeadline))
         decideMove(t, source);
 
-    // <Prestige> your own weather changes show at once (PrestigeWeatherInstant): when the local
-    // settings change, everything eases with a 0.1 s time constant for a moment (settled in ~0.3 s,
-    // no pop), then back to the normal pace for what follows (gusts, bands, region weather).
+    // <Prestige> switching your own weather between rain and snow is instant
+    // (PrestigeWeatherInstant): for a moment everything eases with a 0.1 s time constant (settled in
+    // ~0.3 s, no pop). Everything else -- turning it on, intensity, wind -- builds up at the normal
+    // pace (WeatherTransitionSeconds), as before 1.8.6 (owner, 1.8.8: "allow build up").
     {
         static LLCachedControl<bool> s_instant(gSavedSettings, "PrestigeWeatherInstant", true);
         const Target l = localTarget();
-        const std::vector<F32> sig = { l.active ? 1.f : 0.f, l.rainFall, l.snowFall, l.windDirDeg, l.windSpeed,
-                                       l.storm, l.fog, l.cloud, l.windVariation, l.windGustiness,
-                                       l.windDirVariation, l.fallVariation, master ? 1.f : 0.f };
+        const std::vector<F32> sig = { l.active ? 1.f : 0.f,
+                                       l.active ? (l.snowFall > 0.f ? 2.f : (l.rainFall > 0.f ? 1.f : 0.f)) : 0.f };
         if (sig != mLocalSig)
         {
-            if (!mLocalSig.empty() && s_instant) mFastUntil = now + 1.5;
+            // only a change of kind while it is falling (rain <-> snow), not switching it on / off
+            const bool kindSwitch = !mLocalSig.empty() && mLocalSig[0] > 0.f && sig[0] > 0.f
+                                    && mLocalSig[1] > 0.f && sig[1] > 0.f && mLocalSig[1] != sig[1];
+            if (kindSwitch && s_instant) mFastUntil = now + 1.5;
             mLocalSig = sig;
         }
     }

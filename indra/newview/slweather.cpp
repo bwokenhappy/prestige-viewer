@@ -437,8 +437,25 @@ void SLWeather::update()
     if (mMoveWhy && (mMoveSettled || !regionSourceOn() || source == SOURCE_LOCAL || now >= mMoveDeadline))
         decideMove(t, source);
 
+    // <Prestige> your own weather changes show at once (PrestigeWeatherInstant): when the local
+    // settings change, everything eases with a 0.1 s time constant for a moment (settled in ~0.3 s,
+    // no pop), then back to the normal pace for what follows (gusts, bands, region weather).
+    {
+        static LLCachedControl<bool> s_instant(gSavedSettings, "PrestigeWeatherInstant", true);
+        const Target l = localTarget();
+        const std::vector<F32> sig = { l.active ? 1.f : 0.f, l.rainFall, l.snowFall, l.windDirDeg, l.windSpeed,
+                                       l.storm, l.fog, l.cloud, l.windVariation, l.windGustiness,
+                                       l.windDirVariation, l.fallVariation, master ? 1.f : 0.f };
+        if (sig != mLocalSig)
+        {
+            if (!mLocalSig.empty() && s_instant) mFastUntil = now + 1.5;
+            mLocalSig = sig;
+        }
+    }
+    const bool fast = now < mFastUntil && source != SOURCE_REGION;
+    // </Prestige>
     // Ease toward the target: time constant = a third of the transition (0 = immediate).
-    const F32 tau = t.transitionSecs / 3.f;
+    const F32 tau = fast ? std::min(t.transitionSecs / 3.f, 0.1f) : t.transitionSecs / 3.f;   // <Prestige/> fast
     const F32 k = tau <= 1e-3f ? 1.f : (F32)(1.0 - std::exp(-dt / (double)tau));
     // #954 BANDS (slweather.h): the precipitation eases toward the VARIED rate (in amount space,
     // unclamped above the ladder's top); everything else below reads the unvaried target.

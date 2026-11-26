@@ -431,6 +431,12 @@ private:
     Target mRegion;
     bool   mHaveRegion = false;
     double mLastTime = -1.0;
+    // <Prestige> PrestigeWeatherInstant: the user's own settings take effect at once. A change of
+    // the local target (a slider, a preset, weather on / off) eases fast until mFastUntil; region /
+    // parcel weather keeps WeatherTransitionSeconds.
+    std::vector<F32> mLocalSig;
+    double mFastUntil = -1.0;
+    // </Prestige>
     U32    mLastFrame = ~0u;
     F32    mListenerOpen = -1.f;
     F32    mEarOffset[3] = {0.f, 0.f, 0.f};

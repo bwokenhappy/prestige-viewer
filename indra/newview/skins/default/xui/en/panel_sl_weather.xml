@@ -326,7 +326,7 @@
      max_val="120"
      min_val="0"
      name="weather_transition"
-     tool_tip="How long a change of weather takes to settle. 0 = immediate."
+     tool_tip="How long weather from the region or parcel takes to settle when it changes. 0 = immediate. Changes you make here always show at once."
      top_pad="10"
      width="296" />
     <slider

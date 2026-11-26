@@ -47,16 +47,43 @@ jobs:
       - name: Compile every bundled effect
         run: |
           set -uo pipefail
-          PACK=indra/newview/app_settings/fx/pack/Shaders
+          # Windows (the viewer's only platform) opens include files whatever their case and takes
+          # "\" as a separator ("Reshade.fxh", ".\CobraUtility.fxh"). Check a copy of the pack on
+          # this case-sensitive runner with those includes resolved as Windows does.
+          cp -r indra/newview/app_settings/fx/pack/Shaders "$RUNNER_TEMP/pack"
+          cp -r indra/newview/app_settings/fx/Shaders "$RUNNER_TEMP/base"
+          python3 - "$RUNNER_TEMP/pack" "$RUNNER_TEMP/base" <<'PY'
+          import os, re, sys
+          roots = sys.argv[1:]
+          files = [os.path.join(d, f) for r in roots for d, _, fs in os.walk(r) for f in fs]
+          inc = re.compile(r'(#\s*include\s*")([^"]+)(")')
+          for p in files:
+              if not p.lower().endswith((".fx", ".fxh")):
+                  continue
+              src = open(p, encoding="utf-8", errors="surrogateescape").read()
+              out = inc.sub(lambda m: m.group(1) + m.group(2).replace("\\", "/") + m.group(3), src)
+              if out != src:
+                  open(p, "w", encoding="utf-8", errors="surrogateescape").write(out)
+              for name in inc.findall(out):
+                  rel = os.path.normpath(name[1])
+                  here = os.path.dirname(p)
+                  cands = [here] + sorted({os.path.dirname(f) for f in files})
+                  if any(os.path.exists(os.path.join(c, rel)) for c in cands):
+                      continue
+                  for c in cands:
+                      d = os.path.join(c, os.path.dirname(rel))
+                      if not os.path.isdir(d):
+                          continue
+                      hit = [f for f in os.listdir(d) if f.lower() == os.path.basename(rel).lower()]
+                      if hit:
+                          os.symlink(hit[0], os.path.join(d, os.path.basename(rel)))
+                          print("case:", os.path.join(d, os.path.basename(rel)), "->", hit[0])
+                          break
+          PY
+          PACK="$RUNNER_TEMP/pack"
           INC=()
           while IFS= read -r d; do INC+=(-I "$d"); done < <(find "$PACK" -type d | sort)
-          INC+=(-I indra/newview/app_settings/fx/Shaders)
-          # Windows (the viewer's platform) opens include files whatever their case; some effects
-          # write "Reshade.fxh". Give this case-sensitive runner the same spellings.
-          mkdir -p "$RUNNER_TEMP/case"
-          ln -sf "$PWD/indra/newview/app_settings/fx/Shaders/ReShade.fxh" "$RUNNER_TEMP/case/Reshade.fxh"
-          ln -sf "$PWD/indra/newview/app_settings/fx/Shaders/ReShadeUI.fxh" "$RUNNER_TEMP/case/ReshadeUI.fxh"
-          INC+=(-I "$RUNNER_TEMP/case")
+          INC+=(-I "$RUNNER_TEMP/base")
           mapfile -t FX < <(find "$PACK" -name '*.fx' | sort)
           echo "${#FX[@]} effects"
           fails=0

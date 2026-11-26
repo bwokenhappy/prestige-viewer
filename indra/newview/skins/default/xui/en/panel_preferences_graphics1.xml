@@ -508,16 +508,6 @@
     tool_tip="Colour of the whole picture: 1 = as rendered, 1.08 (default) a little richer, lower is more muted. Works on top of the colour grade."
     top="372"
     width="190" />
-  <check_box
-    control_name="PrestigeJewelryDetail"
-    height="16"
-    label="Jewelry detail"
-    layout="topleft"
-    left="395"
-    name="PrestigeJewelryDetail"
-    tool_tip="Makes rings, chains, grills and other shiny jewelry look real: ray-traced reflections in metal and stones (RTX / ray tracing GPUs), sharp full-resolution reflections instead of soft ones, a live reflection probe that shows you and the people around you, small mesh kept detailed at a distance, and a slight sparkle on bright highlights. Costs some performance. Untick to put your previous settings back."
-    top="372"
-    width="120" />
   <!-- </Prestige> -->
 
   <button

@@ -25,16 +25,19 @@
      layout="topleft"
      left_pad="2"
      name="pose_combo"
-     tool_tip="The pose to hold while this window is open. T-pose and A-pose show on your screen only (for fitting); the others everyone around you sees."
+     tool_tip="The pose to hold while this window is open. T-pose, A-pose, Arms down, Arms forward and Legs apart are still poses on your screen only (for fitting); Arms out and the sitting poses everyone around you sees."
      top="22"
      width="160">
         <combo_box.item label="T-pose" name="t_pose" value="t_pose" />
         <combo_box.item label="A-pose" name="a_pose" value="a_pose" />
+        <!-- <Prestige> was Standing 1-4 (the default idle stands: no visible change) -->
+        <combo_box.item label="Arms down" name="arms_down" value="arms_down" />
+        <combo_box.item label="Arms forward" name="arms_forward" value="arms_forward" />
+        <combo_box.item label="Legs apart" name="legs_apart" value="legs_apart" />
         <combo_box.item label="Arms out (fitting)" name="arms_out" value="arms_out" />
-        <combo_box.item label="Standing 1" name="stand_1" value="stand_1" />
-        <combo_box.item label="Standing 2" name="stand_2" value="stand_2" />
-        <combo_box.item label="Standing 3" name="stand_3" value="stand_3" />
-        <combo_box.item label="Standing 4" name="stand_4" value="stand_4" />
+        <combo_box.item label="Sitting on the ground" name="sit_ground" value="sit_ground" />
+        <combo_box.item label="Sitting (chair)" name="sit_chair" value="sit_chair" />
+        <!-- </Prestige> -->
     </combo_box>
     <button
      follows="top|right"

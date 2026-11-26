@@ -73,4 +73,6 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   `PrestigeBaseSaturation` (1.08) and a Sharpen slider (`RenderCASSharpness`) on Preferences >
   Graphics; nearby pop-ups stop below an open chat window, at most `PrestigeNearbyToastMax` (6).
   Vertical tab lists (Preferences) put their down arrow at the bottom (`lltabcontainer.cpp`).
+  Pose stand: Standing 1-4 (idle stands, no visible change) replaced by local still poses (Arms
+  down / forward, Legs apart; `LOCAL_POSES`) and two sits; the arm/leg angle signs are unchecked.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

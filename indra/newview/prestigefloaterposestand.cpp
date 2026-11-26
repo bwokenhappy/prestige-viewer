@@ -42,11 +42,45 @@ namespace
     const Pose POSES[] =
     {
         { "arms_out", &ANIM_AGENT_CUSTOMIZE },
-        { "stand_1",  &ANIM_AGENT_STAND_1 },
-        { "stand_2",  &ANIM_AGENT_STAND_2 },
-        { "stand_3",  &ANIM_AGENT_STAND_3 },
-        { "stand_4",  &ANIM_AGENT_STAND_4 },
+        // <Prestige> Standing 1-4 (the default idle stands) looked like plain standing; sitting
+        // poses show how a skirt, dress or mesh body sits (no seat needed).
+        { "sit_ground", &ANIM_AGENT_SIT_GROUND_CONSTRAINED },
+        { "sit_chair",  &ANIM_AGENT_SIT_GENERIC },
+        // </Prestige>
     };
+
+    // <Prestige> The still poses made here (on your screen only): joint rotations in degrees
+    // (BVH X / Z / Y; the avatar faces +Z, the left arm lies along +X, legs along -Y).
+    struct LocalPose
+    {
+        const char* mValue;
+        const char* mName;
+        F32 mShoulderZ;   // left arm (right mirrored): -90 = straight down, 0 = straight out
+        F32 mShoulderY;   // left arm: -90 = straight forward
+        F32 mElbowY;      // left forearm bend forward
+        F32 mThighZ;      // left leg out to the side
+    };
+    const LocalPose LOCAL_POSES[] =
+    {
+        { "t_pose",       "Prestige T-pose",        0.f,   0.f,   0.f,  0.f },
+        { "a_pose",       "Prestige A-pose",      -45.f,   0.f,   0.f,  0.f },
+        { "arms_down",    "Prestige arms down",   -78.f,   0.f,  -8.f,  0.f },
+        { "arms_forward", "Prestige arms forward",  0.f, -90.f,   0.f,  0.f },
+        { "legs_apart",   "Prestige legs apart",  -30.f,   0.f,   0.f, 14.f },
+    };
+
+    const LocalPose* local_pose_for(const std::string& value)
+    {
+        for (const LocalPose& pose : LOCAL_POSES)
+        {
+            if (value == pose.mValue)
+            {
+                return &pose;
+            }
+        }
+        return nullptr;
+    }
+    // </Prestige>
 
     // T-pose / A-pose: Second Life has no built-in animation for them, so they are made here
     // as a small BVH (the avatar's bind pose is the T-pose: arms straight out, palms down) and
@@ -58,7 +92,7 @@ namespace
                                  "rCollar", "rShldr", "rForeArm", "rHand",
                                  "lThigh", "lShin", "lFoot", "rThigh", "rShin", "rFoot" };
 
-    std::string pose_bvh(bool a_pose)
+    std::string pose_bvh(const LocalPose& pose)   // <Prestige/> was (bool a_pose)
     {
         std::string s =
             "HIERARCHY\nROOT hip\n{\n OFFSET 0 0 0\n CHANNELS 6 Xposition Yposition Zposition Xrotation Zrotation Yrotation\n"
@@ -100,8 +134,14 @@ namespace
             for (const char* j : BVH_JOINTS)
             {
                 F32 xr = 0.f, zr = 0.f, yr = 0.f;
-                if (a_pose && !strcmp(j, "lShldr")) zr = -45.f;     // arms down to an A
-                if (a_pose && !strcmp(j, "rShldr")) zr = 45.f;
+                // <Prestige> the pose's angles, the right side mirrored
+                if (!strcmp(j, "lShldr"))   { zr = pose.mShoulderZ;  yr = pose.mShoulderY; }
+                if (!strcmp(j, "rShldr"))   { zr = -pose.mShoulderZ; yr = -pose.mShoulderY; }
+                if (!strcmp(j, "lForeArm")) { yr = pose.mElbowY; }
+                if (!strcmp(j, "rForeArm")) { yr = -pose.mElbowY; }
+                if (!strcmp(j, "lThigh"))   { zr = pose.mThighZ; }
+                if (!strcmp(j, "rThigh"))   { zr = -pose.mThighZ; }
+                // </Prestige>
                 if (ref) { xr += 7.f; zr += 7.f; yr += 7.f; }
                 s += llformat(" %.2f %.2f %.2f", xr, zr, yr);
             }
@@ -111,13 +151,13 @@ namespace
     }
 
     // Builds the pose as a local keyframe motion on your avatar and returns its id (null on failure).
-    LLUUID make_local_pose(bool a_pose)
+    LLUUID make_local_pose(const LocalPose& pose)   // <Prestige/> was (bool a_pose)
     {
         if (!isAgentAvatarValid()) return LLUUID::null;
         auto aliases = gAgentAvatarp->getJointAliases();
         ELoadStatus status = E_ST_OK;
         S32 line = 0;
-        const std::string bvh = pose_bvh(a_pose);
+        const std::string bvh = pose_bvh(pose);
         LLBVHLoader loader(bvh.c_str(), status, line, aliases);
         if (!loader.isInitialized())
         {
@@ -137,7 +177,7 @@ namespace
             gAgentAvatarp->removeMotion(id);
             return LLUUID::null;
         }
-        motion->setName(a_pose ? "Prestige A-pose" : "Prestige T-pose");
+        motion->setName(pose.mName);
         motion->setPriority(LLJoint::HIGHEST_PRIORITY);
         motion->setLoop(true);
         motion->setEaseIn(0.4f);
@@ -230,10 +270,10 @@ void PrestigeFloaterPoseStand::onClose(bool app_quitting)
 void PrestigeFloaterPoseStand::onPoseChanged()
 {
     const std::string value = mPoseCombo ? mPoseCombo->getValue().asString() : std::string();
-    if (value == "t_pose" || value == "a_pose")
+    if (const LocalPose* local = local_pose_for(value))   // <Prestige/> every still pose made here
     {
         stopPose();
-        const LLUUID id = make_local_pose(value == "a_pose");
+        const LLUUID id = make_local_pose(*local);
         if (id.notNull())
         {
             gAgentAvatarp->startMotion(id);

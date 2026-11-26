@@ -559,6 +559,19 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     if (chat_msg.mText.empty())
         return; // don't process empty messages
 
+    // <Prestige> Firestorm's LSL bridge (an attachment Firestorm wears for you) reports its
+    // address in chat, which Firestorm swallows; Prestige does not use it, so hide its lines
+    // instead of showing "<bridgeURL>...<bridgeAuth>..." in nearby chat.
+    if (chat_msg.mSourceType == CHAT_SOURCE_OBJECT
+        && (chat_msg.mOwnerID == gAgentID || chat_msg.mOwnerID.isNull())
+        && (LLStringUtil::startsWith(chat_msg.mFromName, "#Firestorm LSL Bridge")
+            || chat_msg.mText.find("<bridgeURL>") != std::string::npos
+            || chat_msg.mText.find("<bridgeAuth>") != std::string::npos))
+    {
+        return;
+    }
+    // </Prestige>
+
 // [RLVa:KB] - Checked: 2010-04-20 (RLVa-1.2.0f) | Modified: RLVa-1.2.0f
     if (RlvActions::isRlvEnabled())
     {

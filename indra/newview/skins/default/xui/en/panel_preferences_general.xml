@@ -374,7 +374,20 @@
 	 width="50"
    top_delta="0"
 	 tool_tip="Check to use display names in chat, IM, name tags, etc."/>
-	 
+    <!-- <Prestige> -->
+    <check_box
+     control_name="PrestigeModernNameTags"
+     enabled_control="AvatarNameTagMode"
+     height="16"
+     label="Modern tags"
+     layout="topleft"
+     left="260"
+     name="prestige_modern_name_tags"
+     tool_tip="Organised name tags in the Firestorm colours: group title small and dimmed on top, the display name in bold, the username dimmed under it, and Away / Busy / Typing in soft gold at the bottom."
+     top_delta="0"
+     width="160" />
+    <!-- </Prestige> -->
+
 	<text
 	 type="string"
 	 length="1"

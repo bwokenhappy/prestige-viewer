@@ -146,7 +146,7 @@ bool SLPanelWeather::postBuild()
     }
     getChild<LLUICtrl>("weather_intensity")->setCommitCallback([](LLUICtrl*, const LLSD&)
     {
-        const bool snow = gSavedSettings.getU32("WeatherType") == SLWeather::PRECIP_SNOW;
+        const bool snow = gSavedSettings.getU32("WeatherType") >= SLWeather::PRECIP_SNOW /* <Prestige/> 2 = sand, as snow */;
         gSavedSettings.setF32(snow ? "WeatherSnowFall" : "WeatherRainFall", -1.f);
     });
     // #1020 WATER EFFECTS: the sea's own setting (RenderVKWaterWaves, Persist 1; 0 = flat water,
@@ -184,7 +184,7 @@ F32 SLPanelWeather::localFall(SLWeather::EPrecip type)
 void SLPanelWeather::refreshFall()
 {
     if (!mFallSpin || !mPreset) return;
-    const bool snow = gSavedSettings.getU32("WeatherType") == SLWeather::PRECIP_SNOW;
+    const bool snow = gSavedSettings.getU32("WeatherType") >= SLWeather::PRECIP_SNOW /* <Prestige/> 2 = sand, as snow */;
     const SLWeather::EPrecip type = snow ? SLWeather::PRECIP_SNOW : SLWeather::PRECIP_RAIN;
     if (mPresetType != (S32)type)
     {
@@ -206,7 +206,7 @@ void SLPanelWeather::refreshFall()
 void SLPanelWeather::onFallCommit()
 {
     if (!mFallSpin) return;
-    const bool snow = gSavedSettings.getU32("WeatherType") == SLWeather::PRECIP_SNOW;
+    const bool snow = gSavedSettings.getU32("WeatherType") >= SLWeather::PRECIP_SNOW /* <Prestige/> 2 = sand, as snow */;
     const F32 top = snow ? SLWeather::kSnowFallMax : SLWeather::kRainFallMax;
     gSavedSettings.setF32(snow ? "WeatherSnowFall" : "WeatherRainFall", llclamp((F32)mFallSpin->getValue().asReal(), 0.f, top));
 }
@@ -216,7 +216,7 @@ void SLPanelWeather::onPresetCommit()
     if (!mPreset) return;
     const S32 k = mPreset->getCurrentIndex();
     if (k < 0 || k > 3) return;
-    const bool snow = gSavedSettings.getU32("WeatherType") == SLWeather::PRECIP_SNOW;
+    const bool snow = gSavedSettings.getU32("WeatherType") >= SLWeather::PRECIP_SNOW /* <Prestige/> 2 = sand, as snow */;
     gSavedSettings.setF32(snow ? "WeatherSnowFall" : "WeatherRainFall", snow ? kSnowPresets[k] : kRainPresets[k]);
     // (a blizzard is snow driven by a strong wind)
     if (snow && k == 3 && gSavedSettings.getF32("WeatherWindSpeed") < kBlizzardWind)
@@ -459,7 +459,11 @@ void SLPanelWeather::refreshStatus()
         LLStringUtil::format_map_t pa;
         pa["[RATE]"] = llformat(snow ? (fall < 10.f ? "%.2f" : "%.1f") : (fall < 10.f ? "%.1f" : "%.0f"), fall);
         pa["[CLASS]"] = getString(llformat(snow ? "snow_class_%u" : "rain_class_%u", SLWeather::fallClass(type, fall)));
-        precip += (precip.empty() ? "" : ", ") + getString(snow ? "status_snow" : "status_rain", pa);
+        // <Prestige> sandstorm: the snow's rate, named as sand
+        const bool sand = snow && st.sand > 0.5f;
+        if (sand) pa["[CLASS]"] = getString(llformat("sand_class_%u", SLWeather::fallClass(type, fall)));
+        precip += (precip.empty() ? "" : ", ") + getString(sand ? "status_sand" : (snow ? "status_snow" : "status_rain"), pa);
+        // </Prestige>
     }
     if (precip.empty()) precip = getString("status_dry");
     if (st.blowing > 0.05f) precip += getString("blowing");

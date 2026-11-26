@@ -100,6 +100,14 @@ void main()
         const float r2 = dot(v_uv, v_uv);
         a = v_alpha * (1.0 - smoothstep(0.2, 1.0, r2));
         col = wp.amb.rgb * 0.9 + wp.sun.rgb * (0.6 * wp.sun.w);
+        // <Prestige> SANDSTORM (wp.veil2.z 0..1): the "flakes" are grains of sand -- tan, and
+        // denser at the core (a harder grain edge)
+        if (wp.veil2.z > 0.0)
+        {
+            col *= mix(vec3(1.0), vec3(0.86, 0.66, 0.42), wp.veil2.z);
+            a = mix(a, v_alpha * (1.0 - smoothstep(0.05, 0.7, r2)), wp.veil2.z);
+        }
+        // </Prestige>
     }
     else
     {

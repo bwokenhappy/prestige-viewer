@@ -17865,7 +17865,7 @@
   <key>WeatherType</key>
   <map>
     <key>Comment</key>
-    <string>Weather (#783): local precipitation type. 0 rain, 1 snow.</string>
+    <string>Weather (#783): local precipitation type. 0 rain, 1 snow, 2 sandstorm (Prestige: falls and blows like snow, tan, no cover).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -28967,6 +28967,50 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>PrestigeUploadTextureMaxSize</key>
+    <map>
+      <key>Comment</key>
+      <string>Texture uploads: the longest side at most (2048, 1024, 512); 0 = the largest the image allows (up to 2048). Remembered from the upload window's Size choice.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeModernNameTags</key>
+    <map>
+      <key>Comment</key>
+      <string>Name tags organised (Preferences > General > Modern tags): group title small and dimmed on top, display name bold, username dimmed, status (away / busy / typing) in soft gold at the bottom. Off: the classic order.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>PrestigeJewelryDetail</key>
+    <map>
+      <key>Comment</key>
+      <string>Jewellery detail (Preferences > Graphics): raises object detail (LOD factor 4), reflection probe resolution (256), turns on screen-space reflections and anisotropic filtering, and lowers the bloom threshold (1.6) so small shiny attachments look real. Off puts back the values from before.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrestigeJewelryDetailSaved</key>
+    <map>
+      <key>Comment</key>
+      <string>The settings PrestigeJewelryDetail changed, as they were before (put back when it is turned off).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>LLSD</string>
+      <key>Value</key>
+      <map />
     </map>
     <key>PrestigeLocalChatNotifications</key>
     <map>

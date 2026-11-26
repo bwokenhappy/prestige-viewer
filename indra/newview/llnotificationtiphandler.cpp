@@ -110,6 +110,14 @@ bool LLTipHandler::processNotification(const LLNotificationPtr& notification, bo
 
     // [FIRE-3522 : SJ] Only show the online/offline toast when ChatOnlineNotification is enabled, or the
     // friend is in a contact set with notices on and FSContactSetsNotificationToast is set.
+    // <Prestige> local notifications off (the tick on the Conversations button): no friends
+    // logging in / out pop-ups either
+    static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);
+    if ("FriendOnlineOffline" == notification->getName() && !local_notifications)
+    {
+        return false;
+    }
+    // </Prestige>
     if ("FriendOnlineOffline" == notification->getName() && !gSavedSettings.getBOOL("ChatOnlineNotification"))
     {
         const LLUUID agent_id = notification->getPayload()["FROM_ID"].asUUID();

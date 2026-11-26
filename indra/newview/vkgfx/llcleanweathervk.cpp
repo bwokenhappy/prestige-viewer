@@ -1643,6 +1643,7 @@ bool LLCleanWeatherVK::prepare(VkCommandBuffer cmd, const Frame& f)
     P.amounts[0] = st.rain; P.amounts[1] = st.snow;
     P.amounts[2] = st.snow / std::max(st.rain + st.snow, 1e-6f);
     P.amounts[3] = amount;
+    P.veil2[2] = llclamp(st.sand, 0.f, 1.f);   // <Prestige/> SANDSTORM (clean_weather.frag)
     if (coarse.pubIdx >= 0)
     {
         P.occl[0] = mWx[1][0]; P.occl[1] = mWx[1][1]; P.occl[2] = mWx[1][2]; P.occl[3] = mWx[1][3];
@@ -1688,6 +1689,8 @@ bool LLCleanWeatherVK::prepare(VkCommandBuffer cmd, const Frame& f)
         P.shape2[1] = (0.75f + 0.55f * wxSmooth(0.5f, 8.f, st.snowFall)) * (1.f - 0.45f * wxSmooth(8.f, 18.f, wind));
         P.shape2[2] = kSnowExposure;
         P.shape2[3] = kSnowSwirl * wxSmooth(3.f, 12.f, wind);
+        // <Prestige> SANDSTORM: grains, not flakes (a third of a flake's size)
+        P.shape2[1] *= 1.f - 0.65f * llclamp(st.sand, 0.f, 1.f);
     }
     P.misc[0] = (float)(mFrame & 0xFFFFu);
     P.misc[1] = mReset ? 1.f : 0.f;
@@ -1714,7 +1717,10 @@ bool LLCleanWeatherVK::prepare(VkCommandBuffer cmd, const Frame& f)
             for (int c = 0; c < 3; ++c)
             {
                 const float rainC = f.ambient[c] * kVeilRainAmb + f.sunColor[c] * kVeilRainSun * sunW;
-                const float snowC = f.ambient[c] * kVeilSnowAmb + f.sunColor[c] * kVeilSnowSun * sunW;
+                // <Prestige> SANDSTORM: the haze takes the sand's tan
+                static const float kSandTint[3] = {0.95f, 0.74f, 0.50f};
+                const float snowC = (f.ambient[c] * kVeilSnowAmb + f.sunColor[c] * kVeilSnowSun * sunW)
+                                  * (1.f + (kSandTint[c] - 1.f) * llclamp(st.sand, 0.f, 1.f));
                 P.veil[c] = std::max(rainC + (snowC - rainC) * share, 0.f);
             }
             P.veil[3] = sigma;
@@ -1724,7 +1730,7 @@ bool LLCleanWeatherVK::prepare(VkCommandBuffer cmd, const Frame& f)
             {
                 mWx[16][0] = std::max(sigma - st.precipExtBlow, 0.f);
                 mWx[16][1] = std::max(st.precipExtBlow, 0.f);
-                mWx[16][2] = share;
+                mWx[16][2] = share + (st.sand > 0.5f ? 2.f : 0.f);   // <Prestige/> + 2: sand (clean_weather_veil.glsl)
                 mWx[16][3] = (U32)s_quality == 0u ? 0.f : (sSmallVram ? 1.f : 2.f);
             }
             else if (s_veil)

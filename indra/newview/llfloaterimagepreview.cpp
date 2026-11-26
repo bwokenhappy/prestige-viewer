@@ -106,6 +106,12 @@ bool LLFloaterImagePreview::postBuild()
         iface->selectFirstItem();
     }
     childSetCommitCallback("clothing_type_combo", onPreviewTypeCommit, this);
+    // <Prestige> the upload size chosen last time
+    if (LLUICtrl* size_combo = findChild<LLUICtrl>("upload_size_combo"))
+    {
+        size_combo->setValue(LLSD(std::to_string(gSavedSettings.getU32("PrestigeUploadTextureMaxSize"))));   // (items hold their value as text)
+    }
+    // </Prestige>
 
     mPreviewRect.set(PREVIEW_HPAD,
         PREVIEW_TEXTURE_HEIGHT + PREVIEW_VPAD,
@@ -240,7 +246,17 @@ void LLFloaterImagePreview::onBtnOK()
     S32 expected_upload_cost = getExpectedUploadCost();
     if (can_afford_transaction(expected_upload_cost))
     {
-        LL_INFOS() << "saving texture: " << mRawImagep->getWidth() << "x" << mRawImagep->getHeight() << LL_ENDL;
+        // <Prestige> the chosen upload size (PrestigeUploadTextureMaxSize, 0 = the largest the image allows)
+        LLPointer<LLImageRaw> upload_image = mRawImagep;
+        const S32 max_side = getChild<LLUICtrl>("upload_size_combo")->getValue().asInteger();
+        gSavedSettings.setU32("PrestigeUploadTextureMaxSize", (U32)llmax(max_side, 0));
+        if (max_side > 0 && (mRawImagep->getWidth() > max_side || mRawImagep->getHeight() > max_side))
+        {
+            upload_image = mRawImagep->duplicate();
+            upload_image->biasedScaleToPowerOfTwo(max_side);
+        }
+        // </Prestige>
+        LL_INFOS() << "saving texture: " << upload_image->getWidth() << "x" << upload_image->getHeight() << LL_ENDL;
         // gen a new uuid for this asset
         LLTransactionID tid;
         tid.generate();
@@ -248,7 +264,7 @@ void LLFloaterImagePreview::onBtnOK()
 
         LLPointer<LLImageJ2C> formatted = new LLImageJ2C;
 
-        if (formatted->encode(mRawImagep, 0.0f))
+        if (formatted->encode(upload_image, 0.0f))   // <Prestige/> the chosen size
         {
             LLFileSystem fmt_file(new_asset_id, LLAssetType::AT_TEXTURE, LLFileSystem::WRITE);
             fmt_file.write(formatted->getData(), formatted->getDataSize());

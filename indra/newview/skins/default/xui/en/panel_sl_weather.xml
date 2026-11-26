@@ -17,6 +17,13 @@
     <panel.string name="status_rain">Rain [RATE] mm/h ([CLASS])</panel.string>
     <panel.string name="status_snow">Snow [RATE] cm/h ([CLASS])</panel.string>
     <panel.string name="status_dry">Nothing falling</panel.string>
+    <!-- <Prestige> sandstorm -->
+    <panel.string name="status_sand">Sand [RATE] cm/h ([CLASS])</panel.string>
+    <panel.string name="sand_class_0">Dust</panel.string>
+    <panel.string name="sand_class_1">Blowing sand</panel.string>
+    <panel.string name="sand_class_2">Sandstorm</panel.string>
+    <panel.string name="sand_class_3">Haboob</panel.string>
+    <!-- </Prestige> -->
     <panel.string name="blowing">, blowing snow</panel.string>
     <panel.string name="rain_class_0">Drizzle</panel.string>
     <panel.string name="rain_class_1">Rain</panel.string>
@@ -138,7 +145,7 @@
      layout="topleft"
      left_pad="4"
      name="weather_type"
-     tool_tip="Rain falls as streaks and wets the ground; snow drifts down as flakes."
+     tool_tip="Rain falls as streaks and wets the ground; snow drifts down as flakes. Sandstorm: wind-driven sand in a tan haze (it blows like snow but leaves no cover; seen by you only)."
      top_delta="-4"
      width="120">
         <combo_box.item
@@ -149,6 +156,12 @@
          label="Snow"
          name="snow"
          value="1" />
+        <!-- <Prestige> -->
+        <combo_box.item
+         label="Sandstorm"
+         name="sand"
+         value="2" />
+        <!-- </Prestige> -->
     </combo_box>
     <slider
      control_name="WeatherIntensity"

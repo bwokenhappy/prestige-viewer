@@ -63,7 +63,10 @@ vec4 volFogAt(vec3 P)
         const vec3 L = atmosLightDir();
         vec3 src = volAmbient();
         if (L.z > 0.0) src += ATMOS_PI * volBeam() * volPhaseHG(dot(V, L), 0.3);
-        s.rgb += s.a * src * mix(0.85, 0.95, ssr.weather[16].z) * (1.0 - Tp);
+        // <Prestige> SANDSTORM: z = the snow share + 2 while sand blows (clean_weather_veil.glsl)
+        const float wz = ssr.weather[16].z;
+        const float sandF = wz > 1.5 ? 1.0 : 0.0;
+        s.rgb += s.a * src * mix(0.85, 0.95, wz - 2.0 * sandF) * mix(vec3(1.0), vec3(0.95, 0.74, 0.50), sandF) * (1.0 - Tp);
         s.a *= Tp;
     }
     return s;

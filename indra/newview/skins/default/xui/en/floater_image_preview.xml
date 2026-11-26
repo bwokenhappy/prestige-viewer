@@ -124,12 +124,41 @@ Try saving image as 24 bit Targa (.tga).
      initial_value="false"
      follows="bottom|left"
      height="16"
-     label="Use lossless compression"
+     label="Lossless"
      layout="topleft"
      left_delta="2"
      name="lossless_check"
+     tool_tip="Use lossless compression (only for images up to 128 x 128)"
      top_pad="162"
-     width="280" />
+     width="90" /><!-- <Prestige/> was "Use lossless compression", 280 wide: the upload size shares the row -->
+    <!-- <Prestige> upload size: the largest the image allows (up to 2048), or smaller -->
+    <text
+     type="string"
+     length="1"
+     follows="bottom|left"
+     height="16"
+     layout="topleft"
+     left_pad="4"
+     name="upload_size_label"
+     top_delta="2"
+     width="34">
+        Size:
+    </text>
+    <combo_box
+     follows="bottom|left"
+     height="20"
+     layout="topleft"
+     left_pad="2"
+     name="upload_size_combo"
+     tool_tip="Upload the texture at this size at most (the longer side, kept a power of two). Largest: as big as the image allows, up to 2048. Smaller textures load faster for everyone around you."
+     top_delta="-4"
+     width="150">
+        <combo_box.item label="Largest (up to 2048)" name="size_max" value="0" />
+        <combo_box.item label="2048" name="size_2048" value="2048" />
+        <combo_box.item label="1024" name="size_1024" value="1024" />
+        <combo_box.item label="512" name="size_512" value="512" />
+    </combo_box>
+    <!-- </Prestige> -->
     <button
      follows="bottom|right"
      height="20"

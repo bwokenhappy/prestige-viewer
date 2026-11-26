@@ -250,6 +250,44 @@ static bool handleGlowControlsChanged(const LLSD& newvalue)
 }
 
 // <Prestige> the chat-bar tick box on the toolbar: show / hide the chat bar right away
+// <Prestige> Jewellery detail (Preferences > Graphics): the settings that make small shiny
+// attachments look real, raised together; turning it off puts back what was there before.
+//   RenderVolumeLODFactor >= 4      small mesh (rings, chains) keeps its detail at a distance
+//   RenderReflectionProbeResolution >= 256   sharper reflections in metal and stones
+//   RenderScreenSpaceReflections on, RenderAnisotropic on (crisp textures at grazing angles)
+//   RenderBloomThreshold <= 1.6     bright highlights on stones and polished metal sparkle a little
+static bool handlePrestigeJewelryDetail(const LLSD& newvalue)
+{
+    static const char* kKeys[] = { "RenderVolumeLODFactor", "RenderReflectionProbeResolution",
+                                   "RenderScreenSpaceReflections", "RenderAnisotropic", "RenderBloomThreshold" };
+    if (newvalue.asBoolean())
+    {
+        LLSD saved = LLSD::emptyMap();
+        for (const char* key : kKeys)
+        {
+            if (LLControlVariable* c = gSavedSettings.getControl(key)) saved[key] = c->getValue();
+        }
+        gSavedSettings.setLLSD("PrestigeJewelryDetailSaved", saved);
+        gSavedSettings.setF32("RenderVolumeLODFactor", llmax(gSavedSettings.getF32("RenderVolumeLODFactor"), 4.f));
+        gSavedSettings.setU32("RenderReflectionProbeResolution", llmax(gSavedSettings.getU32("RenderReflectionProbeResolution"), 256u));
+        gSavedSettings.setBOOL("RenderScreenSpaceReflections", true);
+        gSavedSettings.setBOOL("RenderAnisotropic", true);
+        gSavedSettings.setF32("RenderBloomThreshold", llmin(gSavedSettings.getF32("RenderBloomThreshold"), 1.6f));
+    }
+    else
+    {
+        const LLSD saved = gSavedSettings.getLLSD("PrestigeJewelryDetailSaved");
+        for (const char* key : kKeys)
+        {
+            LLControlVariable* c = gSavedSettings.getControl(key);
+            if (c && saved.has(key)) c->setValue(saved[key]);
+        }
+        gSavedSettings.setLLSD("PrestigeJewelryDetailSaved", LLSD());
+    }
+    return true;
+}
+// </Prestige>
+
 static bool handlePrestigeChatBarVisible(const LLSD& newvalue)
 {
     if (LLStartUp::getStartupState() >= STATE_STARTED)
@@ -885,6 +923,7 @@ void settings_setup_listeners()
                               gSavedSettings.getBOOL("RenderClassicGlow");
     setting_setup_signal_listener(gSavedSettings, "FirstPersonAvatarVisible", handleRenderAvatarMouselookChanged);
     setting_setup_signal_listener(gSavedSettings, "PrestigeChatBarAlwaysVisible", handlePrestigeChatBarVisible); // <Prestige/>
+    setting_setup_signal_listener(gSavedSettings, "PrestigeJewelryDetail", handlePrestigeJewelryDetail); // <Prestige/>
     // Motion blur preset (Preferences > Advanced): writes the underlying RenderVKMotionBlur* settings.
     setting_setup_signal_listener(gSavedSettings, "SLMotionBlurPreset", [](const LLSD& newvalue)
     {

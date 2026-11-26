@@ -29,30 +29,34 @@
      name="notify_money_spend_checkbox"
      top_pad="6"
      width="300" />
+    <!-- <Prestige> friends logging in / out: full-width rows (the label was clipped to 30 px) -->
     <check_box
      control_name="ChatOnlineNotification"
      height="16"
-     label="When my friends log in or out"
+     label="Pop-up when my friends log in or out (top right)"
      layout="topleft"
-     left_delta="120"
-     name="friends_online_notify_checkbox"     
-     width="30" />
+     left="15"
+     name="friends_online_notify_checkbox"
+     tool_tip="Untick to stop the pop-ups at the top right of your screen when friends log in or out. Also hidden while the tick on the Conversations button is off."
+     top_pad="4"
+     width="400" />
     <check_box
      control_name="SlipstreamOnlineOfflineToChat"
-     enabled_control="ChatOnlineNotification"
      height="16"
-     label="In Nearby Chat"
+     label="Also tell me in Nearby Chat"
      layout="topleft"
-     left_delta="230"
-     name="friends_online_notify_checkbox_chat"     
-     width="20" />
+     left="35"
+     name="friends_online_notify_checkbox_chat"
+     top_pad="4"
+     width="380" />
+    <!-- </Prestige> -->
     <check_box
      control_name="NotifyMoneyReceived"
      height="16"
      label="When I get L$"
      layout="topleft"
      left="15"
-     top_pad="4"	
+     top_pad="4"
      name="notify_money_received_checkbox"     
      width="300" />   
     <text
@@ -69,7 +73,7 @@
     </text>
     <scroll_list
      follows="top|left|right"
-     height="140"
+     height="120"
      layout="topleft"
      left="10"
      multi_select="true"
@@ -117,7 +121,7 @@
     </text>
     <scroll_list
      follows="top|left|right"
-     height="140"
+     height="120"
      layout="topleft"
      left="10"
      sort_column="0"

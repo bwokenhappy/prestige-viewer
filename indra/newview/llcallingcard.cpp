@@ -827,8 +827,9 @@ static void on_avatar_name_cache_notify(const LLUUID& agent_id,
     // the sound alone, as it does their IMs).
     static LLCachedControl<bool> online_toast(gSavedSettings, "ChatOnlineNotification", true);
     static LLCachedControl<bool> contact_sets_toast(gSavedSettings, "FSContactSetsNotificationToast");
+    static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);   // <Prestige/>
     if ((to_chat || online_toast || (contact_sets_toast && notify_set))
-        && logged_in && !gAgent.isDoNotDisturb()
+        && logged_in && !gAgent.isDoNotDisturb() && local_notifications   // <Prestige/> tick off: quiet
         && !LLMuteList::getInstance()->isMuted(agent_id, LLMute::flagTextChat))
     {
         make_ui_sound(online ? "UISndFriendOnline" : "UISndFriendOffline");

@@ -113,6 +113,11 @@ void weatherPrecipMedium(vec3 P, vec2 wind, float fall, float t, float motion, i
 {
     const float sFall = ssr.weather[16].x, sBlow = ssr.weather[16].y;
     if (!(sFall + sBlow > 0.0)) return;
+    // <Prestige> SANDSTORM: weather[16].z carries the snow share + 2 while sand blows
+    const float wz = ssr.weather[16].z;
+    const float sand = wz > 1.5 ? 1.0 : 0.0;
+    const float share = wz - 2.0 * sand;
+    // </Prestige>
     if (P.z < ssr.vol_misc.z) return;   // (none below the water cut)
     const float open = weatherPrecipOpen(P);
     if (!(open > 0.0)) return;
@@ -124,7 +129,7 @@ void weatherPrecipMedium(vec3 P, vec2 wind, float fall, float t, float motion, i
     {
         const vec3 adv = vec3(wind, -fall) * t;
         // (rain: 1 / 14 m across, 1 / 40 m tall; snow: 1 / 9 m, slightly flattened)
-        const vec3 freq = mix(vec3(1.0 / 14.0, 1.0 / 14.0, 1.0 / 40.0), vec3(1.0 / 9.0, 1.0 / 9.0, 1.0 / 7.0), ssr.weather[16].z);
+        const vec3 freq = mix(vec3(1.0 / 14.0, 1.0 / 14.0, 1.0 / 40.0), vec3(1.0 / 9.0, 1.0 / 9.0, 1.0 / 7.0), share);   // <Prestige/> share
         const vec3 q = (P - adv) * freq;
         float n = wxmNoise(q);
         if (oct > 1.5) n = 0.65 * n + 0.35 * wxmNoise(q * 2.7 + vec3(5.3, 1.7, 9.1) - vec3(wind * 0.05, 0.0) * t);
@@ -141,7 +146,8 @@ void weatherPrecipMedium(vec3 P, vec2 wind, float fall, float t, float motion, i
     d *= open;
     sigma_t += d;
     // (water drops and ice barely absorb: a high albedo -- the fog's lighting sets how bright)
-    sigma_s += d * mix(0.85, 0.95, ssr.weather[16].z);
+    // <Prestige> sand scatters warm (less blue): a tan haze
+    sigma_s += d * mix(0.85, 0.95, share) * mix(vec3(1.0), vec3(0.95, 0.74, 0.50), sand);
 }
 
 // ---- the FOG-OFF fallback (the transparents; clean_weather_veil.frag for opaque + sky) ----

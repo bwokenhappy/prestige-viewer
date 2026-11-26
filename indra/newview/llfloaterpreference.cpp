@@ -438,6 +438,7 @@ LLFloaterPreference::LLFloaterPreference(const LLSD& key)
 
     gSavedSettings.getControl("NameTagShowUsernames")->getCommitSignal()->connect(boost::bind(&handleNameTagOptionChanged,  _2));
     gSavedSettings.getControl("NameTagShowFriends")->getCommitSignal()->connect(boost::bind(&handleNameTagOptionChanged,  _2));
+    gSavedSettings.getControl("PrestigeModernNameTags")->getCommitSignal()->connect(boost::bind(&handleNameTagOptionChanged,  _2));   // <Prestige/>
     gSavedSettings.getControl("UseDisplayNames")->getCommitSignal()->connect(boost::bind(&handleDisplayNamesOptionChanged,  _2));
 
     gSavedSettings.getControl("AppearanceCameraMovement")->getCommitSignal()->connect(boost::bind(&handleAppearanceCameraMovementChanged,  _2));

@@ -3660,50 +3660,68 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
 
         clearNameTag();
 
+        // <Prestige> PrestigeModernNameTags: the same Firestorm tag, organised -- the group title
+        // small and dimmed on top, the display name bold, the username small and dimmed, and the
+        // status (away, busy, typing ...) last, in a soft gold, as "Away - Typing" with a middle dot.
+        static LLCachedControl<bool> modern_tags(gSavedSettings, "PrestigeModernNameTags", true);
+        const bool modern = modern_tags;
+        const std::string sep = modern ? " \xC2\xB7 " : ", ";   // (a middle dot, UTF-8)
+        std::string status_line;
+        LLColor4 dim_color = name_tag_color;
+        dim_color.mV[VALPHA] *= 0.68f;
+        // </Prestige>
+
         if (is_away || is_muted || is_do_not_disturb || is_autoresponse || is_appearance || is_typing)
         {
             std::string line;
             if (is_away)
             {
                 line += LLTrans::getString("AvatarAway");
-                line += ", ";
+                line += sep;
             }
             if (is_do_not_disturb)
             {
                 line += LLTrans::getString("AvatarDoNotDisturb");
-                line += ", ";
+                line += sep;
             }
             // <FS:Ansariel> Show auto-response in nametag
             if (is_autoresponse)
             {
                 line += LLTrans::getString("AvatarAutoResponse");
-                line += ", ";
+                line += sep;
             }
             // </FS:Ansariel>
             if (is_muted)
             {
                 line += LLTrans::getString("AvatarMuted");
-                line += ", ";
+                line += sep;
             }
             if (is_appearance)
             {
                 line += LLTrans::getString("AvatarEditingAppearance");
-                line += ", ";
+                line += sep;
             }
             if (is_cloud)
             {
                 line += LLTrans::getString("LoadingData");
-                line += ", ";
+                line += sep;
             }
             // <FS:Ansariel> FIRE-3475: Show typing in nametag
             if (is_typing)
             {
                 line += LLTrans::getString("AvatarTyping");
-                line += ", ";
+                line += sep;
             }
             // </FS:Ansariel>
-            // trim last ", "
-            line.resize( line.length() - 2 );
+            // trim the last separator
+            line.resize( line.length() - sep.length() );
+            // <Prestige> modern: shown under the names (below)
+            if (modern)
+            {
+                status_line = line;
+            }
+            else
+            // </Prestige>
             addNameTagLine(line, name_tag_color, LLFontGL::NORMAL,
                 LLFontGL::getFontSansSerifSmall());
         }
@@ -3716,7 +3734,7 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
         {
             std::string title_str = title->getString();
             LLStringFn::replace_ascii_controlchars(title_str,LL_UNKNOWN_CHAR);
-            addNameTagLine(title_str, name_tag_color, LLFontGL::NORMAL,
+            addNameTagLine(title_str, modern ? dim_color : name_tag_color, LLFontGL::NORMAL,   // <Prestige/> dimmed
                 LLFontGL::getFontSansSerifSmall(), true);
         }
 
@@ -3741,14 +3759,14 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
                 // Might be blank if name not available yet, that's OK
                 if (show_display_names)
                 {
-                    addNameTagLine(av_name.getDisplayName(), name_tag_color, LLFontGL::NORMAL,
+                    addNameTagLine(av_name.getDisplayName(), name_tag_color, modern ? LLFontGL::BOLD : LLFontGL::NORMAL,   // <Prestige/> bold
                         LLFontGL::getFontSansSerif(), true);
                 }
                 // Suppress SLID display if display name matches exactly (ugh)
                 if (show_usernames && !av_name.isDisplayNameDefault())
                 {
                     // *HACK: Desaturate the color
-                    LLColor4 username_color = name_tag_color * 0.83f;
+                    LLColor4 username_color = modern ? dim_color : name_tag_color * 0.83f;   // <Prestige/> dimmed, not darkened
                     addNameTagLine(av_name.getUserName(), username_color, LLFontGL::NORMAL,
                         LLFontGL::getFontSansSerifSmall(), true);
                 }
@@ -3772,6 +3790,16 @@ void LLVOAvatar::idleUpdateNameTagText(bool new_name)
 // [/RLVa:KB]
             addNameTagLine(full_name, name_tag_color, LLFontGL::NORMAL, font, true);
         }
+
+        // <Prestige> modern: the status under the names, in a soft gold
+        if (!status_line.empty())
+        {
+            static const LLColor4 status_gold(0.98f, 0.84f, 0.52f, 1.f);
+            LLColor4 status_color = status_gold;
+            status_color.mV[VALPHA] = name_tag_color.mV[VALPHA];
+            addNameTagLine(status_line, status_color, LLFontGL::NORMAL, LLFontGL::getFontSansSerifSmall());
+        }
+        // </Prestige>
 
         if (show_rez_status)
         {

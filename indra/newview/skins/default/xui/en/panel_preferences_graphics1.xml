@@ -489,7 +489,7 @@
     show_text="true"
     tool_tip="Sharpens the picture (contrast adaptive sharpening, after any upscaler). 0 = off; 0.4 is the default; higher is crisper."
     top="372"
-    width="230" />
+    width="185" />
   <slider
     control_name="PrestigeBaseSaturation"
     decimal_digits="2"
@@ -498,16 +498,26 @@
     increment="0.01"
     initial_value="1.08"
     label="Saturation"
-    label_width="70"
+    label_width="62"
     layout="topleft"
-    left="260"
+    left="200"
     max_val="1.5"
     min_val="0.5"
     name="PrestigeBaseSaturation"
     show_text="true"
     tool_tip="Colour of the whole picture: 1 = as rendered, 1.08 (default) a little richer, lower is more muted. Works on top of the colour grade."
     top="372"
-    width="240" />
+    width="190" />
+  <check_box
+    control_name="PrestigeJewelryDetail"
+    height="16"
+    label="Jewellery detail"
+    layout="topleft"
+    left="395"
+    name="PrestigeJewelryDetail"
+    tool_tip="Makes rings, necklaces and other small shiny attachments look real: keeps small mesh detailed at a distance (object detail 4), sharper reflections in metal and stones, screen-space reflections, crisp textures at angles, and a slight sparkle on bright highlights. Costs some performance. Untick to put your previous settings back."
+    top="372"
+    width="120" />
   <!-- </Prestige> -->
 
   <button

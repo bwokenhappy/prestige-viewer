@@ -334,7 +334,12 @@ SLWeather::Target SLWeather::localTarget() const
     Target t;
     t.transitionSecs = llclamp((F32)s_trans, 0.f, 600.f);
     if (!s_on) return t;
-    const bool snow = s_type == PRECIP_SNOW;
+    // <Prestige> WeatherType 2 = SANDSTORM: it falls and blows like snow (the same particles,
+    // rates and wind), drawn as tan sand in a tan haze, with no white cover. A storm needs wind:
+    // at least 9 m/s, and the gusts and swings of a dust storm.
+    const bool sand = s_type == 2u;
+    const bool snow = s_type == PRECIP_SNOW || sand;
+    // </Prestige>
     const EPrecip type = snow ? PRECIP_SNOW : PRECIP_RAIN;
     const F32 setFallV = snow ? (F32)s_snowFall : (F32)s_rainFall;
     const F32 fall = setFallV >= 0.f ? setFallV : fallFromAmount(type, llclamp((F32)s_int, 0.f, 1.f));
@@ -349,6 +354,17 @@ SLWeather::Target SLWeather::localTarget() const
     t.windGustiness = llclamp((F32)s_gust, 0.f, 1.f);
     t.windDirVariation = llclamp((F32)s_dirvar, 0.f, 180.f);
     t.storm = llclamp((F32)s_storm, 0.f, 1.f);
+    // <Prestige> sandstorm
+    if (sand)
+    {
+        t.sand = 1.f;
+        t.windSpeed = std::max(t.windSpeed, 9.f);
+        t.windVariation = std::max(t.windVariation, 0.45f);
+        t.windGustiness = std::max(t.windGustiness, 0.6f);
+        t.fog = std::max(t.fog, 0.35f + 0.5f * amt);
+        t.storm = 0.f;
+    }
+    // </Prestige>
     t.seed = kLocalSeed;
     // A storm is a heavy sky.
     t.cloud = std::max(amt, t.storm > 0.f ? 0.5f + 0.5f * t.storm : 0.f);
@@ -469,6 +485,7 @@ void SLWeather::update()
         mState.snow = std::min(sa, 1.f);
     }
     mState.fog = ease(mState.fog, t.fog, k);
+    mState.sand = ease(mState.sand, t.active ? t.sand : mState.sand, k);   // <Prestige/> (kept while it eases out)
     mState.cloud = ease(mState.cloud, t.cloud, k);
     // Wind as a vector: "from" direction theta (clockwise from north) blows toward theta + 180.
     {
@@ -494,7 +511,7 @@ void SLWeather::update()
     // onto a tagged parcel is a re-sync, faded, not an arrival)
     if (sharedLevel < 0.f && (mSettledHandle != 0 || (!regionSourceOn() && mRegionHandle != 0))) mSyncArrival = false;
     F32 melted = 0.f;
-    if (!s_coat)
+    if (!s_coat || mState.sand > 0.5f)   // <Prestige/> sand lays no white cover
         mState.snowCover = 0.f;
     else if (mState.snow > kSnowFalling)
     {
@@ -538,7 +555,7 @@ void SLWeather::update()
             if (tagRate && t.snowRate < 0.f) melt = -t.snowRate / 3600.f;
             else if (!falling) melt = maxD / std::max((F32)s_melt, 1.f) * (1.f + kRainMelt * std::min(mState.rain * 2.f, 1.f));
         }
-        if (!s_coat || maxD <= 0.f)
+        if (!s_coat || maxD <= 0.f || mState.sand > 0.5f)   // <Prestige/> sand: no depth
         {
             mState.snowDepth = 0.f;
             build = melt = 0.f;
@@ -571,7 +588,7 @@ void SLWeather::update()
         mState.snowDepthMelt = melt;
         mState.snowDepthShared = mSyncActive;
         // #1130 FRESH SNOW (slweather.h State): the snow landing now, whatever drives the level
-        const bool coat = s_coat && maxD > 0.f;
+        const bool coat = s_coat && maxD > 0.f && mState.sand <= 0.5f;   // <Prestige/> sand: no coats
         mState.snowFallBuild = coat ? fresh : 0.f;
         mState.snowDepthMax = coat ? maxD : 0.f;
         // Which source drives the snow and how fast it builds: on a change of source, else every 10 s

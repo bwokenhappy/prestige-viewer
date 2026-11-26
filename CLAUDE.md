@@ -80,4 +80,12 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   (THIRD_PARTY.md). **Every bundled .fx must pass `prestige-fx-check.yml`** (slfxc + spirv-val,
   includes resolved as on Windows); run it after adding effects. Weather: your own changes show at
   once (`PrestigeWeatherInstant`), region weather keeps `WeatherTransitionSeconds`.
+  Also in 1.8.6 (not tested in-world): Sandstorm = `WeatherType` 2 (snow particles/rates as tan grains,
+  `State::sand`; tan haze via `veil2.z` and `ssr.weather[16].z` + 2; no snow cover/depth; local only,
+  a parcel export sends it as snow); `PrestigeModernNameTags` (title dimmed on top, bold display
+  name, dimmed username, status in gold at the bottom); `PrestigeJewelryDetail` (raises LOD factor /
+  probe resolution / SSR / anisotropic / bloom threshold, restores `PrestigeJewelryDetailSaved` when
+  off); texture upload Size (`PrestigeUploadTextureMaxSize`); friends log-in/out pop-ups row fixed in
+  Preferences > Notifications and hidden while `PrestigeLocalChatNotifications` is off; the
+  Firestorm LSL Bridge's `<bridgeURL>` chat is dropped (`llfloaterimnearbychathandler.cpp`).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

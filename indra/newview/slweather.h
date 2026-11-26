@@ -201,6 +201,7 @@ public:
         F32  windGustiness = 0.5f;// 0 slow swells (tens of seconds) .. 1 sharp gusts (1-2 s)
         F32  windDirVariation = 0.f; // degrees 0..180: extra swing of the direction around windDirDeg (0: only the slight wander)
         F32  storm = 0.f;         // 0..1 lightning amount (0 = none)
+        F32  sand = 0.f;          // <Prestige> 1 = the "snow" is a sandstorm (WeatherType 2): tan grains, a tan haze, no cover
         U32  seed = 0;            // the source's seed: gusts and strikes are a function of (seed, UTC)
         // SHARED SNOW DEPTH (#783; parcel tag depth= / rate= / since=, doc/weather_region_protocol.md).
         // haveDepth: the snow level is a pure function of the tag + synced UTC (snowLevelAt()),
@@ -244,6 +245,7 @@ public:
     {
         F32 rain = 0.f;
         F32 snow = 0.f;
+        F32 sand = 0.f;   // <Prestige> 0..1 (eased): the falling "snow" is sand (Target::sand)
         // #954: the physical rates falling now (the bands included, eased): rain mm/h, snow cm/h.
         F32 rainFall = 0.f;
         F32 snowFall = 0.f;

@@ -72,4 +72,5 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   unread conversations use `PrestigeConversationUnreadColor` (calm blue, not the beacon orange);
   `PrestigeBaseSaturation` (1.08) and a Sharpen slider (`RenderCASSharpness`) on Preferences >
   Graphics; nearby pop-ups stop below an open chat window, at most `PrestigeNearbyToastMax` (6).
+  Vertical tab lists (Preferences) put their down arrow at the bottom (`lltabcontainer.cpp`).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

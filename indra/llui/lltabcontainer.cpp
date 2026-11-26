@@ -1915,7 +1915,11 @@ void LLTabContainer::initButtons()
         static LLUICachedControl<S32> tabcntrv_arrow_btn_size ("UITabCntrvArrowBtnSize", 0);
         // Left and right scroll arrows (for when there are too many tabs to show all at once).
         S32 btn_top = getRect().getHeight();
-        S32 btn_top_lower = getRect().mBottom+tabcntrv_arrow_btn_size;
+        // <Prestige> the button rect is local: the container's own bottom is 0. getRect().mBottom
+        // (its place in the parent) put the down arrow that far up, over the tab names, whenever
+        // the container did not start at its parent's bottom (Preferences: 50 px).
+        S32 btn_top_lower = tabcntrv_arrow_btn_size;
+        // </Prestige>
 
         LLRect up_arrow_btn_rect;
         up_arrow_btn_rect.setLeftTopAndSize( mMinTabWidth/2 , btn_top, tabcntrv_arrow_btn_size, tabcntrv_arrow_btn_size );

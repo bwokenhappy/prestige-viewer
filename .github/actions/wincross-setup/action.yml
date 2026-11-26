@@ -15,6 +15,19 @@ runs:
         sudo docker image prune -af >/dev/null 2>&1 || true
         df -h /
 
+    # 16 GB RAM is tight for three big viewer files at once: without room to spare the runner
+    # starves and GitHub drops it ("lost communication"), as two helpers did on their first run.
+    - name: Add swap (16 GB)
+      shell: bash
+      run: |
+        sudo swapoff -a || true
+        sudo rm -f /mnt/swapfile
+        sudo fallocate -l 16G /mnt/swapfile
+        sudo chmod 600 /mnt/swapfile
+        sudo mkswap /mnt/swapfile
+        sudo swapon /mnt/swapfile
+        free -h
+
     - name: Install build tools (CMake/Ninja, shader compilers, Vulkan, NSIS, 7z, LLVM)
       shell: bash
       run: |

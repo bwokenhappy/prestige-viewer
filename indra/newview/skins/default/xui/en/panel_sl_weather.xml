@@ -145,7 +145,7 @@
      layout="topleft"
      left_pad="4"
      name="weather_type"
-     tool_tip="Rain falls as streaks and wets the ground; snow drifts down as flakes. Sandstorm: wind-driven sand in a tan haze (it blows like snow but leaves no cover; seen by you only)."
+     tool_tip="Rain falls as streaks and wets the ground; snow drifts down as flakes."
      top_delta="-4"
      width="120">
         <combo_box.item
@@ -156,12 +156,6 @@
          label="Snow"
          name="snow"
          value="1" />
-        <!-- <Prestige> -->
-        <combo_box.item
-         label="Sandstorm"
-         name="sand"
-         value="2" />
-        <!-- </Prestige> -->
     </combo_box>
     <slider
      control_name="WeatherIntensity"

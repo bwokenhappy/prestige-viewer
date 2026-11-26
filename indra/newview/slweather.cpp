@@ -334,11 +334,9 @@ SLWeather::Target SLWeather::localTarget() const
     Target t;
     t.transitionSecs = llclamp((F32)s_trans, 0.f, 600.f);
     if (!s_on) return t;
-    // <Prestige> WeatherType 2 = SANDSTORM: it falls and blows like snow (the same particles,
-    // rates and wind), drawn as tan sand in a tan haze, with no white cover. A storm needs wind:
-    // at least 9 m/s, and the gusts and swings of a dust storm.
-    const bool sand = s_type == 2u;
-    const bool snow = s_type == PRECIP_SNOW || sand;
+    // <Prestige> the Sandstorm type (WeatherType 2, 1.8.6) was removed in 1.8.7 (owner: it did
+    // not look like sand); a saved 2 is put back to rain in update(). State::sand stays 0.
+    const bool snow = s_type == PRECIP_SNOW;
     // </Prestige>
     const EPrecip type = snow ? PRECIP_SNOW : PRECIP_RAIN;
     const F32 setFallV = snow ? (F32)s_snowFall : (F32)s_rainFall;
@@ -354,17 +352,6 @@ SLWeather::Target SLWeather::localTarget() const
     t.windGustiness = llclamp((F32)s_gust, 0.f, 1.f);
     t.windDirVariation = llclamp((F32)s_dirvar, 0.f, 180.f);
     t.storm = llclamp((F32)s_storm, 0.f, 1.f);
-    // <Prestige> sandstorm
-    if (sand)
-    {
-        t.sand = 1.f;
-        t.windSpeed = std::max(t.windSpeed, 9.f);
-        t.windVariation = std::max(t.windVariation, 0.45f);
-        t.windGustiness = std::max(t.windGustiness, 0.6f);
-        t.fog = std::max(t.fog, 0.35f + 0.5f * amt);
-        t.storm = 0.f;
-    }
-    // </Prestige>
     t.seed = kLocalSeed;
     // A storm is a heavy sky.
     t.cloud = std::max(amt, t.storm > 0.f ? 0.5f + 0.5f * t.storm : 0.f);
@@ -401,6 +388,14 @@ void SLWeather::update()
 {
     if (gFrameCount == mLastFrame) return;
     mLastFrame = gFrameCount;
+    // <Prestige> Sandstorm (WeatherType 2) is gone: a saved one becomes rain, once
+    static bool s_sandChecked = false;
+    if (!s_sandChecked)
+    {
+        s_sandChecked = true;
+        if (gSavedSettings.getU32("WeatherType") > (U32)PRECIP_SNOW) gSavedSettings.setU32("WeatherType", (U32)PRECIP_RAIN);
+    }
+    // </Prestige>
     const double now = LLFrameTimer::getElapsedSeconds();
     const double dt = mLastTime < 0.0 ? 0.0 : std::clamp(now - mLastTime, 0.0, kMaxStep);
     mLastTime = now;

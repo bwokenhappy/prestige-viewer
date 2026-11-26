@@ -98,6 +98,9 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   for 30 s (`kFreeAfterOffSec`, freed in `tick()`), so off/on is instant; a failed permutation is
   retried twice (2 s, 8 s; `retryFailed`) instead of staying failed until Refresh.
   The owner asked to remove Jewelry detail if it makes no visible difference in 1.8.7.
+  Sandstorm removed in 1.8.7 (owner: did not look like sand): no combo item, a saved WeatherType 2
+  becomes rain; the sand shader / State::sand plumbing is left in place, always 0.
+  Quick Preferences: ReShade... replaces Photo Studio... (toolbar unchanged).
   Note: in 1.8.6 `SLFxEnabled` was still on from earlier sessions, so the restored effects drew at
   once; that was not a bug.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

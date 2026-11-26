@@ -366,26 +366,17 @@
      tool_tip="Remember the sky and water (or day cycle) you chose for yourself and show it again after you log in, instead of the region's environment. Choose Region default to go back."
      top_pad="6"
      width="300"/>
-  <button
-     follows="left|top"
-     height="22"
-     label="Photo Studio..."
-     layout="topleft"
-     left="10"
-     name="qp_photo_studio"
-     top_pad="10"
-     width="145">
-    <button.commit_callback function="Floater.ToggleOrBringToFront" parameter="photo_studio"/>
-  </button>
+  <!-- <Prestige> Photo Studio button removed (owner: it only opened the effects, which have
+       their own window); Preferences takes the row -->
   <button
      follows="left|top"
      height="22"
      label="Preferences..."
      layout="topleft"
-     left_pad="10"
+     left="10"
      name="qp_prefs"
-     top_delta="0"
-     width="145">
+     top_pad="10"
+     width="300">
     <button.commit_callback function="Floater.ToggleOrBringToFront" parameter="preferences"/>
   </button>
   <button

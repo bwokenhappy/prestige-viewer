@@ -27,7 +27,13 @@ while IFS= read -r -d '' entry; do
 done < <(find "$STAGE" -mindepth 1 -maxdepth 1 -print0 | sort -z)
 
 mkdir -p "$(dirname "$OUT")"
+# <Prestige> sign the uninstaller NSIS writes into the installer (sign.sh; only when configured)
+SIGNDEF=()
+if bash "$(dirname "$0")/sign.sh" --configured; then
+    SIGNDEF=("-DSIGNCMD=bash $(realpath "$(dirname "$0")/sign.sh")")
+fi
+# </Prestige>
 makensis -V2 -INPUTCHARSET UTF8 \
     "-DVERSION=$FILEVER" "-DDISPLAY_VERSION=$DISPVER" "-DSRCDIR=$STAGE" "-DOUTFILE=$OUT" \
-    "-DASSETS=$SRC" "-DLISTS=$LISTS" "-DAPP_NAME=$APPNAME" "$SRC/slipstream_installer.nsi"
+    "-DASSETS=$SRC" "-DLISTS=$LISTS" "-DAPP_NAME=$APPNAME" ${SIGNDEF[@]+"${SIGNDEF[@]}"} "$SRC/slipstream_installer.nsi"
 ls -la "$OUT"

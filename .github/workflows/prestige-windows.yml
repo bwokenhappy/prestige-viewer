@@ -130,6 +130,15 @@ jobs:
           du -sh "$CCACHE_DIR"
 
       - name: Cross-build and package Prestige (Windows x64)
+        # <Prestige> code signing (scripts/wincross/sign.sh): Azure Trusted Signing. Until these
+        # repository secrets exist, the build is unsigned as before.
+        env:
+          PRESTIGE_SIGN_TENANT_ID: ${{ secrets.PRESTIGE_SIGN_TENANT_ID }}
+          PRESTIGE_SIGN_CLIENT_ID: ${{ secrets.PRESTIGE_SIGN_CLIENT_ID }}
+          PRESTIGE_SIGN_CLIENT_SECRET: ${{ secrets.PRESTIGE_SIGN_CLIENT_SECRET }}
+          PRESTIGE_SIGN_ENDPOINT: ${{ secrets.PRESTIGE_SIGN_ENDPOINT }}
+          PRESTIGE_SIGN_ACCOUNT: ${{ secrets.PRESTIGE_SIGN_ACCOUNT }}
+          PRESTIGE_SIGN_PROFILE: ${{ secrets.PRESTIGE_SIGN_PROFILE }}
         run: |
           set -euo pipefail
           ccache -z

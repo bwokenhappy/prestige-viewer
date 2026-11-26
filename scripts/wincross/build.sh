@@ -48,6 +48,14 @@ rm -rf "$PWD/$B/package"; mkdir -p "$STAGE"
     --build="$OLDPWD/$B/newview" --buildtype=Release "--channel=$VIEWER_CHANNEL" --configuration=. \
     --dest="$STAGE" --grid=agni --source="$OLDPWD/indra/newview" \
     --versionfile="$OLDPWD/$B/newview/viewer_version.txt" )
+# <Prestige> code signing (scripts/wincross/sign.sh; a no-op until the PRESTIGE_SIGN_* secrets
+# exist): every .exe / .dll Prestige ships unsigned is signed before it is zipped and packed,
+# so Windows Smart App Control lets the viewer, its plugins and its DLLs run.
+if bash scripts/wincross/sign.sh --configured; then
+    mapfile -t unsigned < <(bash scripts/wincross/sign.sh --unsigned "$STAGE")
+    [ "${#unsigned[@]}" -eq 0 ] || bash scripts/wincross/sign.sh "${unsigned[@]}"
+fi
+# </Prestige>
 ( cd "$B/package" && 7z a -tzip -mx=7 "${V_ARTIFACT_BASE}_win64.zip" Prestige_win64 >/dev/null )
 ls -la "$B/package/${V_ARTIFACT_BASE}_win64.zip"
 
@@ -59,6 +67,7 @@ if command -v makensis >/dev/null; then
     APPNAME="Prestige"
     [ "$V_KIND" != "jetstream" ] || APPNAME="Prestige Jetstream"   # installs beside Beta / Release
     bash scripts/wincross/make_installer.sh "$STAGE" "$B/package/${V_ARTIFACT_BASE}_Setup.exe" "$V_FULL_VERSION" "$DISPVER" "$APPNAME"
+    bash scripts/wincross/sign.sh "$B/package/${V_ARTIFACT_BASE}_Setup.exe"   # <Prestige/> no-op unsigned
 else
     echo "makensis not found: skipping the Windows installer (apt install nsis)"
 fi

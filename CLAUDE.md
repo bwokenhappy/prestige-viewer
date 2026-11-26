@@ -26,6 +26,12 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   the installer treats it as an upgrade and the window title shows which build is running.
 - The download is the run's Artifacts → `Prestige-Windows-x64`; the owner runs
   `Prestige_<version>_Setup.exe` after closing Prestige.
+- Code signing (owner chose it after Windows Smart App Control, in enforce mode on their PC,
+  blocked the unsigned 1.8.7 installer): `scripts/wincross/sign.sh` signs with Azure Trusted
+  Signing through jsign on the Linux runner: every unsigned .exe / .dll in the stage (20 of 133;
+  the rest come signed), the NSIS uninstaller (`!uninstfinalize`) and the Setup.exe. It is a no-op
+  until the repository secrets `PRESTIGE_SIGN_TENANT_ID`, `_CLIENT_ID`, `_CLIENT_SECRET`,
+  `_ENDPOINT`, `_ACCOUNT`, `_PROFILE` exist (the owner sets up Azure; never sign up for them).
 - Prestige only builds on Linux (Windows builds are cross-compiled with clang-cl + xwin,
   `scripts/wincross`). Native Windows/Visual Studio builds are not set up.
 

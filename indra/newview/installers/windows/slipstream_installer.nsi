@@ -32,6 +32,11 @@ RequestExecutionLevel user
 
 Name "${APP_NAME} ${DISPLAY_VERSION}"
 OutFile "${OUTFILE}"
+; <Prestige> code signing: the uninstaller is signed as NSIS writes it (make_installer.sh)
+!ifdef SIGNCMD
+!uninstfinalize '${SIGNCMD} "%1"' = 0
+!endif
+; </Prestige>
 InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
 InstallDirRegKey HKCU "${APP_KEY}" "InstallDir"
 BrandingText "${APP_NAME} ${DISPLAY_VERSION}"

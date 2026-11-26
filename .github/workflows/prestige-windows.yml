@@ -24,8 +24,10 @@ env:
   LLVM_VERSION: "22"
   SL_3P_CACHE: ${{ github.workspace }}/.3p-cache
   XWIN_ROOT: /home/runner/.xwin
-  # 4 vCPU / 16 GB runner: big translation units need several GB each.
-  NINJA_JOBS: "3"
+  # 4 vCPU / 16 GB runner (+16 GB swap): big translation units need several GB each, and with
+  # ccache the files that include the generated vk_world_shaders_spv.h (most of vkgfx/) need
+  # about twice that (ccache preprocesses first). Three at once starved the machines.
+  NINJA_JOBS: "2"
   # Compile cache: a build only recompiles what changed since the last cached build.
   # CMake picks the launcher up from these variables; 00-Common.cmake then switches
   # debug info from /Zi to the cacheable /Z7.

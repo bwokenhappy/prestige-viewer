@@ -901,6 +901,26 @@ void SLFxStack::idle()
 // ============================================================================
 // Persistence
 // ============================================================================
+// <Prestige> An effect from the bundled pack (app_settings/fx/pack): shipped with the viewer and
+// compiled on every build, so a session that died while it ran is not its fault. Bundled effects
+// are never provisional and never quarantined by the startup markers; only the user's own
+// effects (their folders) keep that safety net.
+bool SLFxStack::isBundledEffect(const std::string& path)
+{
+    if (!gDirUtilp || path.empty()) return false;
+    auto norm = [](std::string s) {
+        std::replace(s.begin(), s.end(), '\\', '/');
+        return lower(s);
+    };
+    std::string pack = norm(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "fx", "pack"));
+    if (!pack.empty() && pack.back() != '/') pack += '/';
+    const std::string p = norm(path);
+    if (p.compare(0, pack.size(), pack) == 0) return true;
+    // a state file written by another install location still names the pack's folder
+    return p.find("/app_settings/fx/pack/") != std::string::npos;
+}
+// </Prestige>
+
 void SLFxStack::loadState()
 {
     const std::string path = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, kStateFile);
@@ -932,6 +952,16 @@ void SLFxStack::loadState()
         e.point = v.has("point") ? v["point"].asInteger() : (S32)POINT_DISPLAY;
         e.quarantined = v["quarantined"].asBoolean();
         e.quarantineReason = v["quarantine_reason"].asString();
+        // <Prestige> the filters that ship with Prestige are never left quarantined (old sessions
+        // quarantined them on a normal close; see isBundledEffect)
+        if (e.quarantined && isBundledEffect(e.path))
+        {
+            LL_INFOS("FX") << "lifting the quarantine on bundled effect " << e.name << " (" << e.quarantineReason << ")" << LL_ENDL;
+            e.quarantined = false;
+            e.quarantineReason.clear();
+            markDirty();
+        }
+        // </Prestige>
         mHiddenEffects[e.path] = e;   // matched to the files by scanDirs
     }
 }
@@ -1124,6 +1154,20 @@ void SLFxStack::checkStartupMarkers()
         reason = "the viewer stopped while this new effect was running";
         mStartupNotice = "Last session ended unexpectedly while new effects were running. Effects start OFF this time.";
     }
+    // <Prestige> the bundled filters are never blamed (isBundledEffect): with only them involved,
+    // effects stay on and nothing is quarantined
+    culprits.erase(std::remove_if(culprits.begin(), culprits.end(),
+                                  [](const std::string& c) { return isBundledEffect(c); }),
+                   culprits.end());
+    if (culprits.empty())
+    {
+        LL_INFOS("FX") << "last session ended with only bundled effects involved: effects stay as they were" << LL_ENDL;
+        mStartupNotice.clear();
+        LLFile::remove(sLostMarkerPath);
+        LLFile::remove(provPath);
+        return;
+    }
+    // </Prestige>
     if (!culprits.empty())
     {
         std::string names;
@@ -1204,7 +1248,7 @@ void SLFxStack::updateSafety()
             if (!e || e->quarantined) continue;
             const LLFxRuntimeVK::EffectStatus st = rt.status(e->path);
             if (st.failed || st.parked) continue;
-            if (st.goodFrames < (U32)s_frames) prov.insert(e->path);
+            if (st.goodFrames < (U32)s_frames && !isBundledEffect(e->path)) prov.insert(e->path);   // <Prestige/> bundled: never provisional
         }
     }
     {

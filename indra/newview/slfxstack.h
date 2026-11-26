@@ -148,6 +148,8 @@ public:
     static void noteCleanExit();
     // Refresh: lift every quarantine (the user asked for another try), then reloadAll().
     void refreshAll();
+    // An effect from the bundled pack: never provisional, never quarantined by a lost session.
+    static bool isBundledEffect(const std::string& path);
     // </Prestige>
 
     // ---- snapshots (#547) ----

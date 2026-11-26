@@ -1,0 +1,68 @@
+# Prestige: every effect the viewer ships must compile.
+#
+# Builds slfxc (vkgfx/third_party/reshadefx/tools: the viewer's own ReShade FX front end,
+# vkgfx/llfxcompile.cpp, with no viewer dependencies) natively and compiles every .fx in
+# app_settings/fx/pack the way the viewer does: the same include folders (every folder of the
+# pack, then app_settings/fx/Shaders), the same predefined macros and codegen, then
+# spirv-val --target-env vulkan1.3 on every entry point. A failure lists the effect and the
+# compiler's message, so a broken filter never reaches an installer.
+name: Prestige effects check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [firestorm-feel, build-full]
+    paths:
+      - "indra/newview/app_settings/fx/**"
+      - "indra/newview/vkgfx/llfxcompile.*"
+      - "indra/newview/vkgfx/third_party/reshadefx/**"
+      - ".github/workflows/prestige-fx-check.yml"
+
+jobs:
+  fx-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install spirv-val
+        run: sudo apt-get update -q && sudo apt-get install -y -q spirv-tools
+
+      - name: Build slfxc (the viewer's effect compiler, standalone)
+        run: |
+          set -euo pipefail
+          R=indra/newview/vkgfx/third_party/reshadefx
+          mkdir -p "$RUNNER_TEMP/obj"
+          for f in "$R"/src/*.cpp; do
+            g++ -std=c++17 -O1 -w -I"$R/src" -I"$R/include/spirv" -c "$f" -o "$RUNNER_TEMP/obj/$(basename "$f").o" &
+          done
+          wait
+          g++ -std=c++20 -O1 -w -I"$R/src" -I"$R/include/spirv" -Iindra/newview/vkgfx \
+              -c indra/newview/vkgfx/llfxcompile.cpp -o "$RUNNER_TEMP/obj/llfxcompile.o"
+          g++ -std=c++20 -O1 -w -I"$R/src" -I"$R/include/spirv" -Iindra/newview/vkgfx \
+              -c "$R/tools/slfxc.cpp" -o "$RUNNER_TEMP/obj/slfxc.o"
+          g++ "$RUNNER_TEMP"/obj/*.o -o "$RUNNER_TEMP/slfxc" -lpthread
+          ls -la "$RUNNER_TEMP/slfxc"
+
+      - name: Compile every bundled effect
+        run: |
+          set -uo pipefail
+          PACK=indra/newview/app_settings/fx/pack/Shaders
+          INC=()
+          while IFS= read -r d; do INC+=(-I "$d"); done < <(find "$PACK" -type d | sort)
+          INC+=(-I indra/newview/app_settings/fx/Shaders)
+          mapfile -t FX < <(find "$PACK" -name '*.fx' | sort)
+          echo "${#FX[@]} effects"
+          fails=0
+          for fx in "${FX[@]}"; do
+            if out=$("$RUNNER_TEMP/slfxc" "${INC[@]}" --quiet --out "$RUNNER_TEMP/spv" "$fx" 2>&1); then
+              echo "ok      $fx"
+            else
+              echo "FAILED  $fx"
+              echo "$out" | sed 's/^/        /' | head -40
+              echo "::error file=$fx::effect does not compile in the viewer"
+              fails=$((fails + 1))
+            fi
+          done
+          echo "$fails of ${#FX[@]} effects failed"
+          [ "$fails" -eq 0 ]

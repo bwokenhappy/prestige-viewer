@@ -94,6 +94,10 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   1.8.6; it now also turns on ray-traced reflections (`RenderVKRTReflections`, roughness up to
   0.6), per-pixel glossy reflections (`RenderVKDeferReflectSharpRough` 0.6) and the Realtime probe
   (`RenderReflectionProbeDetail` 2). The owner has an RTX 4070 laptop GPU (8 GB) and 16 GB RAM.
+  Effects responsiveness (`llfxruntimevk.cpp`): switching effects off keeps the compiled effects
+  for 30 s (`kFreeAfterOffSec`, freed in `tick()`), so off/on is instant; a failed permutation is
+  retried twice (2 s, 8 s; `retryFailed`) instead of staying failed until Refresh.
+  The owner asked to remove Jewelry detail if it makes no visible difference in 1.8.7.
   Note: in 1.8.6 `SLFxEnabled` was still on from earlier sessions, so the restored effects drew at
   once; that was not a bug.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

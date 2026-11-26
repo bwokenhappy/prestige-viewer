@@ -1040,18 +1040,72 @@ void LLFxRuntimeVK::checkWatchdog()
     setStatusError(eff, "error: " + reason);
 }
 
+// <Prestige>
+namespace
+{
+double fxNowSec()
+{
+    static const auto t0 = std::chrono::steady_clock::now();
+    return std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
+}
+constexpr double kFreeAfterOffSec = 30.0;   // effects off this long: free their GPU objects
+}
+// </Prestige>
+
 void LLFxRuntimeVK::tick()
 {
     pollJobs();   // metadata compiles complete even with effects off (the Effects page)
+    // <Prestige> effects switched off a while ago: now free what they held (see setEnabled)
+    if (!mEnabled && mOffSince >= 0.0 && fxNowSec() - mOffSince > kFreeAfterOffSec)
+    {
+        mOffSince = -1.0;
+        if (mCtx) freeAllGpu();
+    }
+    // </Prestige>
 }
 
 void LLFxRuntimeVK::setEnabled(bool on)
 {
     if (mEnabled == on) return;
     mEnabled = on;
-    if (!on && mCtx) freeAllGpu();
+    // <Prestige> switching off no longer frees the compiled effects at once: switching back on
+    // within kFreeAfterOffSec shows them on the next frame instead of recompiling all of them
+    // (which looked like the switch had done nothing). tick() frees them after that.
+    mOffSince = on ? -1.0 : fxNowSec();
+    if (on) mFailRetry.clear();   // a fresh start: failed effects get their retries again
+    // </Prestige>
     bumpMeta();
 }
+
+// <Prestige> A failed permutation (a compile that ran out of memory, a go-live that found no
+// VRAM, a driver hiccup) used to stay failed until the user pressed Refresh, so the effect
+// silently did nothing. Retry it twice, after 2 s and then 8 s; a real error in the effect
+// fails the same way and then stays failed (its error shows on the Effects page).
+bool LLFxRuntimeVK::retryFailed(const std::shared_ptr<Perm>& p)
+{
+    if (!p || p->state != -1 || p->metaOnly) return false;
+    std::pair<int, double>& r = mFailRetry[p->key];
+    const double now = fxNowSec();
+    if (r.second <= 0.0) { r.second = now; return false; }
+    if (r.first >= 2 || now - r.second < (r.first == 0 ? 2.0 : 8.0)) return false;
+    ++r.first;
+    r.second = 0.0;
+    const std::string key = p->key, effect = p->effect;
+    if (mCtx) destroyPerm(*p);   // never recorded: nothing in flight uses it
+    mPerms.erase(key);
+    {
+        std::lock_guard<std::mutex> lk(mStatusMutex);
+        auto st = mStatus.find(effect);
+        if (st != mStatus.end() && st->second.failedPermutationKey == key)
+        {
+            st->second.failed = false;
+            st->second.failedPermutationKey.clear();
+        }
+    }
+    LL_INFOS("FX") << fileName(effect) << " failed; retrying (" << r.first << " of 2)" << LL_ENDL;
+    return true;
+}
+// </Prestige>
 
 void LLFxRuntimeVK::setPlan(const std::vector<PlanTech>& order, const std::map<std::string, EffectConfig>& configs,
                             const std::vector<std::string>& includeDirs, const std::vector<std::string>& textureDirs)
@@ -1092,6 +1146,7 @@ void LLFxRuntimeVK::setUniformValues(const std::string& effect, const LLSD& valu
 void LLFxRuntimeVK::reloadAll()
 {
     mTimedOut.clear();   // the user asked for a retry
+    mFailRetry.clear();   // <Prestige/>
     if (mCtx) vkDeviceWaitIdle(mCtx->device());
     for (auto it = mPerms.begin(); it != mPerms.end();)
     {
@@ -2675,6 +2730,7 @@ bool LLFxRuntimeVK::runPoint(VkCommandBuffer cmd, const Frame& f, uint8_t point,
         std::shared_ptr<Perm> p = findOrQueue(pt.effect,s.w,s.h,point,bbFmt,sync,point==POINT_DISPLAY && f.displayLinear);
         if (!p) continue;
         if (sync) pollJobs();
+        if (p->state == -1 && !sync && retryFailed(p)) continue;   // <Prestige> requeued next frame </Prestige>
         if (p->state == -1 || p->state < 2 || p->bbFormat != bbFmt) continue;
         std::string err;
         if (p->state == 2)

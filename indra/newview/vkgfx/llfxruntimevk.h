@@ -343,6 +343,12 @@ private:
     // finished perms (destroyed as orphans) and joined once they exit; never waited on.
     std::vector<std::unique_ptr<Worker>> mRetired;
     std::unordered_map<std::string, std::string> mTimedOut;   // effect -> reason (no recompiles)
+    // <Prestige> responsiveness: compiled effects survive a short off / on (freed after
+    // kFreeAfterOffSec off), and a failed permutation is retried twice before it stays failed.
+    double mOffSince = -1.0;
+    std::unordered_map<std::string, std::pair<int, double>> mFailRetry;   // perm key -> (retries, first seen failed)
+    bool retryFailed(const std::shared_ptr<Perm>& p);
+    // </Prestige>
     std::vector<std::pair<std::string, std::string>> mQuarantine;   // for takeQuarantineRequests
     VkPipelineCache mUserCache = VK_NULL_HANDLE;   // private cache of user-effect pipelines
     bool mStuckAtDetach = false;                    // compileInDriver() after detachDevice

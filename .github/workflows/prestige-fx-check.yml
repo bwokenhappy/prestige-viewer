@@ -51,12 +51,25 @@ jobs:
           INC=()
           while IFS= read -r d; do INC+=(-I "$d"); done < <(find "$PACK" -type d | sort)
           INC+=(-I indra/newview/app_settings/fx/Shaders)
+          # Windows (the viewer's platform) opens include files whatever their case; some effects
+          # write "Reshade.fxh". Give this case-sensitive runner the same spellings.
+          mkdir -p "$RUNNER_TEMP/case"
+          ln -sf "$PWD/indra/newview/app_settings/fx/Shaders/ReShade.fxh" "$RUNNER_TEMP/case/Reshade.fxh"
+          ln -sf "$PWD/indra/newview/app_settings/fx/Shaders/ReShadeUI.fxh" "$RUNNER_TEMP/case/ReshadeUI.fxh"
+          INC+=(-I "$RUNNER_TEMP/case")
           mapfile -t FX < <(find "$PACK" -name '*.fx' | sort)
           echo "${#FX[@]} effects"
           fails=0
           for fx in "${FX[@]}"; do
             if out=$("$RUNNER_TEMP/slfxc" "${INC[@]}" --quiet --out "$RUNNER_TEMP/spv" "$fx" 2>&1); then
               echo "ok      $fx"
+            elif ! grep -q "compile:" <<<"$out" && grep -q "spirv-val" <<<"$out" \
+                 && [ -z "$(grep -o 'VUID-[A-Za-z0-9-]*' <<<"$out" | grep -v 'Offset-10213')" ]; then
+              # ReShade's own codegen: a non-constant tex*offset uses the Offset operand (upstream
+              # ReShade has always done so; desktop drivers accept it). Only the newest
+              # spirv-val rule flags it, so it is reported, not failed.
+              echo "ok*     $fx (spirv-val: non-constant texture offset, as upstream ReShade)"
+              echo "::warning file=$fx::non-constant tex*offset (VUID-RuntimeSpirv-Offset-10213), as upstream ReShade"
             else
               echo "FAILED  $fx"
               echo "$out" | sed 's/^/        /' | head -40

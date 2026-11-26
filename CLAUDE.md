@@ -13,6 +13,9 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   gh workflow run prestige-windows.yml -R bwokenhappy/prestige-viewer --ref build-full
   ```
   A new dispatch on the same branch cancels the running one.
+- Since `ee799cc0` the workflow runs four `helper` jobs in parallel (each compiles a quarter of the
+  object files into ccache, `WINCROSS_SHARD` in `scripts/wincross/build.sh`) before the `windows` job
+  links and packages. Shared machine setup: `.github/actions/wincross-setup`.
 - Raise `indra/newview/VIEWER_VERSION.txt` (1.8.3 → 1.8.4 …) for every build the owner will install, so
   the installer treats it as an upgrade and the window title shows which build is running.
 - The download is the run's Artifacts → `Prestige-Windows-x64`; the owner runs

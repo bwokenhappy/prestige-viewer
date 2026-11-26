@@ -429,6 +429,43 @@ void LLFloaterIMNearbyChatScreenChannel::arrangeToasts()
 
     //calc max visible item and hide other toasts.
 
+    // <Prestige> Many nearby messages at once stacked pop-ups up the whole left side, over an open
+    // chat window. Now they stop below a chat window (Conversations, a torn-off Nearby Chat or IM)
+    // in their column, none show where such a window covers the place they start, and at most
+    // PrestigeNearbyToastMax show at a time (the newest; the rest are in Nearby Chat).
+    static LLCachedControl<U32> max_toasts(gSavedSettings, "PrestigeNearbyToastMax", 6);
+    S32 top_limit = channel_rect.getHeight();
+    bool start_covered = false;
+    if (gFloaterView)
+    {
+        for (LLView* view : *gFloaterView->getChildList())
+        {
+            LLFloater* floater = dynamic_cast<LLFloater*>(view);
+            if (!floater || !floater->getVisible() || floater->isMinimized())
+            {
+                continue;
+            }
+            const std::string& name = floater->getInstanceName();
+            if (name != "im_container" && name != "nearby_chat" && name != "impanel")
+            {
+                continue;
+            }
+            const LLRect r = floater->getRect();
+            if (r.mRight <= channel_rect.mLeft || r.mLeft >= channel_rect.mRight || r.mTop <= bottom)
+            {
+                continue;   // not in the toasts' column, or entirely below where they start
+            }
+            if (r.mBottom <= bottom + 40)
+            {
+                start_covered = true;   // the window sits where the first toast would go
+                break;
+            }
+            top_limit = llmin(top_limit, r.mBottom - margin);
+        }
+    }
+    U32 shown = 0;
+    // </Prestige>
+
     for(toast_vec_t::iterator it = m_active_toasts.begin(); it != m_active_toasts.end(); ++it)
     {
         LLToast* toast = it->get();
@@ -440,7 +477,8 @@ void LLFloaterIMNearbyChatScreenChannel::arrangeToasts()
 
         S32 toast_top = bottom + toast->getRect().getHeight() + margin;
 
-        if(toast_top > channel_rect.getHeight())
+        if(toast_top > channel_rect.getHeight()
+           || start_covered || toast_top > top_limit || (max_toasts > 0 && shown >= max_toasts)) // <Prestige/>
         {
             while(it!=m_active_toasts.end())
             {
@@ -455,6 +493,7 @@ void LLFloaterIMNearbyChatScreenChannel::arrangeToasts()
 
         toast->setRect(toast_rect);
         bottom += toast_rect.getHeight() - toast->getTopPad() + margin;
+        ++shown;   // <Prestige/>
     }
 
     // use reverse order to provide correct z-order and avoid toast blinking
@@ -623,6 +662,15 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
 
     // Send event on to LLEventStream
     sChatWatcher->post(chat);
+
+    // <Prestige> local chat notifications off (the tick on the Conversations button): the line is
+    // in Nearby Chat, nothing pops up over the world
+    static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);
+    if (!local_notifications)
+    {
+        return;
+    }
+    // </Prestige>
 
     const std::string action = gSavedSettings.getString(chat_msg.mSourceType == CHAT_SOURCE_OBJECT
         ? "NotificationObjectIMOptions" : "NotificationNearbyChatOptions");

@@ -174,8 +174,19 @@ bool SLPanelPhotoStudioEffects::postBuild()
 
     getChild<LLUICtrl>("fx_reload")->setCommitCallback([this](LLUICtrl*, const LLSD&)
     {
-        SLFxStack::instance().reloadAll();
+        // <Prestige> Refresh: failed and quarantined effects get another try, and the preset
+        // list is read again (presets added to the folder outside the viewer).
+        SLFxStack::instance().refreshAll();
         mRuntimeChanged = true;
+        mPresetsChanged = true;
+        if (mPresetStatus)
+        {
+            mPresetStatus->setText(getString("status_refreshed"));
+            const LLColor4 color = LLUIColorTable::instance().getColor("LabelTextColor");
+            mPresetStatus->setColor(color);
+            mPresetStatus->setReadOnlyColor(color);
+        }
+        // </Prestige>
     });
     getChild<LLUICtrl>("fx_folder")->setCommitCallback([](LLUICtrl*, const LLSD&)
     {
@@ -200,6 +211,10 @@ bool SLPanelPhotoStudioEffects::postBuild()
     mPresetCombo->setPrearrangeCallback([this](LLUICtrl*, const LLSD&) { refreshPresets(); });
     getChild<LLUICtrl>("fx_preset_save")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetSave(); });
     getChild<LLUICtrl>("fx_preset_delete")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetDelete(); });
+    // <Prestige>
+    if (LLUICtrl* save_as = findChild<LLUICtrl>("fx_preset_save_as"))
+        save_as->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetSaveAs(); });
+    // </Prestige>
     getChild<LLUICtrl>("fx_preset_import")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetImport(); });
     getChild<LLUICtrl>("fx_preset_export")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onPresetExport(); });
 
@@ -1380,6 +1395,29 @@ void SLPanelPhotoStudioEffects::onPresetSave()
     }
     presets.save(name);
 }
+
+// <Prestige> Save As: name a new preset of your own (the box keeps working as before).
+void SLPanelPhotoStudioEffects::onPresetSaveAs()
+{
+    std::string proposed = SLFxPresets::instance().getActive();
+    LLStringUtil::trim(proposed);
+    proposed = proposed.empty() ? std::string("My Effects") : proposed + " (mine)";
+    LLHandle<LLPanel> handle = getHandle();
+    LLNotificationsUtil::add("PrestigeFxPresetSaveAs", LLSD().with("NAME", proposed), LLSD(),
+                             [handle](const LLSD& notification, const LLSD& response)
+    {
+        if (LLNotificationsUtil::getSelectedOption(notification, response) != 0) return false;
+        SLPanelPhotoStudioEffects* self = static_cast<SLPanelPhotoStudioEffects*>(handle.get());
+        if (!self || !self->mPresetCombo) return false;
+        std::string name = response["message"].asString();
+        LLStringUtil::trim(name);
+        self->mPresetCombo->setTextEntry(name);
+        self->onPresetSave();   // validates the name, asks before replacing an existing preset
+        self->mPresetsChanged = true;
+        return false;
+    });
+}
+// </Prestige>
 
 void SLPanelPhotoStudioEffects::onPresetDelete()
 {

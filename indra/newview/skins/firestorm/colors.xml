@@ -372,6 +372,7 @@
     <color name="MenuItemEnabledColor" reference="LtGray" />
     <color name="MenuItemHighlightBgColor" reference="SchemeLightest_35" />
     <color name="MenuItemFlashBgColor" reference="BeaconColor" />
+    <!-- <Prestige> unread conversations: a calm blue, not the beacon orange --> <color name="PrestigeConversationUnreadColor" value="0.22 0.53 0.82 0.85" />
     <color name="MenuItemHighlightFgColor" reference="White" />
     <color name="MenuNonProductionBgColor" reference="Black" />
     <color name="MenuNonProductionGodBgColor" value="0.263 0.325 0.345 1" />

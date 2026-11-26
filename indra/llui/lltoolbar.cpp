@@ -1196,7 +1196,8 @@ LLToolBarButton* LLToolBar::createButton(const LLCommandId& id)
         // switches the feature on / off, a click on the rest of the button opens its window.
         //   ao    -> animation overrider on / off
         //   speak -> voice chat on / off
-        //   chat  -> the nearby chat bar at the bottom left shown / hidden
+        //   chat  -> local chat notifications on / off (PrestigeLocalChatNotifications; was the
+        //            chat bar's visibility, which stays in PrestigeChatBarAlwaysVisible)
         const std::string& tick_command = commandp->name();
         if (tick_command == "ao" || tick_command == "speak" || tick_command == "chat")
         {
@@ -1214,8 +1215,9 @@ LLToolBarButton* LLToolBar::createButton(const LLCommandId& id)
             }
             else if (tick_command == "chat")
             {
-                tick_p.control_name("PrestigeChatBarAlwaysVisible");
-                tick_p.tool_tip("Show / hide the chat bar at the bottom left");
+                tick_p.control_name("PrestigeLocalChatNotifications");
+                tick_p.tool_tip("Local chat notifications on / off. Off: no pop-ups, sounds or flashing for nearby chat "
+                                "until you tick it again (messages still arrive in Nearby Chat).");
             }
             else
             {

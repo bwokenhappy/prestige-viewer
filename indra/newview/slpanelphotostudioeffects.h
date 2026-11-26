@@ -146,6 +146,7 @@ private:
     void refreshPresetStatus();
     void onPresetPicked();
     void onPresetSave();
+    void onPresetSaveAs();   // <Prestige/>
     void onPresetDelete();
     void onPresetImport();
     void onPresetExport();

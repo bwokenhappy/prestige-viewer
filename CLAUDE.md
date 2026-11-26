@@ -64,4 +64,12 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Camera mode's pad did nothing when held (owner, 1.8.3; cause not found by reading): 1.8.4 takes a
   press inside the pad's circle by screen geometry (`padHit`, `slcameraview.cpp`) before the overlay's
   hover test; `LL_DEBUGS("CameraPad")` logs the press. Check it in-world.
+- 1.8.5 (owner's requests, not tested in-world yet): closing with effects on no longer quarantines
+  them (`SLFxStack::noteCleanExit` at quit; the provisional marker was only removed at the very end
+  of cleanup); Effects has Refresh (was Reload; lifts quarantines) and Save As...; the tick on the
+  Conversations toolbar button is now `PrestigeLocalChatNotifications` (off = no nearby chat
+  pop-ups / sounds / flashing; the chat bar's visibility stays in `PrestigeChatBarAlwaysVisible`);
+  unread conversations use `PrestigeConversationUnreadColor` (calm blue, not the beacon orange);
+  `PrestigeBaseSaturation` (1.08) and a Sharpen slider (`RenderCASSharpness`) on Preferences >
+  Graphics; nearby pop-ups stop below an open chat window, at most `PrestigeNearbyToastMax` (6).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

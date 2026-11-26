@@ -59,6 +59,9 @@ filled in code; nothing in it is declared here).
 	<panel.string name="confirm_overwrite">
 		Replace the preset "[NAME]" with the current effect settings?
 	</panel.string>
+	<panel.string name="status_refreshed"><!-- <Prestige/> -->
+		Refreshed: every effect gets another try
+	</panel.string>
 	<panel.string name="confirm_delete">
 		Delete the preset "[NAME]"? This cannot be undone.
 	</panel.string>
@@ -80,9 +83,10 @@ filled in code; nothing in it is declared here).
 	 top="3"
 	 width="60"
 	 height="20"
-	 label="Reload"
+	 label="Refresh"
 	 name="fx_reload"
-	 tool_tip="Look for new or changed effect files and compile them again" />
+	 tool_tip="Refresh: look for new or changed effect files and presets, give effects that failed or were stopped another try, and compile everything again" /><!-- <Prestige/> was Reload; also lifts quarantines -->
+
 	<button
 	 follows="top|right"
 	 layout="topleft"
@@ -153,6 +157,18 @@ filled in code; nothing in it is declared here).
 	 label="Export..."
 	 name="fx_preset_export"
 	 tool_tip="Save the current effects as a ReShade preset (.ini) somewhere else" />
+	<!-- <Prestige> -->
+	<button
+	 follows="left|top"
+	 layout="topleft"
+	 left_pad="4"
+	 top_delta="0"
+	 width="70"
+	 height="20"
+	 label="Save As..."
+	 name="fx_preset_save_as"
+	 tool_tip="Save the current effects as a new preset of your own: you name it, and it joins the Preset list" />
+	<!-- </Prestige> -->
 	<button
 	 follows="left|top"
 	 layout="topleft"

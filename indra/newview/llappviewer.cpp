@@ -2710,6 +2710,7 @@ bool LLAppViewer::cleanup()
     // #1501: an orderly exit after reaching the world is a clean session for the pipeline
     // quarantine's expiry (a crash never gets here).
     if (!isError() && LLStartUp::getStartupState() >= STATE_STARTED) notePipelineQuarantineCleanSession();
+    if (!isError() && !mSecondInstance) SLFxStack::noteCleanExit();   // <Prestige/> see forceQuit
     finishTransportBeforeViewerCleanup();
     SLTelemetry::shutdown();
 #if SL_TESTCTL
@@ -11515,6 +11516,7 @@ void LLAppViewer::removeMarkerFiles()
     if (!mSecondInstance)
     {
         SLRiskySettings::cleanExit();   // #736: this session did not crash
+        SLFxStack::noteCleanExit();     // <Prestige/> nor did the effects take it down
         if (mMarkerFile.getFileHandle())
         {
             mMarkerFile.close() ;
@@ -11556,6 +11558,10 @@ void LLAppViewer::removeDumpDir()
 
 void LLAppViewer::forceQuit()
 {
+    // <Prestige> Closing with effects on is not an effects crash: a slow or rough shutdown
+    // must never quarantine them (next launch's "viewer stopped while this new effect was running").
+    if (!mSecondInstance) SLFxStack::noteCleanExit();
+    // </Prestige>
     LLApp::setQuitting();
 }
 
@@ -11632,6 +11638,7 @@ void LLAppViewer::requestQuit()
 
     gLogoutTimer.reset();
     mQuitRequested = true;
+    if (!mSecondInstance) SLFxStack::noteCleanExit();   // <Prestige/> see forceQuit
 }
 
 static bool finish_quit(const LLSD& notification, const LLSD& response)

@@ -26,6 +26,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>   // <Prestige/>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -635,6 +636,21 @@ bool SLFxStack::isEnabled() const
     return gSavedSettings.getBOOL("SLFxEnabled") && !gSavedSettings.getBOOL("SLFxNoFx");
 }
 
+// <Prestige>
+void SLFxStack::refreshAll()
+{
+    for (auto* m : {&mEffects, &mHiddenEffects})
+        for (auto& kv : *m)
+            if (kv.second.quarantined)
+            {
+                kv.second.quarantined = false;
+                kv.second.quarantineReason.clear();
+                markDirty();
+            }
+    reloadAll();
+}
+// </Prestige>
+
 void SLFxStack::reloadAll()
 {
     scanDirs();
@@ -991,6 +1007,7 @@ std::vector<std::string> sSafeActive, sSafeProvisional;   // effect paths (handl
 std::string sLostMarkerPath;
 const char* kLostMarker = "fx_device_lost.xml";
 const char* kProvisionalMarker = "fx_provisional.xml";
+std::atomic<bool> sCleanExit{false};   // <Prestige/> noteCleanExit: no more markers this session
 
 std::string markerPath(const char* name)
 {
@@ -1072,6 +1089,15 @@ std::string detectInjectedFx()
     return s;
 }
 }
+
+// <Prestige>
+void SLFxStack::noteCleanExit()
+{
+    if (sCleanExit.exchange(true)) return;
+    const std::string path = markerPath(kProvisionalMarker);
+    if (!path.empty()) LLFile::remove(path, ENOENT);
+}
+// </Prestige>
 
 void SLFxStack::checkStartupMarkers()
 {
@@ -1186,6 +1212,7 @@ void SLFxStack::updateSafety()
         sSafeActive = active;
         sSafeProvisional.assign(prov.begin(), prov.end());
     }
+    if (sCleanExit) return;   // <Prestige/> quitting: never write the marker again
     if (prov != mProvisional)
     {
         mProvisional = prov;
@@ -1214,7 +1241,8 @@ std::string SLFxStack::deviceLostSummary()
     if (active.empty() && prov.empty())
         return "Effects (FX): none running";
     // Tell the next launch: FX off, quarantine (any thread; plain file write).
-    if (!sLostMarkerPath.empty())
+    // <Prestige> not when the device goes away during a normal close (driver teardown) </Prestige>
+    if (!sLostMarkerPath.empty() && !sCleanExit)
     {
         LLSD sd;
         LLSD a = LLSD::emptyArray(), p = LLSD::emptyArray();

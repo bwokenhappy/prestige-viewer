@@ -33186,6 +33186,21 @@ void LLCleanRendererVK::recordGradeUBO(VkCommandBuffer cmd)
             u.curve[0] = sc; u.curve[1] = bs;
         }
     }
+#if defined(LL_HAS_CLEAN_PIPELINE)
+    // <Prestige> PrestigeBaseSaturation: a little more colour for the whole picture, on or off the
+    // colour grade (it multiplies the grade's own saturation). The grade stage with every other
+    // term at identity; the tonemap LUT bakes it in (its key is this UBO), so it costs ~nothing.
+    {
+        static LLCachedControl<F32> base_sat(gSavedSettings, "PrestigeBaseSaturation", 1.08f);
+        const F32 bs = llclamp((F32)base_sat, 0.5f, 1.5f);
+        if (std::fabs(bs - 1.f) > 0.001f && !LLPipeline::sGradeBypass)
+        {
+            u.misc[3] = 1.f;
+            u.tone[2] = llclamp(u.tone[2] * bs, 0.f, 2.f);
+        }
+    }
+    // </Prestige>
+#endif
     // HDR bloom composite (recordBloom ran this frame).
     if (mBloomActive)
     {

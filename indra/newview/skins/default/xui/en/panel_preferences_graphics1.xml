@@ -470,6 +470,46 @@
     top_delta="-3"
     width="200" />
 
+  <!-- <Prestige> picture: sharpening (the same setting as Advanced > Sharpening) and a little
+       extra colour for the whole picture. Bound, so graphics presets keep them. -->
+  <slider
+    control_name="RenderCASSharpness"
+    decimal_digits="2"
+    follows="left|top"
+    height="16"
+    increment="0.05"
+    initial_value="0.4"
+    label="Sharpen"
+    label_width="60"
+    layout="topleft"
+    left="10"
+    max_val="1.0"
+    min_val="0.0"
+    name="PrestigeSharpen"
+    show_text="true"
+    tool_tip="Sharpens the picture (contrast adaptive sharpening, after any upscaler). 0 = off; 0.4 is the default; higher is crisper."
+    top="372"
+    width="230" />
+  <slider
+    control_name="PrestigeBaseSaturation"
+    decimal_digits="2"
+    follows="left|top"
+    height="16"
+    increment="0.01"
+    initial_value="1.08"
+    label="Saturation"
+    label_width="70"
+    layout="topleft"
+    left="260"
+    max_val="1.5"
+    min_val="0.5"
+    name="PrestigeBaseSaturation"
+    show_text="true"
+    tool_tip="Colour of the whole picture: 1 = as rendered, 1.08 (default) a little richer, lower is more muted. Works on top of the colour grade."
+    top="372"
+    width="240" />
+  <!-- </Prestige> -->
+
   <button
     follows="top|left"
     height="23"
@@ -519,7 +559,7 @@
     layout="topleft"
     left="10"
     name="Defaults"
-    top_delta="65"
+    top_delta="91"
     width="210">
     <button.commit_callback
       function="Pref.HardwareDefaults" />

@@ -16154,4 +16154,29 @@ Due to server load, mass toggling online status visibility can take a while to b
      yestext="OK"/>
   </notification>
   <!-- </Prestige> -->
+  <!-- <Prestige> Effects: save the current effects as a new preset of your own -->
+  <notification
+   icon="alertmodal.tga"
+   label="Save effects preset"
+   name="PrestigeFxPresetSaveAs"
+   type="alertmodal">
+    <unique/>
+Save the current effects as a new preset named:
+    <tag>confirm</tag>
+    <form name="form">
+      <input name="message" type="text">
+        [NAME]
+      </input>
+      <button
+       default="true"
+       index="0"
+       name="OK"
+       text="Save"/>
+      <button
+       index="1"
+       name="Cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+  <!-- </Prestige> -->
 </notifications>

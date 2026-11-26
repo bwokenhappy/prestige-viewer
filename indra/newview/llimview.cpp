@@ -219,6 +219,13 @@ void notify_of_message(const LLSD& msg, bool is_dnd_msg)
     const char* sound_name = "UISndNewIncomingIMSession";   // #1263: each type's own sound
     if (session_id.isNull())
     {
+        // <Prestige> local chat notifications off: no sound, flash or pop-up for nearby chat
+        static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);
+        if (!local_notifications)
+        {
+            return;
+        }
+        // </Prestige>
         type = from_object ? "ObjectIM" : "NearbyChat";
         sound_setting = from_object ? "PlaySoundObjectIM" : "PlaySoundNearbyChatIM";
         sound_name = from_object ? "UISndObjectIM" : "UISndNearbyChat";

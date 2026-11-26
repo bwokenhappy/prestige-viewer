@@ -354,9 +354,13 @@ void LLConversationViewSession::draw()
     {
         drawFirestormTab();
     }
+    // Unread: its own calm blue (PrestigeConversationUnreadColor), easy to spot against the grey
+    // and orange-free; the menu / inventory flash colour is left as it is.
+    static LLUIColor unread_color = LLUIColorTable::instance().getColor("PrestigeConversationUnreadColor",
+                                                                         LLColor4(0.22f, 0.53f, 0.82f, 0.85f));
     if (!tab_look || isFlashing())
     {
-        drawHighlight(show_context, true, sHighlightBgColor, mIsAltFlashColor ? alt_color : sFlashBgColor, sFocusOutlineColor, sMouseOverColor);
+        drawHighlight(show_context, true, sHighlightBgColor, mIsAltFlashColor ? alt_color : unread_color, sFocusOutlineColor, sMouseOverColor);
     }
     // </Prestige>
 

@@ -142,6 +142,13 @@ public:
     // effects were active / provisional so the next launch starts with FX off and names
     // them. Returns a line for the GPU-lost report.
     static std::string deviceLostSummary();
+    // <Prestige> The user quit (or the viewer is closing normally): whatever happens on the way
+    // out is not the effects' fault. Deletes the provisional marker now and stops either marker
+    // from being written for the rest of the session. Any thread, no singleton access.
+    static void noteCleanExit();
+    // Refresh: lift every quarantine (the user asked for another try), then reloadAll().
+    void refreshAll();
+    // </Prestige>
 
     // ---- snapshots (#547) ----
     void warmSnapshotSize(S32 width, S32 height);

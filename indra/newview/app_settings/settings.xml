@@ -28935,6 +28935,39 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>PrestigeBaseSaturation</key>
+    <map>
+      <key>Comment</key>
+      <string>Saturation of the whole picture (Preferences > Graphics): 1 = as rendered, 1.08 a little richer (default), 0.5 - 1.5. Multiplies the colour grade's own saturation.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1.08</real>
+    </map>
+    <key>PrestigeNearbyToastMax</key>
+    <map>
+      <key>Comment</key>
+      <string>Most nearby chat pop-ups shown at once (the newest); 0 = no limit. They also stop below an open chat window instead of covering it.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>6</integer>
+    </map>
+    <key>PrestigeLocalChatNotifications</key>
+    <map>
+      <key>Comment</key>
+      <string>Local (nearby) chat notifications: pop-ups, sounds and flashing for nearby chat. Off: nearby chat still arrives in the Nearby Chat window, quietly, until this is on again (the tick on the Conversations toolbar button).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeChatBarAlwaysVisible</key>
     <map>
       <key>Comment</key>

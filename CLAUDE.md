@@ -16,6 +16,12 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
 - Since `ee799cc0` the workflow runs four `helper` jobs in parallel (each compiles a quarter of the
   object files into ccache, `WINCROSS_SHARD` in `scripts/wincross/build.sh`) before the `windows` job
   links and packages. Shared machine setup: `.github/actions/wincross-setup`.
+- Memory: with ccache, the vkgfx files that include the generated `vk_world_shaders_spv.h` need
+  roughly twice the RAM. Three compiles at a time starved the runners ("lost communication") even
+  with swap, so `NINJA_JOBS` is 2 and the setup adds 16 GB swap. First good helper build:
+  run 45764046216, 1 h 02 min in total with a warm cache.
+- `build-full` has always been an ancestor of `firestorm-feel`: a normal (fast-forward) push works,
+  and a forced push is refused by the session's safety checks.
 - Raise `indra/newview/VIEWER_VERSION.txt` (1.8.3 → 1.8.4 …) for every build the owner will install, so
   the installer treats it as an upgrade and the window title shows which build is running.
 - The download is the run's Artifacts → `Prestige-Windows-x64`; the owner runs

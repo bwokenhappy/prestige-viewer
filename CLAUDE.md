@@ -125,4 +125,8 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
 - 1.9.0: the "... has said something new" line in chat history (`more_chat_text`, shown while
   scrolled up) had a see-through strip in the Firestorm skins and drew over the chat text; its
   panel now uses `ChatHistoryBgColor` (llchathistory.cpp).
+  Friends log in / out (owner: they only went into Nearby Chat): nearby pop-ups are skipped while
+  Nearby Chat is open, so friend-status toasts (`prestige_friend_status`, `mFriendToasts` in
+  llfloaterimnearbychathandler.cpp) now skip that check, the text / log styles and the
+  chat-window cover rule, and always pop up at the bottom left of the screen (not in DND).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

@@ -27,6 +27,8 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llagentdata.h" // for gAgentID
+#include "llagent.h"   // <Prestige/> gAgent (do not disturb)
+#include <set>         // <Prestige/>
 #include "llfloaterimnearbychathandler.h"
 #include "gmdxchatlog.h" // <GMDX>
 
@@ -147,6 +149,7 @@ protected:
     void    addToToastPool(LLToast* toast)
     {
         if (!toast) return;
+        mFriendToasts.erase(toast);   // <Prestige/>
         LL_DEBUGS("NearbyChat") << "Pooling toast" << LL_ENDL;
         toast->setVisible(false);
         toast->stopTimer();
@@ -175,6 +178,10 @@ protected:
 
     toast_vec_t m_active_toasts;
     toast_list_t m_toast_pool;
+    // <Prestige> toasts showing a friend's log in / out: they always show at the bottom left of
+    // the screen, also while a chat window is open there (owner's request)
+    std::set<LLToast*> mFriendToasts;
+    // </Prestige>
 
     bool    mStopProcessing;
 };
@@ -216,6 +223,7 @@ void LLFloaterIMNearbyChatScreenChannel::deactivateToast(LLToast* toast)
         LL_DEBUGS("NearbyChat") << "Deactivating toast" << LL_ENDL;
         m_active_toasts.erase(pos);
     }
+    mFriendToasts.erase(toast);   // <Prestige/>
 }
 
 void    LLFloaterIMNearbyChatScreenChannel::createOverflowToast(S32 bottom, F32 timer)
@@ -330,7 +338,8 @@ void LLFloaterIMNearbyChatScreenChannel::addChat(LLSD& chat)
         {
             LLFloaterIMNearbyChatToastPanel* panel = dynamic_cast<LLFloaterIMNearbyChatToastPanel*>(toast->getPanel());
 
-            if (panel && panel->messageID() == fromID && panel->getFromName() == from && panel->canAddText())
+            const bool same_kind = chat.has("prestige_friend_status") == (mFriendToasts.count(toast) > 0); // <Prestige/>
+            if (panel && same_kind && panel->messageID() == fromID && panel->getFromName() == from && panel->canAddText())
             {
                 panel->addMessage(chat);
                 toast->reshapeToPanel();
@@ -380,6 +389,12 @@ void LLFloaterIMNearbyChatScreenChannel::addChat(LLSD& chat)
     toast->reshapeToPanel();
     toast->startTimer();
 
+    // <Prestige>
+    if (chat.has("prestige_friend_status"))
+    {
+        mFriendToasts.insert(toast);
+    }
+    // </Prestige>
     m_active_toasts.push_back(toast->getHandle());
 
     arrangeToasts();
@@ -466,19 +481,29 @@ void LLFloaterIMNearbyChatScreenChannel::arrangeToasts()
     U32 shown = 0;
     // </Prestige>
 
-    for(toast_vec_t::iterator it = m_active_toasts.begin(); it != m_active_toasts.end(); ++it)
+    for(toast_vec_t::iterator it = m_active_toasts.begin(); it != m_active_toasts.end(); )   // <Prestige/>
     {
         LLToast* toast = it->get();
         if (!toast)
         {
             LL_WARNS() << "NULL found in the active chat toasts list!" << LL_ENDL;
+            ++it;   // <Prestige/>
             continue;
         }
 
         S32 toast_top = bottom + toast->getRect().getHeight() + margin;
 
-        if(toast_top > channel_rect.getHeight()
-           || start_covered || toast_top > top_limit || (max_toasts > 0 && shown >= max_toasts)) // <Prestige/>
+        // <Prestige> a friend's log in / out shows at the bottom left even over a chat window there;
+        // other toasts that a chat window would cover go back to the pool, the rest still show
+        const bool friend_toast = mFriendToasts.count(toast) > 0;
+        if (!friend_toast && (start_covered || toast_top > top_limit))
+        {
+            addToToastPool(toast);
+            it = m_active_toasts.erase(it);
+            continue;
+        }
+        if(toast_top > channel_rect.getHeight() || (max_toasts > 0 && shown >= max_toasts))
+        // </Prestige>
         {
             while(it!=m_active_toasts.end())
             {
@@ -494,6 +519,7 @@ void LLFloaterIMNearbyChatScreenChannel::arrangeToasts()
         toast->setRect(toast_rect);
         bottom += toast_rect.getHeight() - toast->getTopPad() + margin;
         ++shown;   // <Prestige/>
+        ++it;      // <Prestige/>
     }
 
     // use reverse order to provide correct z-order and avoid toast blinking
@@ -685,20 +711,28 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     }
     // </Prestige>
 
+    // <Prestige> a friend's log in / out pops up at the bottom left of the screen whether or not
+    // Nearby Chat is open, with the nearby chat style and toast settings (owner's request)
+    const bool friend_status = args.has("prestige_friend_status");
     const std::string action = gSavedSettings.getString(chat_msg.mSourceType == CHAT_SOURCE_OBJECT
         ? "NotificationObjectIMOptions" : "NotificationNearbyChatOptions");
-    if (action != "toast" || !LLViewerChat::isNearbyChatOverlayVisible())
+    if (!friend_status && (action != "toast" || !LLViewerChat::isNearbyChatOverlayVisible()))
     {
         return;
     }
+    if (friend_status && gAgent.isDoNotDisturb())
+    {
+        return;
+    }
+    // </Prestige>
     // <GMDX> the chat log (gmdxchatlog.h) in place of the toasts
-    if (GMDXChatLog::active())
+    if (!friend_status && GMDXChatLog::active())   // <Prestige/>
     {
         GMDXChatLog::addNearby(chat_msg);
         return;
     }
     // </GMDX>
-    if (gSavedSettings.getString("NearbyChatOverlayStyle") == "text")
+    if (!friend_status && gSavedSettings.getString("NearbyChatOverlayStyle") == "text")   // <Prestige/>
     {
         if (LLConsole* console = gViewerWindow->getNearbyChatConsole())
         {
@@ -712,7 +746,7 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     }
     // <Prestige> calmer chat: own script errors (PrestigeOwnScriptErrorsInChat) and quiet object
     // chat (PrestigeQuietObjectChat) stay in nearby chat, without a pop-up
-    if (LLViewerChat::isCalmChat(chat_msg))
+    if (!friend_status && LLViewerChat::isCalmChat(chat_msg))   // <Prestige/>
     {
         return;
     }
@@ -780,6 +814,10 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
         chat["color_alpha"] = r_color_alpha;
         chat["font_size"] = (S32)LLViewerChat::getChatFontSize() ;
         chat["message"] = toast_msg;
+        if (friend_status)
+        {
+            chat["prestige_friend_status"] = true;   // <Prestige/>
+        }
         channel->addChat(chat);
 
     }

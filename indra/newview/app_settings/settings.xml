@@ -8328,13 +8328,13 @@
     <key>PrestigeChatTags</key>
     <map>
       <key>Comment</key>
-      <string>Prestige readable chat: a small coloured label (System, Item, Friends, Region, Object, Script) in front of every nearby chat line that isn't a resident talking, so notices and object messages read apart from conversation. Colours: PrestigeChatTag&lt;Kind&gt;Color in the skin, built-in ones otherwise.</string>
+      <string>Prestige readable chat: a small coloured label (System, Item, Friends, Region, Object, Script) in front of every nearby chat line that isn't a resident talking, so notices and object messages read apart from conversation. Off by default since 1.9.0 (owner: nearby chat should look like Firestorm's). Colours: PrestigeChatTag&lt;Kind&gt;Color in the skin, built-in ones otherwise.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <!-- </Prestige> -->
     <key>PrestigeChatHighlightMyName</key>

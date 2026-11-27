@@ -129,4 +129,7 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Nearby Chat is open, so friend-status toasts (`prestige_friend_status`, `mFriendToasts` in
   llfloaterimnearbychathandler.cpp) now skip that check, the text / log styles and the
   chat-window cover rule, and always pop up at the bottom left of the screen (not in DND).
+  Nearby chat notices look like Firestorm's (owner): `PrestigeChatTags` off by default, no
+  italics on system lines, no "Second Life:" name and no [brackets] in nearby chat (brackets stay
+  in IM windows, `ChatSystemMessageBrackets`); llchathistory.cpp.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

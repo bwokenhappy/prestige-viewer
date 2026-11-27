@@ -1561,11 +1561,8 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     {
         body_message_params.font.style = "BOLD";
     }
-    // <Prestige> readable chat: system, region and estate lines in italics
-    else if (readable_colors && LLViewerChat::isSystemLine(chat))
-    {
-        body_message_params.font.style = "ITALIC";
-    }
+    // <Prestige> system lines are no longer in italics (1.9.0, owner: nearby chat should look
+    // like Firestorm's, where a notice is a plain line)
     // </Prestige>
 
     // <FS:HG> FS-1734 separate name and text styles for moderator (FSHighlightGroupMods)
@@ -1644,14 +1641,20 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
     // #463: unnamed objects print the message alone (no name, no delimiter)
     // <Prestige> a labelled system line drops the "Second Life:" name too: the label says it.
     // Region and estate lines keep theirs (it says who sent them).
+    // 1.9.0: without the label too, in nearby chat (as in Firestorm: "[20:08] Name is Online").
     const bool hide_sender_name = LLViewerChat::hideSenderName(chat)
-        || (!chat_tag.empty() && chat.mSourceType != CHAT_SOURCE_REGION && LLViewerChat::isSystemLine(chat));
+        || ((!chat_tag.empty() || chat.mSessionID.isNull()) && chat.mSourceType != CHAT_SOURCE_REGION
+            && LLViewerChat::isSystemLine(chat));
     // </Prestige>
 
     // compact mode: show a timestamp and name
     if (use_plain_text_chat_history)
     {
-        square_brackets = chat.mSourceType == CHAT_SOURCE_SYSTEM && gSavedSettings.getBOOL("ChatSystemMessageBrackets");
+        // <Prestige> brackets round system messages in IM windows only; nearby chat shows its
+        // notices as plain lines, as Firestorm does (1.9.0)
+        square_brackets = chat.mSourceType == CHAT_SOURCE_SYSTEM && chat.mSessionID.notNull()
+            && gSavedSettings.getBOOL("ChatSystemMessageBrackets");
+        // </Prestige>
 
         LLStyle::Params timestamp_style(body_message_params);
 

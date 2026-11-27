@@ -132,4 +132,8 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Nearby chat notices look like Firestorm's (owner): `PrestigeChatTags` off by default, no
   italics on system lines, no "Second Life:" name and no [brackets] in nearby chat (brackets stay
   in IM windows, `ChatSystemMessageBrackets`); llchathistory.cpp.
+  Friends log in / out are Firestorm's "Display Name (username) is online.": on screen one white
+  line each in the text console at the bottom left, whatever NearbyChatOverlayStyle is
+  (`LLViewerWindow::keepNearbyChatConsoleShown`); in Nearby Chat the name is a ChatNameColor link
+  (`prestige_friend_id` / `prestige_friend_name` args).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

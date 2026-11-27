@@ -724,6 +724,18 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     {
         return;
     }
+    // A friend's log in / out is a plain white line at the bottom left of the screen, one line
+    // each, as Firestorm shows them (owner's screenshot): the text console, whatever
+    // NearbyChatOverlayStyle is; it stays shown while the line is up.
+    if (friend_status && gViewerWindow)
+    {
+        if (LLConsole* console = gViewerWindow->getNearbyChatConsole())
+        {
+            console->addConsoleLine(chat_msg.mText, LLUIColorTable::instance().getColor("White"), LLFontGL::NORMAL);
+            gViewerWindow->keepNearbyChatConsoleShown();
+            return;
+        }
+    }
     // </Prestige>
     // <GMDX> the chat log (gmdxchatlog.h) in place of the toasts
     if (!friend_status && GMDXChatLog::active())   // <Prestige/>

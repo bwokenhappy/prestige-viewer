@@ -5036,7 +5036,10 @@ void LLViewerWindow::updateLayout()
             }
         }
         mNearbyChatOverlayVisible = overlay_visible;
-        const bool visible = overlay_visible && gSavedSettings.getString("NearbyChatOverlayStyle") == "text";
+        // <Prestige> also while a friend's log in / out line is up (keepNearbyChatConsoleShown)
+        const bool visible = (overlay_visible && gSavedSettings.getString("NearbyChatOverlayStyle") == "text")
+            || LLFrameTimer::getElapsedSeconds().value() < mNearbyChatConsoleKeepUntil;
+        // </Prestige>
         if (!visible && mNearbyChatConsole->getVisible())
         {
             mNearbyChatConsole->clear();
@@ -7513,6 +7516,18 @@ S32 LLViewerWindow::getChatConsoleBottomPad()
 
     return offset;
 }
+
+// <Prestige>
+void LLViewerWindow::keepNearbyChatConsoleShown()
+{
+    const F32 persist = llclamp(gSavedSettings.getF32("NearbyChatConsolePersistTime"), 1.f, 3600.f);
+    mNearbyChatConsoleKeepUntil = LLFrameTimer::getElapsedSeconds().value() + (F64)persist + 1.0;
+    if (mNearbyChatConsole)
+    {
+        mNearbyChatConsole->setVisible(true);
+    }
+}
+// </Prestige>
 
 void LLViewerWindow::applyNearbyChatConsoleSettings()
 {

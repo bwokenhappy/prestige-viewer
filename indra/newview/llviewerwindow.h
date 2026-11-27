@@ -283,6 +283,10 @@ public:
     //
     LLRootView*         getRootView()       const;
     LLConsole*          getNearbyChatConsole() const { return mNearbyChatConsole; }
+    // <Prestige> show the text console for a while even if nearby chat uses another style
+    // (a friend's log in / out is always a line there)
+    void                keepNearbyChatConsoleShown();
+    // </Prestige>
     void                applyNearbyChatConsoleSettings();   // #489: NearbyChatConsole* settings
 
     // 3D world area in scaled pixels (via UI scale), use for most UI computations
@@ -611,6 +615,7 @@ private:
     F32             mHudAspectOverride = 0.f;   // > 0: HUD projection aspect for an offscreen snapshot
     LLConsole*     mNearbyChatConsole = nullptr;
     bool           mNearbyChatOverlayVisible = true;
+    F64            mNearbyChatConsoleKeepUntil = 0.0;   // <Prestige/> keepNearbyChatConsoleShown
     LLRootView*     mRootView;                  // a view of size mWindowRectRaw, containing all child views
     LLView*         mFloaterSnapRegion = nullptr;
     LLView*         mNavBarContainer = nullptr;

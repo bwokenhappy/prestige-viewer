@@ -40,6 +40,7 @@
 #include "llpaneltiptoast.h"
 #include "llchat.h"            // <Prestige/> friends' log in / out as a nearby chat pop-up
 #include "llinstantmessage.h"  // <Prestige/> SYSTEM_FROM
+#include "llavatarnamecache.h" // <Prestige/> friend names as in Firestorm
 
 using namespace LLNotificationsUI;
 
@@ -95,13 +96,28 @@ bool LLTipHandler::processNotification(const LLNotificationPtr& notification, bo
                 LLHandlerUtil::logToNearbyChat(notification, CHAT_SOURCE_SYSTEM);
             return false;
         }
-        LLChat chat_msg(notification->getMessage());
+        // Firestorm's wording: "Display Name (username) is online."
+        std::string friend_name = notification->getSubstitutions()["NAME"].asString();
+        LLAvatarName av_name;
+        if (agent_id.notNull() && LLAvatarNameCache::get(agent_id, &av_name))
+        {
+            friend_name = av_name.getCompleteName(true, true);
+        }
+        std::string status = notification->getSubstitutions()["STATUS"].asString();
+        LLStringUtil::toLower(status);
+        LLChat chat_msg(friend_name.empty() ? notification->getMessage()
+                                            : friend_name + " is " + status + ".");
         chat_msg.mSourceType = CHAT_SOURCE_SYSTEM;
         chat_msg.mFromName = SYSTEM_FROM;
         chat_msg.mFromID = LLUUID::null;
         chat_msg.mNoticeTag = "Friends";
         LLSD args;
         args["prestige_friend_status"] = true;   // shown even while local chat pop-ups are off
+        if (agent_id.notNull() && !friend_name.empty())
+        {
+            args["prestige_friend_id"] = agent_id;      // the name as a link in Nearby Chat
+            args["prestige_friend_name"] = friend_name;
+        }
         LLNotificationsUI::LLNotificationManager::instance().onChat(chat_msg, args);
         return false;
     }

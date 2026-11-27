@@ -8325,6 +8325,17 @@
       <integer>1</integer>
     </map>
     <!-- <Prestige> -->
+    <key>PrestigeFlashTaskbar</key>
+    <map>
+      <key>Comment</key>
+      <string>Off: Prestige's taskbar icon never flashes for IMs, group chats or offers, whatever the per-type Flash taskbar settings say (Preferences &gt; Chat &gt; Alerts).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>PrestigeChatTags</key>
     <map>
       <key>Comment</key>

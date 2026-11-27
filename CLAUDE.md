@@ -141,4 +141,6 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   fonts.xml has Small / Medium / Large 9 / 10 / 11 pt where Prestige's interface uses 7.6 / 8.6 /
   10.6. `ChatSmall` / `ChatMedium` / `ChatLarge` sizes (fonts.xml and every fontsets/*.xml) are
   used by `LLViewerChat::getChatFont` only; the rest of the interface keeps its sizes.
+- 1.9.2: `PrestigeFlashTaskbar` (Preferences > Chat > Alerts, under Window title) turns every
+  taskbar flash off (`LLViewerWindow::flashTaskbarIfUnfocused`; the GPU-lost dialog still flashes).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

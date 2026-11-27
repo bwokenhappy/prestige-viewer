@@ -2391,6 +2391,13 @@ void LLViewerWindow::flashTaskbarIfUnfocused(const char* setting_name)
     {
         return;
     }
+    // <Prestige> one switch for every taskbar flash (Preferences > Chat > Alerts)
+    static LLCachedControl<bool> flash_taskbar(gSavedSettings, "PrestigeFlashTaskbar", true);
+    if (!flash_taskbar)
+    {
+        return;
+    }
+    // </Prestige>
     if (gAgent.isDoNotDisturb())
     {
         return;

@@ -197,4 +197,19 @@
          comment="Size of huge font for LSL editor (points, or 1/72 of an inch)"
          size="12"
          />
+  <!-- <Prestige> chat text in Firestorm's sizes (owner: chat should look identical to Firestorm's):
+       LLViewerChat::getChatFont, ChatFontSize 0 / 1 / 2. The rest of the interface keeps its sizes. -->
+  <font_size name="ChatSmall"
+         comment="Chat text, small (Firestorm's Small)"
+         size="9"
+         />
+  <font_size name="ChatMedium"
+         comment="Chat text, medium (Firestorm's Medium)"
+         size="10"
+         />
+  <font_size name="ChatLarge"
+         comment="Chat text, large (Firestorm's Large)"
+         size="11"
+         />
+  <!-- </Prestige> -->
 </fonts>

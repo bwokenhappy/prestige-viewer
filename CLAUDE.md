@@ -137,4 +137,8 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   (`LLViewerWindow::keepNearbyChatConsoleShown`); in Nearby Chat the name is a ChatNameColor link
   (`LLChat::mSubjectID`; 1.9.0 passed it in appendMessage args, which the windowed history
   drops, so the names were white: fixed in 1.9.1).
+  Chat text in Firestorm's sizes (1.9.1, owner: "identical"): same DejaVu Sans, but Firestorm's
+  fonts.xml has Small / Medium / Large 9 / 10 / 11 pt where Prestige's interface uses 7.6 / 8.6 /
+  10.6. `ChatSmall` / `ChatMedium` / `ChatLarge` sizes (fonts.xml and every fontsets/*.xml) are
+  used by `LLViewerChat::getChatFont` only; the rest of the interface keeps its sizes.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

@@ -38,6 +38,7 @@
 #include "llviewerregion.h"
 #include "llworld.h"
 #include "llinstantmessage.h" //SYSTEM_FROM
+#include "llfontregistry.h"   // <Prestige/> LLFontDescriptor (chat font sizes)
 #include "llurlregistry.h"
 #include "fskeywords.h"
 #include "fscommon.h"
@@ -538,6 +539,17 @@ void LLViewerChat::getChatColor(const LLChat& chat, std::string& r_color_name, F
 LLFontGL* LLViewerChat::getChatFont()
 {
     S32 font_size = gSavedSettings.getS32("ChatFontSize");
+    // <Prestige> chat text in Firestorm's sizes (ChatSmall / ChatMedium / ChatLarge in fonts.xml:
+    // 9 / 10 / 11 pt, where the interface uses 7.6 / 8.6 / 10.6), so chat reads exactly like
+    // Firestorm's. A font set without those sizes falls back to the interface sizes below.
+    {
+        const char* chat_size = font_size <= 0 ? "ChatSmall" : (font_size >= 2 ? "ChatLarge" : "ChatMedium");
+        if (LLFontGL* chat_font = LLFontGL::getFont(LLFontDescriptor("SansSerif", chat_size, 0)))
+        {
+            return chat_font;
+        }
+    }
+    // </Prestige>
     LLFontGL* fontp = NULL;
     switch(font_size)
     {

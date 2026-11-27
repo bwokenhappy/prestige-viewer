@@ -45,6 +45,58 @@
                       label=""
                       height="300" />
              </layout_panel>
+             <!-- <Prestige> Received items (the marketplace / delivery inbox) at the bottom, like
+                  Firestorm: a header with the count (click: fold / unfold), a refresh button,
+                  and the inbox's contents. Shown once the account has an inbox. -->
+             <layout_panel
+                 name="inbox_layout_panel"
+                 layout="topleft"
+                 auto_resize="false"
+                 user_resize="true"
+                 min_dim="30"
+                 follows="bottom|left|right"
+                 visible="false"
+                 width="418"
+                 height="220">
+                 <button
+                      follows="left|top|right"
+                      halign="left"
+                      height="26"
+                      image_overlay="Accordion_ArrowOpened_Off"
+                      image_overlay_alignment="left"
+                      imgoverlay_label_space="8"
+                      label="Received items"
+                      layout="topleft"
+                      left="4"
+                      name="inbox_btn"
+                      pad_left="8"
+                      tool_tip="Marketplace purchases and deliveries. Click to fold or unfold. Drag items into your inventory to keep them there."
+                      top="2"
+                      width="374" />
+                 <button
+                      follows="top|right"
+                      height="26"
+                      image_overlay="Refresh_Off"
+                      layout="topleft"
+                      left_pad="4"
+                      name="inbox_refresh"
+                      tool_tip="Check for new deliveries"
+                      top_delta="0"
+                      width="32" />
+                 <inventory_panel
+                      allow_multi_select="true"
+                      follows="all"
+                      height="186"
+                      layout="topleft"
+                      left="4"
+                      name="inventory_inbox"
+                      show_empty_message="false"
+                      show_item_link_overlays="true"
+                      start_folder.type="inbox"
+                      top="32"
+                      width="410" />
+             </layout_panel>
+             <!-- </Prestige> -->
          </layout_stack>
 	</panel>
 </panel>

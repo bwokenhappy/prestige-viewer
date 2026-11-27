@@ -679,7 +679,7 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     // <Prestige> local chat notifications off (the tick on the Conversations button): the line is
     // in Nearby Chat, nothing pops up over the world
     static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);
-    if (!local_notifications)
+    if (!local_notifications && !args.has("prestige_friend_status"))   // friends' log in / out still pop up
     {
         return;
     }

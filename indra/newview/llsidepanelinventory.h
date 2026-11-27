@@ -28,11 +28,14 @@
 #define LL_LLSIDEPANELINVENTORY_H
 
 #include "llpanel.h"
+#include "llframetimer.h"   // <Prestige/>
 
 class LLFolderViewItem;
 class LLInventoryItem;
 class LLInventoryPanel;
 class LLPanelMainInventory;
+class LLButton;          // <Prestige/>
+class LLLayoutPanel;     // <Prestige/>
 
 // Received Items (the marketplace / delivery inbox) is an ordinary folder of the inventory tree
 // (#489); this panel no longer has an inbox pane of its own.
@@ -44,6 +47,7 @@ public:
 
     /*virtual*/ bool postBuild();
     /*virtual*/ void onOpen(const LLSD& key);
+    /*virtual*/ void draw();   // <Prestige/> keeps the Received items header up to date
 
     LLInventoryPanel* getActivePanel(); // Returns an active inventory panel, if any.
     void selectAllItemsPanel();
@@ -75,6 +79,16 @@ protected:
 private:
     LLPanel*                    mInventoryPanel; // Main inventory view
     LLPanelMainInventory*       mPanelMainInventory;
+    // <Prestige> Received items box (sidepanel_inventory.xml)
+    LLLayoutPanel*              mInboxLayout = nullptr;
+    LLButton*                   mInboxBtn = nullptr;
+    LLInventoryPanel*           mInboxPanel = nullptr;
+    bool                        mInboxOpen = true;
+    S32                         mInboxCount = -1;
+    LLFrameTimer                mInboxTimer;
+    void                        updateInbox(bool force);
+    void                        onInboxToggle();
+    // </Prestige>
 
 protected:
     void                        onBackButtonClicked();

@@ -289,6 +289,7 @@ namespace
 // SLFloaterAO: compact control
 //=============================================================================
 
+// <Prestige> rebuilt in Firestorm's Animation Overrider layout (see slfloaterao.h)
 SLFloaterAO::SLFloaterAO(const LLSD& key)
     : LLFloater(key)
 {
@@ -300,35 +301,59 @@ SLFloaterAO::~SLFloaterAO()
 
 bool SLFloaterAO::postBuild()
 {
-    mEnabledCheck = getChild<LLCheckBoxCtrl>("ao_enabled");
     mSetCombo = getChild<LLComboBox>("set_combo");
+    mDefaultCheck = getChild<LLCheckBoxCtrl>("default_check");
     mSitCheck = getChild<LLCheckBoxCtrl>("sit_override");
-    mPauseBtn = getChild<LLButton>("pause_btn");
-    mStatusText = getChild<LLTextBox>("status_text");
+    mSmartCheck = getChild<LLCheckBoxCtrl>("smart_sit");
+    mNoMouselookCheck = getChild<LLCheckBoxCtrl>("no_mouselook");
+    mStateCombo = getChild<LLComboBox>("state_combo");
+    mAnimList = getChild<LLScrollListCtrl>("anim_list");
+    mCycleCheck = getChild<LLCheckBoxCtrl>("cycle_check");
+    mRandomCheck = getChild<LLCheckBoxCtrl>("random_check");
+    mIntervalSpin = getChild<LLSpinCtrl>("interval_spin");
+    mAnimList->setCommentText("No Animations Loaded");
 
-    mEnabledCheck->setCommitCallback([](LLUICtrl* ctrl, const LLSD&)
+    mSetCombo->setCommitCallback([this](LLUICtrl*, const LLSD&) { onSetPicked(); });
+    getChild<LLButton>("use_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onUseSet(); });
+    mDefaultCheck->setCommitCallback([this](LLUICtrl*, const LLSD&)
         {
-            SLAOEngine::instance().setEnabled(ctrl->getValue().asBoolean());
+            if (mDefaultCheck->getValue().asBoolean())
+            {
+                onUseSet();
+            }
+            mStatusDirty = true;   // unticking does not stop it: pick another set to use instead
         });
-    mSetCombo->setCommitCallback([this](LLUICtrl*, const LLSD&)
+    getChild<LLButton>("new_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onNewSet(); });
+    getChild<LLButton>("delete_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&) { onDeleteSet(); });
+    for (LLCheckBoxCtrl* check : { mSitCheck, mSmartCheck, mNoMouselookCheck })
+    {
+        check->setCommitCallback([this](LLUICtrl*, const LLSD&) { onSetOptionsChanged(); });
+    }
+    mStateCombo->setCommitCallback([this](LLUICtrl*, const LLSD&) { onStatePicked(); });
+    getChild<LLButton>("up_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&)
         {
-            SLAOEngine::instance().selectSet(mSetCombo->getValue().asUUID());
+            const LLUUID item = selectedAnim();
+            if (item.notNull() && canEdit()) SLAOSets::instance().moveAnimation(mShownSet, shownState(), item, -1);
         });
-    mSitCheck->setCommitCallback([](LLUICtrl* ctrl, const LLSD&)
+    getChild<LLButton>("down_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&)
         {
-            SLAOEngine::instance().setSitOverride(ctrl->getValue().asBoolean());
+            const LLUUID item = selectedAnim();
+            if (item.notNull() && canEdit()) SLAOSets::instance().moveAnimation(mShownSet, shownState(), item, 1);
         });
-    mPauseBtn->setCommitCallback([](LLUICtrl*, const LLSD&)
+    getChild<LLButton>("remove_btn")->setCommitCallback([this](LLUICtrl*, const LLSD&)
         {
-            SLAOEngine& engine = SLAOEngine::instance();
-            engine.setUserPaused(!engine.isUserPaused());
+            const LLUUID item = selectedAnim();
+            if (item.notNull() && canEdit()) SLAOSets::instance().removeAnimation(mShownSet, shownState(), item);
         });
+    getChild<LLButton>("edit_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { LLFloaterReg::showInstance("sl_ao_editor"); });
+    getChild<LLButton>("more_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { LLFloaterReg::showInstance("sl_ao_editor"); });
+    for (LLUICtrl* ctrl : { (LLUICtrl*)mCycleCheck, (LLUICtrl*)mRandomCheck, (LLUICtrl*)mIntervalSpin })
+    {
+        ctrl->setCommitCallback([this](LLUICtrl*, const LLSD&) { onStateConfigChanged(); });
+    }
+    getChild<LLButton>("reload_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOSets::instance().requestRescan(); });
     getChild<LLButton>("prev_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().nextAnim(-1); });
     getChild<LLButton>("next_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().nextAnim(1); });
-    getChild<LLButton>("reset_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().reset(); });
-    getChild<LLButton>("edit_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { LLFloaterReg::showInstance("sl_ao_editor"); });
-    getChild<LLButton>("ignore_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().ignoreTakeoverAnim(); });
-    getChild<LLButton>("resume_scripted_btn")->setCommitCallback([](LLUICtrl*, const LLSD&) { SLAOEngine::instance().resumeFromScriptedAO(); });
 
     mSetsConnection = SLAOSets::instance().setChangedCallback([this]() { mSetsDirty = true; mStatusDirty = true; });
     mEngineConnection = SLAOEngine::instance().setChangedCallback([this]() { mStatusDirty = true; });
@@ -337,6 +362,10 @@ bool SLFloaterAO::postBuild()
 
 void SLFloaterAO::onOpen(const LLSD& key)
 {
+    if (mShownSet.isNull() || !SLAOSets::instance().getSet(mShownSet))
+    {
+        mShownSet = SLAOEngine::instance().getCurrentSetID();
+    }
     mSetsDirty = true;
     mStatusDirty = true;
 }
@@ -347,13 +376,27 @@ void SLFloaterAO::draw()
     {
         mSetsDirty = false;
         refreshSets();
+        refreshStates();
+        refreshAnims();
     }
     if (mStatusDirty)
     {
         mStatusDirty = false;
-        refreshStatus();
+        refreshSetOptions();
     }
     LLFloater::draw();
+}
+
+bool SLFloaterAO::canEdit() const
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    return set && !set->mFromSnapshot && SLAOSets::instance().isInventoryScanned();
+}
+
+LLUUID SLFloaterAO::selectedAnim() const
+{
+    const LLScrollListItem* item = mAnimList->getFirstSelected();
+    return item ? item->getValue().asUUID() : LLUUID::null;
 }
 
 void SLFloaterAO::refreshSets()
@@ -372,44 +415,201 @@ void SLFloaterAO::refreshSets()
     if (sets.empty())
     {
         mSetCombo->add(LLTrans::getString("SLAONoSets"), LLSD(LLUUID::null), ADD_BOTTOM, false);
+        mShownSet.setNull();
     }
-    mSetCombo->selectByValue(LLSD(SLAOEngine::instance().getCurrentSetID()));
+    else if (!SLAOSets::instance().getSet(mShownSet))
+    {
+        const LLUUID current = SLAOEngine::instance().getCurrentSetID();
+        mShownSet = SLAOSets::instance().getSet(current) ? current : sets.front()->mFolderID;
+    }
+    mSetCombo->selectByValue(LLSD(mShownSet));
 }
 
-void SLFloaterAO::refreshStatus()
+void SLFloaterAO::refreshSetOptions()
 {
-    SLAOEngine& engine = SLAOEngine::instance();
-    const SLAOSet* set = engine.getCurrentSet();
-    mEnabledCheck->setValue(engine.isEnabled());
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    const bool editable = canEdit();
+    mDefaultCheck->setValue(set && SLAOEngine::instance().getCurrentSetID() == mShownSet);
+    mDefaultCheck->setEnabled(set != nullptr);
+    getChild<LLUICtrl>("use_btn")->setEnabled(set != nullptr);
+    getChild<LLUICtrl>("delete_btn")->setEnabled(set != nullptr);
     mSitCheck->setValue(set && set->mSitOverride);
-    mSitCheck->setEnabled(set != nullptr);
-    mPauseBtn->setToggleState(engine.isUserPaused());
-    mPauseBtn->setLabel(LLTrans::getString(engine.isUserPaused() ? "SLAOResume" : "SLAOPause"));
-    mPauseBtn->setEnabled(engine.isEnabled());
-    mStatusText->setText(engine.getStatusText());
-    const bool by_animation = (engine.getPauseReason() == SLAOEngine::PAUSE_SCRIPT_ANIM ||
-                               engine.getPauseReason() == SLAOEngine::PAUSE_SERVER_AO) &&
-                              engine.getTakeoverAnim().notNull();
-    getChild<LLUICtrl>("ignore_btn")->setVisible(by_animation);
-    getChild<LLUICtrl>("resume_scripted_btn")->setVisible(engine.getPauseReason() == SLAOEngine::PAUSE_SCRIPTED_AO);
-    if (mSetCombo->getValue().asUUID() != engine.getCurrentSetID())
+    mSmartCheck->setValue(set && set->mSmartSit);
+    mNoMouselookCheck->setValue(set && set->mNoStandsInMouselook);
+    mSitCheck->setEnabled(editable);
+    mSmartCheck->setEnabled(editable && set && set->mSitOverride);
+    mNoMouselookCheck->setEnabled(editable);
+}
+
+void SLFloaterAO::refreshStates()
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    mStateCombo->removeall();
+    for (S32 i = 0; i < STATE_COUNT; ++i)
     {
-        mSetCombo->selectByValue(LLSD(engine.getCurrentSetID()));
+        const EState state = (EState)i;
+        std::string label = stateLabel(state);
+        const S32 count = set ? (S32)set->mAnims[i].size() : 0;
+        if (count > 0)
+        {
+            label += llformat(" (%d)", count);
+        }
+        mStateCombo->add(label, LLSD(i));
     }
+    mStateCombo->selectByValue(LLSD(mShownState));
+}
+
+void SLFloaterAO::refreshAnims()
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    const LLUUID selected = selectedAnim();
+    mAnimList->deleteAllItems();
+    if (set && mShownState >= 0 && mShownState < STATE_COUNT)
+    {
+        for (const SLAOAnim& anim : set->mAnims[mShownState])
+        {
+            LLSD row;
+            row["value"] = anim.mItemID;
+            row["columns"][0]["column"] = "name";
+            row["columns"][0]["value"] = anim.mName;
+            mAnimList->addElement(row);
+        }
+    }
+    if (selected.notNull())
+    {
+        mAnimList->selectByID(selected);
+    }
+    const bool editable = canEdit();
+    for (const char* name : { "up_btn", "down_btn", "remove_btn" })
+    {
+        getChild<LLUICtrl>(name)->setEnabled(editable && mAnimList->getItemCount() > 0);
+    }
+    SLAOStateConfig config;
+    if (set && mShownState >= 0 && mShownState < STATE_COUNT)
+    {
+        config = set->mStateConfig[mShownState];
+    }
+    mCycleCheck->setValue(config.mCycle);
+    mRandomCheck->setValue(config.mRandom);
+    mIntervalSpin->setValue(config.mInterval);
+    mCycleCheck->setEnabled(editable);
+    mRandomCheck->setEnabled(editable);
+    mIntervalSpin->setEnabled(editable && config.mCycle);
+}
+
+void SLFloaterAO::onSetPicked()
+{
+    mShownSet = mSetCombo->getValue().asUUID();
+    refreshStates();
+    refreshAnims();
+    refreshSetOptions();
+}
+
+void SLFloaterAO::onUseSet()
+{
+    if (SLAOSets::instance().getSet(mShownSet))
+    {
+        SLAOEngine::instance().selectSet(mShownSet);
+        if (!SLAOEngine::instance().isEnabled())
+        {
+            SLAOEngine::instance().setEnabled(true);
+        }
+    }
+    mStatusDirty = true;
+}
+
+void SLFloaterAO::onNewSet()
+{
+    LLHandle<LLFloater> handle = getHandle();
+    prompt_name(LLTrans::getString("SLAOPromptNewSet"), LLTrans::getString("SLAODefaultSetName"),
+        [handle](const std::string& name)
+        {
+            SLAOSets::instance().createSet(name, [handle](const LLUUID& set_id)
+                {
+                    SLFloaterAO* self = static_cast<SLFloaterAO*>(handle.get());
+                    if (self && set_id.notNull())
+                    {
+                        self->mShownSet = set_id;
+                        self->mSetsDirty = true;
+                    }
+                    if (set_id.notNull() && SLAOEngine::instance().getCurrentSetID().isNull())
+                    {
+                        SLAOEngine::instance().selectSet(set_id);
+                    }
+                });
+        });
+}
+
+void SLFloaterAO::onDeleteSet()
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    if (!set)
+    {
+        return;
+    }
+    const LLUUID set_id = set->mFolderID;
+    LLSD args;
+    args["NAME"] = set->mName;
+    const char* notification = set->mFromOtherViewer ? "SLAODeleteOtherViewerSet"
+                             : (set->mHasCopies ? "SLAODeleteSetWithCopies" : "SLAODeleteSet");
+    LLNotificationsUtil::add(notification, args, LLSD(),
+        [set_id](const LLSD& notification, const LLSD& response)
+        {
+            if (LLNotificationsUtil::getSelectedOption(notification, response) != 0)
+            {
+                return;
+            }
+            if (SLAOEngine::instance().getCurrentSetID() == set_id)
+            {
+                SLAOEngine::instance().selectSet(LLUUID::null);
+            }
+            SLAOSets::instance().deleteSet(set_id);
+        });
+}
+
+void SLFloaterAO::onSetOptionsChanged()
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    if (!set || !canEdit())
+    {
+        return;
+    }
+    SLAOSets::instance().setSetOptions(mShownSet, mSitCheck->getValue().asBoolean(), mSmartCheck->getValue().asBoolean(),
+                                       mNoMouselookCheck->getValue().asBoolean(), set->mNoStandsWhileTyping);
+}
+
+void SLFloaterAO::onStatePicked()
+{
+    mShownState = llclamp(mStateCombo->getValue().asInteger(), 0, (S32)STATE_COUNT - 1);
+    refreshAnims();
+}
+
+void SLFloaterAO::onStateConfigChanged()
+{
+    const SLAOSet* set = SLAOSets::instance().getSet(mShownSet);
+    if (!set || !canEdit() || mShownState < 0 || mShownState >= STATE_COUNT)
+    {
+        return;
+    }
+    SLAOStateConfig config = set->mStateConfig[mShownState];   // keeps "pick on entry" from the editor
+    config.mCycle = mCycleCheck->getValue().asBoolean();
+    config.mRandom = mRandomCheck->getValue().asBoolean();
+    config.mInterval = llclamp((F32)mIntervalSpin->getValue().asReal(), 1.f, 3600.f);
+    SLAOSets::instance().setStateConfig(mShownSet, shownState(), config);
 }
 
 bool SLFloaterAO::handleDragAndDrop(S32 x, S32 y, MASK mask, bool drop,
                                     EDragAndDropType cargo_type, void* cargo_data,
                                     EAcceptance* accept, std::string& tooltip_msg)
 {
-    // Notecards and folders import; animations need the editor's state list
-    if (cargo_type == DAD_NOTECARD || cargo_type == DAD_CATEGORY)
+    // Animations go into the state shown; notecards and folders import
+    if (cargo_type == DAD_ANIMATION || cargo_type == DAD_LINK || cargo_type == DAD_NOTECARD || cargo_type == DAD_CATEGORY)
     {
-        return handle_drop(drop, cargo_type, cargo_data, accept, tooltip_msg, LLUUID::null, STATE_NONE, false);
+        return handle_drop(drop, cargo_type, cargo_data, accept, tooltip_msg, mShownSet, shownState(), canEdit());
     }
     return LLFloater::handleDragAndDrop(x, y, mask, drop, cargo_type, cargo_data, accept, tooltip_msg);
 }
-
+// </Prestige>
 //=============================================================================
 // SLFloaterAOEditor: full editor
 //=============================================================================

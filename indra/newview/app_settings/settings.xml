@@ -8524,7 +8524,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>noaction</string>
+      <string>toast</string>
     </map>
     <key>NotificationFriendIMOptions</key>
     <map>
@@ -8546,7 +8546,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>noaction</string>
+      <string>toast</string>
     </map>
     <key>ChatNeverPingNearby</key>
     <map>
@@ -29011,6 +29011,17 @@
       <string>LLSD</string>
       <key>Value</key>
       <map />
+    </map>
+    <key>PrestigeFriendStatusNearby</key>
+    <map>
+      <key>Comment</key>
+      <string>Friends logging in / out show at the bottom left as a nearby chat pop-up (and a line in Nearby Chat), like Firestorm, instead of a tip at the top right. ChatOnlineNotification still turns them off; they show even while PrestigeLocalChatNotifications is off.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
     <key>PrestigeLocalChatNotifications</key>
     <map>

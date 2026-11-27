@@ -161,6 +161,28 @@ bool LLSidepanelInventory::postBuild()
         mPanelMainInventory->setParentSidepanel(this);
     }
 
+    // <Prestige> Received items box at the bottom (optional: a skin without it simply has none)
+    mInboxLayout = mInventoryPanel->findChild<LLLayoutPanel>("inbox_layout_panel");
+    mInboxBtn = mInventoryPanel->findChild<LLButton>("inbox_btn");
+    mInboxPanel = mInventoryPanel->findChild<LLInventoryPanel>("inventory_inbox");
+    if (mInboxBtn)
+    {
+        mInboxBtn->setCommitCallback([this](LLUICtrl*, const LLSD&) { onInboxToggle(); });
+    }
+    if (LLButton* refresh = mInventoryPanel->findChild<LLButton>("inbox_refresh"))
+    {
+        refresh->setCommitCallback([this](LLUICtrl*, const LLSD&)
+        {
+            const LLUUID inbox_id = gInventory.findCategoryUUIDForType(LLFolderType::FT_INBOX);
+            if (inbox_id.notNull())
+            {
+                LLInventoryModelBackgroundFetch::instance().start(inbox_id);
+            }
+            updateInbox(true);
+        });
+    }
+    // </Prestige>
+
     LLFloater *floater = dynamic_cast<LLFloater*>(getParent());
     if (floater && floater->getKey().isUndefined() && !sLoginCompleted)
     {
@@ -189,6 +211,63 @@ bool LLSidepanelInventory::postBuild()
 
     return true;
 }
+
+// <Prestige> Received items box
+void LLSidepanelInventory::draw()
+{
+    if (mInboxTimer.getElapsedTimeF32() > 1.f)
+    {
+        mInboxTimer.reset();
+        updateInbox(false);
+    }
+    LLPanel::draw();
+}
+
+void LLSidepanelInventory::updateInbox(bool force)
+{
+    if (!mInboxLayout || !mInboxBtn)
+    {
+        return;
+    }
+    const LLUUID inbox_id = gInventory.findCategoryUUIDForType(LLFolderType::FT_INBOX);
+    if (inbox_id.isNull())
+    {
+        mInboxLayout->setVisible(false);
+        return;
+    }
+    if (!mInboxLayout->getVisible())
+    {
+        mInboxLayout->setVisible(true);
+    }
+    LLInventoryModel::cat_array_t* cats = nullptr;
+    LLInventoryModel::item_array_t* items = nullptr;
+    gInventory.getDirectDescendentsOf(inbox_id, cats, items);
+    const S32 count = (cats ? (S32)cats->size() : 0) + (items ? (S32)items->size() : 0);
+    if (force || count != mInboxCount)
+    {
+        mInboxCount = count;
+        mInboxBtn->setLabel(llformat("Received items (%d)", count));
+    }
+}
+
+void LLSidepanelInventory::onInboxToggle()
+{
+    if (!mInboxLayout)
+    {
+        return;
+    }
+    mInboxOpen = !mInboxOpen;
+    if (mInboxPanel)
+    {
+        mInboxPanel->setVisible(mInboxOpen);
+    }
+    if (mInboxBtn)
+    {
+        mInboxBtn->setImageOverlay(mInboxOpen ? "Accordion_ArrowOpened_Off" : "Accordion_ArrowClosed_Off", LLFontGL::LEFT);
+    }
+    mInboxLayout->setTargetDim(mInboxOpen ? 220 : 30);
+}
+// </Prestige>
 
 void LLSidepanelInventory::onOpen(const LLSD& key)
 {

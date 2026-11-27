@@ -42,8 +42,10 @@ class LLScrollListCtrl;
 class LLSpinCtrl;
 class LLTextBox;
 
-// Small always-handy control: on/off, set, next/previous stand, sits,
-// pause, and why the AO is paused if it is.
+// <Prestige> The AO window (toolbar AO button), laid out like Firestorm's Animation Overrider:
+// set picker + use, Default, new / delete set, Override Sits / Be smart, Disable Stands in
+// Mouselook, the state picker, its animations (move, remove, drop to add), Cycle / Randomize /
+// Cycle time, Reload, previous / next. The full editor (sl_ao_editor) has the rest.
 class SLFloaterAO : public LLFloater
 {
     LOG_CLASS(SLFloaterAO);
@@ -60,20 +62,40 @@ public:
 
 private:
     void refreshSets();
-    void refreshStatus();
+    void refreshSetOptions();
+    void refreshStates();
+    void refreshAnims();
+    bool canEdit() const;
+    SLAO::EState shownState() const { return (SLAO::EState)mShownState; }
+    LLUUID selectedAnim() const;
 
-    LLCheckBoxCtrl* mEnabledCheck = nullptr;
+    void onSetPicked();
+    void onUseSet();
+    void onNewSet();
+    void onDeleteSet();
+    void onSetOptionsChanged();
+    void onStatePicked();
+    void onStateConfigChanged();
+
     LLComboBox* mSetCombo = nullptr;
+    LLCheckBoxCtrl* mDefaultCheck = nullptr;
     LLCheckBoxCtrl* mSitCheck = nullptr;
-    LLButton* mPauseBtn = nullptr;
-    LLTextBox* mStatusText = nullptr;
+    LLCheckBoxCtrl* mSmartCheck = nullptr;
+    LLCheckBoxCtrl* mNoMouselookCheck = nullptr;
+    LLComboBox* mStateCombo = nullptr;
+    LLScrollListCtrl* mAnimList = nullptr;
+    LLCheckBoxCtrl* mCycleCheck = nullptr;
+    LLCheckBoxCtrl* mRandomCheck = nullptr;
+    LLSpinCtrl* mIntervalSpin = nullptr;
 
+    LLUUID mShownSet;                   // the set this window shows (not necessarily the one in use)
+    S32 mShownState = SLAO::STAND;
     bool mSetsDirty = true;
     bool mStatusDirty = true;
     boost::signals2::scoped_connection mSetsConnection;
     boost::signals2::scoped_connection mEngineConnection;
 };
-
+// </Prestige>
 // Full editor: sets, states, animations, ordering, cycling, options, import.
 class SLFloaterAOEditor : public LLFloater
 {

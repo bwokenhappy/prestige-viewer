@@ -38,6 +38,8 @@
 #include "llviewerwindow.h"
 #include "llnotificationmanager.h"
 #include "llpaneltiptoast.h"
+#include "llchat.h"            // <Prestige/> friends' log in / out as a nearby chat pop-up
+#include "llinstantmessage.h"  // <Prestige/> SYSTEM_FROM
 
 using namespace LLNotificationsUI;
 
@@ -78,6 +80,32 @@ bool LLTipHandler::processNotification(const LLNotificationPtr& notification, bo
     {
         initChannel();
     }
+
+    // <Prestige> friends logging in / out show at the bottom left, as a nearby chat pop-up like
+    // Firestorm's (PrestigeFriendStatusNearby), not as a tip at the top right. The line is kept in
+    // Nearby Chat. ChatOnlineNotification (Preferences > Notifications) still turns them off.
+    static LLCachedControl<bool> friend_status_nearby(gSavedSettings, "PrestigeFriendStatusNearby", true);
+    if (friend_status_nearby && "FriendOnlineOffline" == notification->getName())
+    {
+        const LLUUID agent_id = notification->getPayload()["FROM_ID"].asUUID();
+        if (!gSavedSettings.getBOOL("ChatOnlineNotification")
+            && !(gSavedSettings.getBOOL("FSContactSetsNotificationToast") && LGGContactSets::getInstance()->notifyForFriend(agent_id)))
+        {
+            if (notification->canLogToChat() || notification->isSendToChatForced())
+                LLHandlerUtil::logToNearbyChat(notification, CHAT_SOURCE_SYSTEM);
+            return false;
+        }
+        LLChat chat_msg(notification->getMessage());
+        chat_msg.mSourceType = CHAT_SOURCE_SYSTEM;
+        chat_msg.mFromName = SYSTEM_FROM;
+        chat_msg.mFromID = LLUUID::null;
+        chat_msg.mNoticeTag = "Friends";
+        LLSD args;
+        args["prestige_friend_status"] = true;   // shown even while local chat pop-ups are off
+        LLNotificationsUI::LLNotificationManager::instance().onChat(chat_msg, args);
+        return false;
+    }
+    // </Prestige>
 
         // archive message in nearby chat
     if (notification->canLogToChat() || notification->isSendToChatForced())

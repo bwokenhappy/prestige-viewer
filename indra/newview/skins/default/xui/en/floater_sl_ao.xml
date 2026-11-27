@@ -1,128 +1,235 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<!-- Prestige: Firestorm's compact AO bar (Firestorm floater_ao small mode: set picker, more,
-     previous / next stand, Sits), on Prestige's AO engine (SLFloaterAO). Walk-backwards and
-     swimming are in the AO editor (gear button). -->
+<!-- Prestige: the AO window in Firestorm's Animation Overrider layout (owner's request, 1.8.8), on
+     Prestige's AO engine (SLFloaterAO). The AO is turned on / off with the tick on the toolbar's AO
+     button; walk-backwards, swimming, idles, Always and imports are in the AO editor (wrench / the
+     arrow at the bottom right). -->
 <floater
  positioning="cascading"
  save_rect="true"
  can_resize="false"
- height="118"
- width="222"
+ height="440"
+ width="246"
  layout="topleft"
  name="sl_ao"
+ help_topic="sl_ao"
  single_instance="true"
- title="AO">
-    <check_box
-     follows="left|top"
-     height="16"
-     label="AO"
-     layout="topleft"
-     left="6"
-     name="ao_enabled"
-     tool_tip="Turn the animation overrider on or off (/ao on, /ao off)"
-     top="25"
-     width="40" />
+ title="Animation Overrider">
     <combo_box
-     follows="left|top|right"
-     height="20"
+     follows="left|top"
+     height="22"
      layout="topleft"
-     left_pad="2"
+     left="8"
      name="set_combo"
-     tool_tip="Active AO set (/ao set &lt;name&gt;)"
-     top="22"
-     width="120" />
-    <button
-     follows="top|right"
-     height="20"
-     image_overlay="Icon_Gear"
-     layout="topleft"
-     left_pad="2"
-     name="edit_btn"
-     tool_tip="Open the AO editor: sets, states, animations, import"
-     top_delta="0"
-     width="22" />
-    <button
-     follows="top|right"
-     height="20"
-     image_overlay="Refresh_Off"
-     layout="topleft"
-     left_pad="2"
-     name="reset_btn"
-     tool_tip="Refresh / reset the AO: stops stuck animations, reloads your AO sets and starts the right one again"
-     top_delta="0"
-     width="22" />
+     tool_tip="The AO set shown below. Click the tick to use it."
+     top="26"
+     width="198" />
     <button
      follows="left|top"
-     height="20"
-     label="&lt;&lt;"
+     height="22"
+     image_overlay="Check_Mark"
      layout="topleft"
-     left="6"
-     name="prev_btn"
-     tool_tip="Previous stand (or previous animation of the current state)"
-     top="46"
-     width="50" />
-    <button
-     follows="left|top"
-     height="20"
-     label="&gt;&gt;"
-     layout="topleft"
-     left_pad="2"
-     name="next_btn"
-     tool_tip="Next stand (/ao next)"
+     left_pad="4"
+     name="use_btn"
+     tool_tip="Use this set now (and turn the AO on)"
      top_delta="0"
-     width="50" />
+     width="26" />
     <check_box
      follows="left|top"
      height="16"
-     label="Sits"
+     label="Default"
+     layout="topleft"
+     left="8"
+     name="default_check"
+     tool_tip="Ticked: this is the set the AO uses (it is kept for your next login)"
+     top_pad="6"
+     width="150" />
+    <button
+     follows="left|top"
+     height="22"
+     image_overlay="AddItem_Off"
+     layout="topleft"
+     left="180"
+     name="new_btn"
+     tool_tip="New set"
+     top_delta="-3"
+     width="26" />
+    <button
+     follows="left|top"
+     height="22"
+     image_overlay="TrashItem_Off"
+     layout="topleft"
+     left_pad="4"
+     name="delete_btn"
+     tool_tip="Delete this set (its folder goes to the trash)"
+     top_delta="0"
+     width="26" />
+    <check_box
+     follows="left|top"
+     height="16"
+     label="Override Sits"
+     layout="topleft"
+     left="8"
+     name="sit_override"
+     tool_tip="Replace the sit on objects with this set's Sitting animations"
+     top_pad="4"
+     width="120" />
+    <check_box
+     follows="left|top"
+     height="16"
+     label="Be smart"
+     layout="topleft"
+     left="134"
+     name="smart_sit"
+     tool_tip="Leave the seat's own animation alone when the furniture animates you"
+     top_delta="0"
+     width="100" />
+    <check_box
+     follows="left|top"
+     height="16"
+     label="Disable Stands in Mouselook"
+     layout="topleft"
+     left="8"
+     name="no_mouselook"
+     tool_tip="No standing animations while you are in mouselook"
+     top_pad="6"
+     width="228" />
+    <combo_box
+     follows="left|top"
+     height="22"
+     layout="topleft"
+     left="8"
+     name="state_combo"
+     tool_tip="The state whose animations are listed (the number is how many it has)"
+     top_pad="8"
+     width="228" />
+    <scroll_list
+     column_padding="0"
+     draw_heading="false"
+     follows="left|top"
+     height="176"
+     layout="topleft"
+     left="8"
+     multi_select="false"
+     name="anim_list"
+     tool_tip="Animations for this state. Drag animations here from your inventory to add them."
+     top_pad="6"
+     width="196">
+        <scroll_list.columns
+         name="name"
+         relative_width="1" />
+    </scroll_list>
+    <button
+     follows="left|top"
+     height="26"
+     image_overlay="Arrow_Up"
      layout="topleft"
      left_pad="6"
-     name="sit_override"
-     tool_tip="Replace sit animations with this set's. Seats with their own animation still win when Smart sit is on (/ao sit)"
-     top_delta="2"
-     width="48" />
-    <button
-     follows="top|right"
-     height="20"
-     is_toggle="true"
-     label="Pause"
-     layout="topleft"
-     left_pad="2"
-     name="pause_btn"
-     tool_tip="Pause or resume the AO without switching it off (/ao pause, /ao resume)"
-     top_delta="-2"
-     width="56" />
-    <text
-     follows="left|top|right"
-     font="SansSerifSmall"
-     height="26"
-     layout="topleft"
-     left="6"
-     name="status_text"
-     text_color="EmphasisColor"
-     top="70"
-     word_wrap="true"
-     width="210" />
-    <button
-     follows="left|top"
-     height="20"
-     label="Don't pause for this"
-     layout="topleft"
-     left="6"
-     name="ignore_btn"
-     tool_tip="This animation does not fight the AO (a deformer, a body fix, a small pose): never pause for it again. Manage the list in the AO editor."
-     top="96"
-     visible="false"
-     width="150" />
-    <button
-     follows="left|top"
-     height="20"
-     label="Resume my AO"
-     layout="topleft"
-     left="6"
-     name="resume_scripted_btn"
-     tool_tip="Run this AO alongside the scripted AO you are wearing. Remembered choices can be changed under Remembered choices in the AO editor."
+     name="up_btn"
+     tool_tip="Move up"
      top_delta="0"
-     visible="false"
-     width="150" />
+     width="26" />
+    <button
+     follows="left|top"
+     height="26"
+     image_overlay="Arrow_Down"
+     layout="topleft"
+     left_delta="0"
+     name="down_btn"
+     tool_tip="Move down"
+     top_pad="6"
+     width="26" />
+    <button
+     follows="left|top"
+     height="26"
+     image_overlay="Edit_Wrench"
+     layout="topleft"
+     left_delta="0"
+     name="edit_btn"
+     tool_tip="Open the full AO editor"
+     top_pad="54"
+     width="26" />
+    <button
+     follows="left|top"
+     height="26"
+     image_overlay="TrashItem_Off"
+     layout="topleft"
+     left_delta="0"
+     name="remove_btn"
+     tool_tip="Remove the selected animation from this state"
+     top_pad="6"
+     width="26" />
+    <check_box
+     follows="left|top"
+     height="16"
+     label="Cycle"
+     layout="topleft"
+     left="8"
+     name="cycle_check"
+     tool_tip="Switch to the next animation every Cycle time seconds"
+     top="334"
+     width="80" />
+    <check_box
+     follows="left|top"
+     height="16"
+     label="Randomize order"
+     layout="topleft"
+     left="96"
+     name="random_check"
+     tool_tip="Play this state's animations in random order"
+     top_delta="0"
+     width="140" />
+    <spinner
+     decimal_digits="2"
+     follows="left|top"
+     height="20"
+     increment="1"
+     label="Cycle time (secs):"
+     label_width="150"
+     layout="topleft"
+     left="8"
+     max_val="3600"
+     min_val="1"
+     name="interval_spin"
+     top_pad="6"
+     width="228" />
+    <button
+     follows="left|top"
+     height="22"
+     label="Reload"
+     layout="topleft"
+     left="8"
+     name="reload_btn"
+     tool_tip="Read your AO sets from inventory again"
+     top_pad="4"
+     width="228" />
+    <button
+     follows="left|top"
+     height="22"
+     image_overlay="Arrow_Left"
+     layout="topleft"
+     left="8"
+     name="prev_btn"
+     tool_tip="Previous animation"
+     top_pad="4"
+     width="98" />
+    <button
+     follows="left|top"
+     height="22"
+     image_overlay="Arrow_Right"
+     layout="topleft"
+     left_pad="4"
+     name="next_btn"
+     tool_tip="Next animation"
+     top_delta="0"
+     width="98" />
+    <button
+     follows="left|top"
+     height="22"
+     image_overlay="Arrow_Small_Down"
+     layout="topleft"
+     left_pad="4"
+     name="more_btn"
+     tool_tip="More AO options (the full AO editor)"
+     top_delta="0"
+     width="24" />
 </floater>

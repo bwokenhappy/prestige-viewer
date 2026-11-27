@@ -112,4 +112,14 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Quick Preferences: ReShade... replaces Photo Studio... (toolbar unchanged).
   Note: in 1.8.6 `SLFxEnabled` was still on from earlier sessions, so the restored effects drew at
   once; that was not a bug.
+- 1.8.9 (owner's requests, not tested in-world): Received items box at the bottom of Inventory
+  (sidepanel_inventory.xml `inbox_layout_panel`, LLSidepanelInventory::updateInbox; header with
+  count folds it, refresh fetches; the folder is still in the tree too). Friends log in / out
+  pop up at the bottom left as nearby chat toasts (`PrestigeFriendStatusNearby`,
+  llnotificationtiphandler.cpp; shown even with PrestigeLocalChatNotifications off), not top
+  right. Group chat and conference IMs pop up at the top right by default
+  (`NotificationGroupChatOptions` / `NotificationConferenceIMOptions` = toast). The AO window
+  (sl_ao, SLFloaterAO) is rebuilt in Firestorm's Animation Overrider layout; the full editor
+  (sl_ao_editor) is behind the wrench / bottom-right arrow. The old pause / status / ignore
+  buttons of the small AO bar are gone from it.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

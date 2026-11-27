@@ -116,7 +116,7 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   (sidepanel_inventory.xml `inbox_layout_panel`, LLSidepanelInventory::updateInbox; header with
   count folds it, refresh fetches; the folder is still in the tree too). Friends log in / out
   pop up at the bottom left as nearby chat toasts (`PrestigeFriendStatusNearby`,
-  llnotificationtiphandler.cpp; shown even with PrestigeLocalChatNotifications off), not top
+  llnotificationtiphandler.cpp; since 1.9.2 hidden with PrestigeLocalChatNotifications off, owner), not top
   right. Group chat and conference IMs pop up at the top right by default
   (`NotificationGroupChatOptions` / `NotificationConferenceIMOptions` = toast). The AO window
   (sl_ao, SLFloaterAO) is rebuilt in Firestorm's Animation Overrider layout; the full editor

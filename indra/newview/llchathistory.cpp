@@ -1372,6 +1372,11 @@ void LLChatHistory::initFromParams(const LLChatHistory::Params& p)
     panel_p.rect = new_text_notice_rect;
     panel_p.background_opaque = true;
     panel_p.background_visible = true;
+    // <Prestige> the panel's default colours are see-through in the Firestorm skins, so the
+    // "has said something new" line was drawn over the chat text: give it a solid strip.
+    panel_p.bg_opaque_color = LLUIColorTable::instance().getColor("ChatHistoryBgColor");
+    panel_p.bg_alpha_color = LLUIColorTable::instance().getColor("ChatHistoryBgColor");
+    // </Prestige>
     panel_p.visible = false;
     panel_p.min_dim = 0;
     panel_p.auto_resize = false;

@@ -122,4 +122,7 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   (sl_ao, SLFloaterAO) is rebuilt in Firestorm's Animation Overrider layout; the full editor
   (sl_ao_editor) is behind the wrench / bottom-right arrow. The old pause / status / ignore
   buttons of the small AO bar are gone from it.
+- 1.9.0: the "... has said something new" line in chat history (`more_chat_text`, shown while
+  scrolled up) had a see-through strip in the Firestorm skins and drew over the chat text; its
+  panel now uses `ChatHistoryBgColor` (llchathistory.cpp).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

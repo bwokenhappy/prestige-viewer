@@ -113,10 +113,9 @@ bool LLTipHandler::processNotification(const LLNotificationPtr& notification, bo
         chat_msg.mNoticeTag = "Friends";
         LLSD args;
         args["prestige_friend_status"] = true;   // shown even while local chat pop-ups are off
-        if (agent_id.notNull() && !friend_name.empty())
+        if (!friend_name.empty())
         {
-            args["prestige_friend_id"] = agent_id;      // the name as a link in Nearby Chat
-            args["prestige_friend_name"] = friend_name;
+            chat_msg.mSubjectID = agent_id;   // the name as a link in Nearby Chat
         }
         LLNotificationsUI::LLNotificationManager::instance().onChat(chat_msg, args);
         return false;

@@ -1987,9 +1987,10 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
         }
         // <Prestige> a friend's log in / out reads as in Firestorm: "Name (username) is online.",
         // the name a link to their profile in the chat name colour
-        if (args.has("prestige_friend_id") && args.has("prestige_friend_name"))
+        LLAvatarName friend_av;
+        if (chat.mSubjectID.notNull() && LLAvatarNameCache::get(chat.mSubjectID, &friend_av))
         {
-            const std::string friend_name = args["prestige_friend_name"].asString();
+            const std::string friend_name = friend_av.getCompleteName(true, true);
             if (!friend_name.empty() && message.compare(0, friend_name.length(), friend_name) == 0)
             {
                 LLStyle::Params friend_link(body_message_params);
@@ -1998,7 +1999,7 @@ void LLChatHistory::appendMessage(const LLChat& chat, const LLSD &args, const LL
                 friend_link.color = friend_color;
                 friend_link.readonly_color = friend_color;
                 friend_link.is_link = true;
-                friend_link.link_href = SLURL_APP_AGENT + args["prestige_friend_id"].asUUID().asString() + "/inspect";
+                friend_link.link_href = SLURL_APP_AGENT + chat.mSubjectID.asString() + "/inspect";
                 mEditor->appendText(friend_name, prependNewLineState, friend_link);
                 prependNewLineState = false;
                 message = message.substr(friend_name.length());

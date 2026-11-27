@@ -123,6 +123,9 @@ public:
     // Which kind of notice a system line in nearby chat is ("Item", "Friends", ...), for its
     // label (LLViewerChat::getChatTag). Empty: worked out from the source type.
     std::string     mNoticeTag;
+    // The resident a notice is about (a friend logging in / out), whose name in the line is
+    // drawn as a link to them. Kept in the chat itself so the windowed history has it too.
+    LLUUID          mSubjectID;
     // </Prestige>
 };
 

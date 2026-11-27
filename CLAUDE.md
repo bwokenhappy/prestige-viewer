@@ -135,5 +135,6 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   Friends log in / out are Firestorm's "Display Name (username) is online.": on screen one white
   line each in the text console at the bottom left, whatever NearbyChatOverlayStyle is
   (`LLViewerWindow::keepNearbyChatConsoleShown`); in Nearby Chat the name is a ChatNameColor link
-  (`prestige_friend_id` / `prestige_friend_name` args).
+  (`LLChat::mSubjectID`; 1.9.0 passed it in appendMessage args, which the windowed history
+  drops, so the names were white: fixed in 1.9.1).
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.

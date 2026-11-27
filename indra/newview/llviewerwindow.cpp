@@ -2949,6 +2949,27 @@ void LLViewerWindow::initBase()
                 }
             });
     }
+    // <Prestige> unticking Conversations (local chat notifications off) takes the lines already on
+    // screen away at once, friends' log in / out included, instead of letting them fade out
+    gSavedSettings.getControl("PrestigeLocalChatNotifications")->getSignal()->connect(
+        [handle = mNearbyChatConsole->getHandle()](LLControlVariable*, const LLSD& new_value, const LLSD&)
+        {
+            if (new_value.asBoolean() || handle.isDead())
+            {
+                return;
+            }
+            static_cast<LLConsole*>(handle.get())->clear();
+            if (gViewerWindow)
+            {
+                gViewerWindow->mNearbyChatConsoleKeepUntil = 0.0;
+            }
+            if (auto* channel = LLNotificationsUI::LLChannelManager::getInstance()->findChannelByID(
+                    LLNotificationsUI::NEARBY_CHAT_CHANNEL_UUID))
+            {
+                channel->removeToastsFromChannel();
+            }
+        });
+    // </Prestige>
     for (const char* setting : {"NearbyChatOverlayStyle", "NearbyChatOverlayHideWhenVisible",
                                "NotificationNearbyChatOptions", "NotificationObjectIMOptions"})
     {

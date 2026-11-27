@@ -704,8 +704,8 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
 
     // <Prestige> local chat notifications off (the tick on the Conversations button): the line is
     // in Nearby Chat, nothing pops up over the world
-    static LLCachedControl<bool> local_notifications(gSavedSettings, "PrestigeLocalChatNotifications", true);
-    if (!local_notifications)   // 1.9.2 (owner): friends' log in / out pop-ups follow the tick too
+    // (read straight from the settings each time: 1.9.3, the owner still saw friend lines with it off)
+    if (!gSavedSettings.getBOOL("PrestigeLocalChatNotifications"))   // friends' log in / out too (1.9.2)
     {
         return;
     }
@@ -731,6 +731,8 @@ void LLFloaterIMNearbyChatHandler::processChat(const LLChat& chat_msg,
     {
         if (LLConsole* console = gViewerWindow->getNearbyChatConsole())
         {
+            LL_INFOS("FriendStatus") << "bottom-left line, local notifications "
+                                     << gSavedSettings.getBOOL("PrestigeLocalChatNotifications") << LL_ENDL;
             console->addConsoleLine(chat_msg.mText, LLUIColorTable::instance().getColor("White"), LLFontGL::NORMAL);
             gViewerWindow->keepNearbyChatConsoleShown();
             return;

@@ -143,4 +143,8 @@ Firestorm / Slipstream lineage), XUI skins, RmlUi for camera mode.
   used by `LLViewerChat::getChatFont` only; the rest of the interface keeps its sizes.
 - 1.9.2: `PrestigeFlashTaskbar` (Preferences > Chat > Alerts, under Window title) turns every
   taskbar flash off (`LLViewerWindow::flashTaskbarIfUnfocused`; the GPU-lost dialog still flashes).
+- 1.9.3: owner still saw friend lines at the bottom left with Conversations unticked on 1.9.2
+  (cause not found by reading; every console write is behind the tick). The tick is now read
+  straight from gSavedSettings in processChat, unticking clears the console and nearby toasts at
+  once, and each friend line logs `#FriendStatus#` with the tick's value: check the log if it recurs.
 - Engine work toward Firestorm-on-Vulkan lives on branch `firestorm-vulkan` of the Firestorm fork; paused.
